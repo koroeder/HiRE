@@ -1,0 +1,131 @@
+! this module contains various helper function for handling
+! 3 dimensional vectors + matrices. This can be useful for
+! coordinate handling.
+module vec3
+use prec
+contains
+
+    ! length of vector
+    pure function vec_len(v)
+        implicit none
+        real(kind = real64), intent(in) :: v(3)
+        real(kind = real64) vec_len
+        vec_len = sqrt(dot_product(v,v))
+    end function
+
+    ! angle between 2 vectors in radians
+    pure function vec_angle(v1, v2)
+        implicit none
+        real(kind = real64), intent(in) :: v1(3), v2(3)
+        real(kind = real64) vec_angle
+        vec_angle = acos(dot_product(v1, v2) / (vec_len(v1) * vec_len(v2)))
+    end function
+
+   ! normalise vector
+    pure function vec_norm(v1) result(v2)
+        implicit none
+        real(kind = real64), intent(in) :: v1(3)
+        real(kind = real64) v2(3), nvec
+        nvec = vec_len(v1)
+        v2(1) = v1(1)/nvec
+        v2(2) = v1(2)/nvec
+        v2(3) = v1(3)/nvec
+    end function
+
+    ! difference between two vectors
+    pure function vec_diff(v1, v2) result(v3)
+        implicit none
+        real(kind = real64), intent(in) :: v1(3), v2(3)
+        real(kind = real64) v3(3)
+        v3(1) = v2(1) - v1(1)
+        v3(2) = v2(2) - v1(2)
+        v3(3) = v2(3) - v1(3)
+    end function
+
+    ! cross product of 2 vectors
+    pure function vec_cross(v1, v2) result(v3)
+        implicit none
+        real(kind = real64), intent(in) :: v1(3), v2(3)
+        real(kind = real64) v3(3)
+        v3(1) = v1(2)*v2(3) - v1(3)*v2(2)
+        v3(2) = v1(3)*v2(1) - v1(1)*v2(3)
+        v3(3) = v1(1)*v2(2) - v1(2)*v2(1)
+    end function
+
+    ! dyadic product of 2 vectors
+    pure function vec_dyad(v1, v2) result(m)
+        implicit none
+        real(kind = real64), intent(in) :: v1(3), v2(3)
+        real(kind = real64) m(3,3)
+        integer i,j
+        m=0d0
+        do i=1,3
+          do j=i,3
+             m(i,j) = v1(i)*v2(j)
+          end do
+        end do
+    end function
+
+    ! uniform random unit vector
+    function vec_random() result(p)
+        real(kind = real64) :: p(3)
+        real(kind = real64) :: PI
+        real(kind = real64) :: dprand
+        parameter (pi=3.141592654d0)
+        real(kind = real64) z
+        real(kind = real64) u(2)
+        u = (/dprand(),dprand()/)
+        z = 2*u(1) - 1d0
+        p(1) = sqrt(1-z*z) * cos(2d0*PI*u(2))
+        p(2) = sqrt(1-z*z) * sin(2d0*PI*u(2))
+        p(3) = z
+    end function
+
+    ! invert a 3x3 matrix
+    pure subroutine invert3x3 (A, Ainv)
+        real(kind = real64), intent(in) :: A(3,3)
+        real(kind = real64), intent(out) ::Ainv(3,3)
+        real(kind = real64) Adet
+
+        Ainv = 0d+0;
+        Ainv(1,1) = A(2,2)*A(3,3) - A(3,2)*A(2,3)
+        Ainv(1,2) = A(3,2)*A(1,3) - A(1,2)*A(3,3)
+        Ainv(1,3) = A(1,2)*A(2,3) - A(1,3)*A(2,2)
+
+        Adet = Ainv(1,1)*A(1,1) + Ainv(1,2)*A(2,1) + Ainv(1,3)*A(3,1)
+
+        Ainv(1,1) = Ainv(1,1)/Adet
+        Ainv(1,2) = Ainv(1,2)/Adet
+        Ainv(1,3) = Ainv(1,3)/Adet
+
+        Ainv(2,1) = (A(2,3)*A(3,1) - A(2,1)*A(3,3))/Adet
+        Ainv(2,2) = (A(1,1)*A(3,3) - A(3,1)*A(1,3))/Adet
+        Ainv(2,3) = (A(2,1)*A(1,3) - A(1,1)*A(2,3))/Adet
+
+        Ainv(3,1) = (A(2,1)*A(3,2) - A(2,2)*A(3,1))/Adet
+        Ainv(3,2) = (A(3,1)*A(1,2) - A(1,1)*A(3,2))/Adet
+        Ainv(3,3) = (A(1,1)*A(2,2) - A(1,2)*A(2,1))/Adet
+        return
+    end subroutine invert3x3
+
+    pure function det3x3(A) result(Adet)
+        implicit none
+        real(kind = real64), intent(in) :: A(3,3)
+        real(kind = real64) Adet, tmp(3)
+
+        tmp(1) = A(2,2)*A(3,3) - A(3,2)*A(2,3)
+        tmp(2) = A(3,2)*A(1,3) - A(1,2)*A(3,3)
+        tmp(3) = A(1,2)*A(2,3) - A(1,3)*A(2,2)
+
+        Adet = tmp(1)*A(1,1) + tmp(2)*A(2,1) + tmp(3)*A(3,1)
+    end function
+
+
+    pure subroutine identity3x3(A)
+        real(kind = real64), intent(out) :: A(3,3)
+        A=0d0
+        A(1,1)=1d0
+        A(2,2)=1d0
+        A(3,3)=1d0
+    end subroutine
+end module vec3

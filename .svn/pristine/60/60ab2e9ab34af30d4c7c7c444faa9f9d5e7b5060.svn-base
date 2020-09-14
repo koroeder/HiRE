@@ -1,0 +1,683 @@
+     SUBROUTINE INITIALISE_RNA(P_B_C,BoxL,CofM,NATOM_TOT,XFORT, &
+                                   AMASSES,ATOMIC_TYPE)
+!
+!   1.READ THE TOPOLOGY FILE (INTERNAL COORDINATES,
+!     PARAMETERS OF THE OPEP FUNCTION) AND THE STARTING
+!
+!   2.READ THE PARAMETERS FOR THE SIDE-CHAIN SIDE-CHAIN INTERACTIONS
+!
+!   3.COMPUTE ENERGY and FORCES (NO CUTOFF FOR THE NONBONDED-INTERACTIONS. 
+!
+!   
+!
+      use commons, only: debug                   !GMIN - not MD
+      use definitions, only: N_prot, N_RNA       !GMIN - not MD
+!      use defs, only: use_qbug, N_prot, N_RNA   !MD - not GMIN
+      use RNAparams
+      use fragments
+      use score
+      use PDBtext
+      use PBC_defs 
+      use prec_hire
+      implicit none 
+
+      integer, intent(in) :: NATOM_TOT
+      real(kind = real64) :: xfort(3*NATOM_TOT), amasses(NATOM_TOT)
+      character*5  ATOMIC_TYPE(NATOM_TOT)
+
+      logical P_B_C,CofM, QDET
+      real(kind = real64) BoxL
+
+      real(kind = real64) X(3*NATOM_TOT)
+
+      real(kind = real64) score_temp
+
+      character(50) dummy, dummych
+
+      integer i, j, idum, ikl, idatom
+      integer nf, jn, i3, j3, k3t, l3t, it1, it2
+
+      integer getunit
+
+      logical fileexists
+
+      !character*30 path_for_inits                          !MD-not GMIN
+      !logical      single_conf_init                        !MD-not GMIN
+      periodicBC = P_B_C
+      CM = CofM
+      write(*,*) 'PBC and CM are : ',P_B_C, CofM
+
+!---  read TOPOLOGY file
+      nf=getunit() !find empty unit
+!     This was the original configuration
+      OPEN(UNIT=nf,FILE="parametres_RNA.top",status="old")
+      CALL RDTOP_RNA(nf)
+      CLOSE(UNIT=nf)
+
+!---  read INPUT PDB file
+      nf=getunit()
+!     Commented out for use in GMIN
+      !CALL init_remd(path_for_inits,single_conf_init)                 !MD-not GMIN
+      !if(.not. single_conf_init)  then                                !MD-not GMIN
+      !   OPEN(UNIT=nf,FILE=path_for_inits,status="old")               !MD-not GMIN
+      !else                                                            !MD-not GMIN
+         OPEN(UNIT=nf,FILE="conf_initiale_RNA.pdb",status="old")
+      !endif                                                           !MD-not GMIN
+      CALL RDPDB(nf,N_RNA,X,text2(N_prot+1:N_RNA),     &
+     &  Id_atom(N_prot+1:N_RNA),text3(N_prot+1:N_RNA), &
+     &  text4(N_prot+1:N_RNA),numres(N_prot+1:N_RNA))
+      close(nf)
+
+!! Br2 : read ions from PDB and add them to RNA list
+!! Br2 : define masses for ions (not from top file)
+
+
+!---- Set-up the vector associating each atom with a fragment
+!----    length_fragment: table containing the length of each fragment
+!----    ichain : the fragment to which atom idatom belongs to
+
+!---  read ichain file
+      nf=getunit()
+      OPEN(UNIT=nf,FILE="ichain_RNA.dat",status="old")
+      read(nf,*)  nfrag_rna
+      NFRAG = NFRAG+nfrag_rna
+      do i=nfrag_prot+1, nfrag
+         read(nf,*) idum, lenfrag(i)
+      enddo
+      idatom = N_prot+1
+      do i=nfrag_prot+1, NFRAG
+         do j=1, lenfrag(i)
+            ichain(idatom) = i
+            idatom = idatom +1
+         end do
+      end do
+!      read(nf,*) N_ION                   !Br2 : add number of ions as last line of ichain
+      close(nf)
+
+!! Br2 : adjust ichain to account for ions ? possibly not needed, check Ebond ecc.
+
+
+!---  read the restraints
+      inquire(file="restraints.dat", exist=fileexists)
+      if(fileexists .eqv. .true.) then
+        nf=getunit()
+        open(nf, file="restraints.dat", status="old")
+        read(nf,*) Nrests, Nposres
+        allocate(resti(Nrests), restj(Nrests), trest(Nrests))
+        allocate(restk(Nrests), restl(Nrests), drestl(Nrests))
+        allocate(pri(Nposres), prk(Nposres))
+        allocate(prx(3,Nposres), prdx(3,Nposres))
+        if(Nrests .gt. 0) then
+!       read a blank line for comments at the top of the list
+          read(nf, *) 
+          read(nf, *) (resti(i), restj(i), restk(i), restl(i),&
+                        drestl(i), trest(i), i = 1,Nrests)
+        endif
+        if(Nposres .gt. 0) then
+!       read a blank line for comments at the top of the posres list
+          read(nf, *) 
+          read(nf, *) (pri(i), prk(i), prx(1,i), prx(2,i), prx(3,i), &
+                    prdx(1,i), prdx(2,i), prdx(3,i), i = 1,Nposres)
+        endif
+      else
+        Nrests = 0
+        Nposres = 0
+      endif
+
+!        read(nf,'(2i4, f15.10)') (resti(I), restj(i), restlens(i),
+!     $      i = 1,Nrests)
+      if( Nrests .gt. 0) then
+        write (*,*) "Distance restraints"
+        write (*,"(2a5,3a10,a5)") "ri","rj","k","length","dl","type"
+        do i = 1, Nrests
+          write(*,"(2i5, 3f10.6, i2)") resti(i), restj(i), restk(i), & 
+                                         restl(i), drestl(i), trest(i)
+        enddo
+      endif
+      if(Nposres .gt. 0) then
+        write (*,*) "Position restraints"
+        write (*,"(2a5, 6a10)") "pi", "pk", "px", "py", "pz", & 
+                                 "pdx", "pdy", "pdz"
+        do i = 1, Nposres
+            write(*,"(i5, 7f10.6)") pri(i), prk(i), prx(1,i), prx(2,i),&
+                              prx(3,i), prdx(1,i), prdx(2,i), prdx(3,i)
+        enddo
+      endif
+      close(nf)
+
+!---  read list of bases, for RNA
+      if (.not. allocated(blist)) then
+        allocate( blist(NRES))
+        allocate( btype(NRES))
+        allocate( bprot(NRES))
+        allocate( bocc(NRES))
+        allocate( bpch(NRES))
+      endif
+      nf=getunit()
+      open(unit=nf,file="bblist.dat",status="old")   
+      read(nf,*) (blist(i), btype(i), bprot(i), i =1, NRES) 
+      close(nf)
+
+!---  read weight file for RNA
+      nf=getunit()
+      OPEN(nf,FILE="scale_RNA.dat",status="old")
+      do i=1,24
+         read(nf,'(i4,f15.10,A)') ikl, score_temp, dummy
+         score_RNA(i)=dble(score_temp)
+      enddo
+      close(nf)
+
+
+      if (.not. allocated(chatm)) allocate(chatm(N_RNA))
+
+      chatm(:) = 0                                !Br1
+
+      nbcoef(:,:) = 1.0D0
+      nbct2(:,:) = NBCT2GEN
+      nbscore(:,:) = NBRADGEN
+      
+!      ! C4 are bigger
+      nbct2(4,:) = NBCT2C4
+      nbct2(:,4) = NBCT2C4
+!      ! CY are bigger
+!      nbct2(5,:) = NBCT2CY
+!      nbct2(:,5) = NBCT2CY
+!      ! bases beads size
+      nbct2(6:11,6:11) = NBCT2BASE
+      ! P-P interactions
+      nbcoef(3,3) = 1.0
+      nbct2(3,3) = NBCT2PP
+      nbscore(3,3) = NBRADLARGE
+!     dummy residues are larger
+      if (NTYPES .eq. 11) then
+        nbct2(12,:) = NBCT2DUMMY
+        nbct2(:,12) = NBCT2DUMMY
+      endif     
+
+      ! Mg++ interactions
+      nbscore(3,13) = NBRADLARGE
+      nbscore(13,3) = NBRADLARGE
+      nbscore(13,13) = NBRADLARGE
+      nbscore(13,14) = NBRADLARGE
+      nbscore(13,15) = NBRADLARGE
+
+      ! Na+ interactions
+      nbscore(3,14) = NBRADLARGE
+      nbscore(14,3) = NBRADLARGE
+      nbscore(14,13) = NBRADLARGE
+
+      ! Cl- interactions
+      nbscore(3,15) = NBRADLARGE
+      nbscore(15,3) = NBRADLARGE
+      nbscore(15,13) = NBRADLARGE
+
+!      do i = 1,N_RNA                                  !Br1
+!         chatm(i) = chrg(IAC(i)   )                   !Br1
+!      enddo
+
+      nf=getunit()
+      open(unit=nf,file="chargeatm_RNA.dat",status="old")   ! Br2
+      read(nf,*) (dummych, chatm(i), i =1, N_RNA)
+      close(nf)
+
+      alpam(:,:,:) = 2.0D0
+      alpbm(:,:,:) = 2.0D0
+      bcoef = 35
+      !                G   A   C  U
+      bcoef(1,:) = (/ 34, 20, 19, 21 /)  !'pointers' to the position of energy contributions in evec
+      bcoef(2,:) = (/ 20, 32, 22, 18 /)  !used to dump out debug information
+      bcoef(3,:) = (/ 19, 22, 33, 27 /)
+      bcoef(4,:) = (/ 21, 18, 27, 35 /)
+
+      call fillHBparams()
+      alpam = alpam+pi
+      alpbm = alpbm+pi
+      calpam = cos(alpam)
+      salpam = sin(alpam)
+      calpbm = cos(alpbm)
+      salpbm = sin(alpbm)
+
+      
+      QDET = .FALSE. .or. debug              !GMIN - not MD
+      !QDET = .FALSE. .or. use_qbug           !MD - not GMIN
+
+      allocate(nphitype(NPHIA))
+      do jn = 1,NPHIA                ! torsion info backbone or base
+         i3 = ip(jn)/3+1
+         j3 = jp(jn)/3+1
+         k3t = kp(jn)/3+1
+         l3t = lp(jn)/3+1
+         it1=iac(j3)
+         it2=iac(k3t)
+         if(it1.le.4.and.it2.le.4)then
+            nphitype(jn)=0
+         else
+            nphitype(jn)=1
+         endif
+          if(QDET) then
+           write(7,'(8i4)') jn,i3,j3,k3t,l3t,it1,it2,nphitype(jn) 
+          endif
+      enddo   
+!        write(*,"(2i5, 3f10.6, i2)") resti(i), restj(i), restk(i), 
+!---------------------------------------------------------------
+
+      do i=1, 3*N_RNA
+        xfort(N_prot*3+i) = x(i)
+      enddo
+
+      do i=1, N_RNA
+        amasses(N_prot+i) = amass(i)
+        atomic_type(N_prot+i) = text3(N_prot+i)
+      end do 
+
+!     We copy the box length and define the inverse box-length
+      box_length = BoxL
+      inv_box_length = 1.0d0 / box_length
+
+      return
+      end
+!     --------------------------------------------------------------
+
+      subroutine fillHBparams()
+          use RNAparams, only: molecule_type
+          
+          if(molecule_type=="DNA") then
+            call fillDNAHBparams()
+          else if(molecule_type=="RNA") then
+            call fillRNAHBparams()
+          endif
+
+      end subroutine fillHBparams
+
+!     --------------------------------------------------------------
+
+      subroutine fillRNAHBparams()
+          use RNAparams
+          use score
+          use prec_hire
+          implicit none
+          real(kind = real64) z
+
+          wc = score_RNA(18)
+          wcCanonic = score_RNA(19)
+          noWc = score_RNA(20)
+          tit = score_RNA(21)
+          noWCq = score_RNA(22)
+          z=0.0d0
+         
+!         A-A
+          dREF(1:3,2,2) =  (/ 5.63, 6.84, 5.92/)       !WWt, HHt, HWt                    
+          alpam(1:3,2,2) = (/ 2.40, 1.05, 2.72/)
+          alpbm(1:3,2,2) = (/ 2.40, 1.08, 1.29/)
+          s(1:3,2,2,1,1) = (/2*wc, 2*noWc, 2*noWc/)     !Br2  1,1 -> q1=0, q2=0
+          s(1:3,2,2,1,2) = (/    z,2*noWcq, z/)            !Br2  1,2 -> q1=0, q2=1
+          s(1:3,2,2,2,1) = (/    z,2*noWcq, 2*noWcq/)       !Br2  2,1 -> q1=1, q2=0
+          s(1:3,2,2,2,2) = (/    z,2*noWcq, z/)            !Br2  2,2 -> q1=1, q2=1
+          Nparam(2,2) = 3                !Br3  CHECK angle sign when order is inverted when one is negative
+
+!         A-C
+          dREF(1:3,2,3) = (/7.26, 5.78, 4.78/)         !wsc, HWt, +Wc  
+          alpam(1:3,2,3) = (/2.36, 1.36, 2.64/)
+          alpbm(1:3,2,3) = (/0.75, 2.30, 1.78/)   
+          s(1:3,2,3,1,1) = (/ 2*noWc,  2*noWc, z /) !Br2  1,1 -> q1=0, q2=0
+          s(1:3,2,3,1,2) = (/ 2*noWcq, z, z/)                 !Br2  1,2 -> q1=0, q2=1
+          s(1:3,2,3,2,1) = (/ z, 2*noWcq, 2*tit/)            !Br2  2,1 -> q1=1, q2=0
+          s(1:3,2,3,2,2) = (/ z, z, z/)                      !Br2  2,2 -> q1=1, q2=1
+
+          Nparam(2,3) = 3
+          dREF(:,3,2) = dREF(:,2,3)
+          alpam(:,3,2) = alpbm(:,2,3)
+          alpbm(:,3,2) = alpam(:,2,3)
+          s(:,3,2,1,1) = s(:,2,3,1,1)
+          s(:,3,2,1,2) = s(:,2,3,2,1)
+          s(:,3,2,2,1) = s(:,2,3,1,2)
+          s(:,3,2,2,2) = s(:,2,3,2,2)
+          Nparam(3,2) = Nparam(2,3)
+
+!         A-G
+          dREF(1:4,2,1) = (/ 4.88, 6.63, 6.17, 6.05/)         !  WW_c, HSt, sst, +Hc  
+          alpam(1:4,2,1) = (/ 3.04, 1.19, -2.01, 2.62/)
+          alpbm(1:4,2,1) = (/ 2.58, -1.69, -1.57, 0.89/)
+          s(1:4,2,1,1,1) = (/ 2*wc, 2*noWc, 2*noWc, z/)        !Br2  1,1 -> q1=0, q2=0
+          s(1:4,2,1,1,2) = (/ z, 2*noWcq, 2*noWcq, z/)            !Br2  1,2 -> q1=0, q2=1
+          s(1:4,2,1,2,1) = (/ z, 2*noWcq, 2*noWcq, 2*tit/)      !Br2  2,1 -> q1=1, q2=0
+          s(1:4,2,1,2,2) = (/ z, 2*noWcq, 2*noWcq, 2*tit/)      !Br2  2,2 -> q1=1, q2=1
+
+          Nparam(2,1) = 4
+          dREF(:,1,2) = dREF(:,2,1)
+          alpam(:,1,2) = alpbm(:,2,1)
+          alpbm(:,1,2) = alpam(:,2,1)
+          s(:,1,2,1,1) = s(:,2,1,1,1)
+          s(:,1,2,1,2) = s(:,2,1,2,1)
+          s(:,1,2,2,1) = s(:,2,1,1,2)
+          s(:,1,2,2,2) = s(:,2,1,2,2)
+          
+          Nparam(1,2) = Nparam(2,1)
+
+!         A-U
+          dREF(1:3,2,4) = (/ 4.92, 5.78, 5.89/)        ! WWc, HWt, HWc
+          alpam(1:3,2,4) = (/ 2.84, 0.91, 0.93/)
+          alpbm(1:3,2,4) = (/ 2.36, 1.82, 2.46/)
+          s(1:3,2,4,1,1) = (/ 2.2*wcCanonic, 2*noWc, 2*noWc/)     !Br2  1,1 -> q1=0, q2=0      !OKKIO : cambiato a mano 14.4 -> 16!!!
+          s(1:3,2,4,1,2) = (/ z, z, z/)                     !Br2  1,2 -> q1=0, q2=1
+          s(1:3,2,4,2,1) = (/ z, 2*noWcq, 2*noWcq/)          !Br2  2,1 -> q1=1, q2=0
+          s(1:3,2,4,2,2) = (/ z, z, z/)                     !Br2  2,2 -> q1=1, q2=1
+          Nparam(2,4) = 3
+          
+          dREF(:,4,2) = dREF(:,2,4)
+          alpam(:,4,2) = alpbm(:,2,4)
+          alpbm(:,4,2) = alpam(:,2,4)
+          s(:,4,2,1,1) = s(:,2,4,1,1)
+          s(:,4,2,1,2) = s(:,2,4,2,1)
+          s(:,4,2,2,1) = s(:,2,4,1,2)
+          s(:,4,2,2,2) = s(:,2,4,2,2)
+          Nparam(4,2) = Nparam(2,4)
+
+! !         C-C
+!           dREF(1:1,3,3) =  (/ 4.91/)  !Br3 NO significant CC pairing
+!           alpam(1:1,3,3) = (/ 2.22/)
+!           alpbm(1:1,3,3) = (/ 2.24/)
+!           s(1:1,3,3,1,1) = (/ z /) !Br2  1,1 -> q1=0, q2=0
+!           s(1:1,3,3,1,2) = (/ z /) !Br2  1,2 -> q1=0, q2=1
+!           s(1:1,3,3,2,1) = (/ z /) !Br2  2,1 -> q1=1, q2=0
+!           s(1:1,3,3,2,2) = (/ z /) !Br2  2,2 -> q1=1, q2=1
+!           Nparam(3,3) = 1
+
+!         C-G
+          dREF(1:3,3,1) = (/ 4.75, 5.28, 5.68/)              ! WWc, WWt, +Wc
+          alpam(1:3,3,1) = (/ 2.17, 1.64, 1.92/)
+          alpbm(1:3,3,1) = (/ 2.71, -3.07, 2.34/)
+          s(1:3,3,1,1,1) = (/ 2.6*wcCanonic, 2*wc, z/)       !Br2  1,1 -> q1=0, q2=0
+          s(1:3,3,1,1,2) = (/ z, z, z/)                      !Br2  1,2 -> q1=0, q2=1
+          s(1:3,3,1,2,1) = (/ z, z, 1*tit/)                  !Br2  2,1 -> q1=1, q2=0
+          s(1:3,3,1,2,2) = (/ z, z, z/)                      !Br2  2,2 -> q1=1, q2=1
+          Nparam(3,1) = 3
+          
+          dREF(:,1,3) = dREF(:,3,1)
+          alpam(:,1,3) = alpbm(:,3,1)
+          alpbm(:,1,3) = alpam(:,3,1)
+          s(:,1,3,1,1) = s(:,3,1,1,1)
+          s(:,1,3,1,2) = s(:,3,1,2,1)
+          s(:,1,3,2,1) = s(:,3,1,1,2)
+          s(:,1,3,2,2) = s(:,3,1,2,2)
+          Nparam(1,3) = Nparam(3,1)
+
+!         C-U
+          dREF(1:1,3,4) = (/ 4.81 /)             ! WWc
+          alpam(1:1,3,4) = (/ 2.02 /)
+          alpbm(1:1,3,4) = (/-2.50 /)            !Br3 CHECK when particles are inverted
+          s(1:1,3,4,1,1) = (/2*wc/)               !Br2  1,1 -> q1=0, q2=0     
+          s(1:1,3,4,1,2) = (/ z /)                 !Br2  1,2 -> q1=0, q2=1
+          s(1:1,3,4,2,1) = (/ z /)                 !Br2  2,1 -> q1=1, q2=0
+          s(1:1,3,4,2,2) = (/ z /)                 !Br2  2,2 -> q1=1, q2=1
+          Nparam(3,4) = 1
+          
+          dREF(:,4,3) = dREF(:,3,4)
+          alpam(:,4,3) = alpbm(:,3,4)
+          alpbm(:,4,3) = alpam(:,3,4)
+          s(:,4,3,1,1) = s(:,3,4,1,1)
+          s(:,4,3,1,2) = s(:,3,4,2,1)
+          s(:,4,3,2,1) = s(:,3,4,1,2)
+          s(:,4,3,2,2) = s(:,3,4,2,2)
+          Nparam(4,3) = Nparam(3,4)
+
+!         G-G
+          dREF(1:3,1,1) =  (/ 6.00, 6.00, 6.73 /)        !     HWc, HWt, SSt   6.22 -> 6.0, 6.25 -> 6.00
+          alpam(1:3,1,1) = (/ 1.27, 3.02, -1.78 /)
+          alpbm(1:3,1,1) = (/ 2.90, 0.82, -1.83 /)
+          s(1:3,1,1,1,1) = (/ 2*noWc, 2*noWc, 2*noWc /)   !Br2  1,1 -> q1=0, q2=0     
+          s(1:3,1,1,1,2) = (/ z, z, 2*noWcq /)             !Br2  1,2 -> q1=0, q2=1
+          s(1:3,1,1,2,1) = (/  2*noWcq, 2*noWcq, 2*noWcq/)   !Br2  2,1 -> q1=1, q2=0
+          s(1:3,1,1,2,2) = (/ z, z, 2*noWcq/)             !Br2  2,2 -> q1=1, q2=1
+          Nparam(1,1) = 3
+
+!         G-U
+          dREF(1:1,1,4) = (/ 5.05 /)               ! WWc         
+          alpam(1:1,1,4) = (/ 2.29 /)
+          alpbm(1:1,1,4) = (/ 1.68 /)
+          s(1:1,1,4,1,1) = (/ 2.1*wc /)            !Br2  1,1 -> q1=0, q2=0 !OKKIO : cambiato a mano 14.7 -> 16!!!
+          s(1:1,1,4,1,2) = (/ z /)                 !Br2  1,2 -> q1=0, q2=1
+          s(1:1,1,4,2,1) = (/ z /)                 !Br2  2,1 -> q1=1, q2=0
+          s(1:1,1,4,2,2) = (/ z /)                 !Br2  2,2 -> q1=1, q2=1
+          Nparam(1,4) = 1
+          
+          dREF(:,4,1) = dREF(:,1,4)
+          alpam(:,4,1) = alpbm(:,1,4)
+          alpbm(:,4,1) = alpam(:,1,4)
+          s(:,4,1,1,1) = s(:,1,4,1,1)
+          s(:,4,1,1,2) = s(:,1,4,2,1)
+          s(:,4,1,2,1) = s(:,1,4,1,2)
+          s(:,4,1,2,2) = s(:,1,4,2,2)
+          Nparam(4,1) = Nparam(1,4)
+
+!         U-U
+          dREF(1:3,4,4) =  (/ 4.94, 4.84, 5.63 /)           ! WWc, WWt, wht
+          alpam(1:3,4,4) = (/ 1.85, -1.88, 2.36 /)
+          alpbm(1:3,4,4) = (/ 2.48, 1.71, -2.57 /)
+          s(1:3,4,4,1,1) = (/ 2*wc, 2*wc, 2*noWc /)        !Br2  1,1 -> q1=0, q2=0
+          s(1:3,4,4,1,2) = (/ z, z, 2*noWcq /)                !Br2  1,2 -> q1=0, q2=1
+          s(1:3,4,4,2,1) = (/ z, z, z /)                    !Br2  2,1 -> q1=1, q2=0
+          s(1:3,4,4,2,2) = (/ z, z, z /)                    !Br2  2,2 -> q1=1, q2=1
+          Nparam(4,4) = 3
+
+ 
+!     ------------------------------------------------------------------
+!         G: CY G1 G2
+          planarityDistEq(1,1:3) = (/ 0, 0, 0/)
+!         A: CY A1 A2
+          planarityDistEq(2,1:3) = (/ 0, 0, 0/)
+!         C: CA CY C1
+          planarityDistEq(3,1:3) = (/ 0, 0, 0/)
+!         U: CA CY U1
+          planarityDistEq(4,1:3) = (/ 0, 0, 0/)
+
+      end subroutine fillRNAHBparams
+
+!     --------------------------------------------------------------
+
+      subroutine fillDNAHBparams()
+          use RNAparams
+          use score
+          use prec_hire
+          implicit none
+          real(kind = real64) :: z
+          
+          wc = score_RNA(18)
+          wcCanonic = score_RNA(19)
+          noWc = score_RNA(20)
+
+!         A-A
+          dREF(1:3,2,2) =  (/ 5.63, 6.84, 5.92/)       !WWt, HHt, HWt                    
+          alpam(1:3,2,2) = (/ 2.40, 1.05, 2.72/)
+          alpbm(1:3,2,2) = (/ 2.40, 1.08, 1.29/)
+          s(1:3,2,2,1,1) = (/2*wc, 2*noWc, 2*noWc/)     !Br2  1,1 -> q1=0, q2=0
+          s(1:3,2,2,1,2) = (/    z,2*noWcq, z/)            !Br2  1,2 -> q1=0, q2=1
+          s(1:3,2,2,2,1) = (/    z,2*noWcq, 2*noWcq/)       !Br2  2,1 -> q1=1, q2=0
+          s(1:3,2,2,2,2) = (/    z,2*noWcq, z/)            !Br2  2,2 -> q1=1, q2=1
+          Nparam(2,2) = 3                !Br3  CHECK angle sign when order is inverted when one is negative
+
+!         A-C
+          dREF(1:3,2,3) = (/7.26, 5.78, 4.78/)         !wsc, HWt, +Wc  
+          alpam(1:3,2,3) = (/2.36, 1.36, 2.64/)
+          alpbm(1:3,2,3) = (/0.75, 2.30, 1.78/)   
+          s(1:3,2,3,1,1) = (/ 2*noWc,  2*noWc, z /) !Br2  1,1 -> q1=0, q2=0
+          s(1:3,2,3,1,2) = (/ 2*noWcq, z, z/)                 !Br2  1,2 -> q1=0, q2=1
+          s(1:3,2,3,2,1) = (/ z, 2*noWcq, 2.2*tit/)            !Br2  2,1 -> q1=1, q2=0
+          s(1:3,2,3,2,2) = (/ z, z, z/)                      !Br2  2,2 -> q1=1, q2=1
+
+          Nparam(2,3) = 3
+          dREF(:,3,2) = dREF(:,2,3)
+          alpam(:,3,2) = alpbm(:,2,3)
+          alpbm(:,3,2) = alpam(:,2,3)
+          s(:,3,2,1,1) = s(:,2,3,1,1)
+          s(:,3,2,1,2) = s(:,2,3,2,1)
+          s(:,3,2,2,1) = s(:,2,3,1,2)
+          s(:,3,2,2,2) = s(:,2,3,2,2)
+          Nparam(3,2) = Nparam(2,3)
+
+!         A-G
+!          dREF(1:4,2,1) = (/ 4.88, 6.63, 6.17, 6.05/)         !  WW_c, HSt, sst, +Hc  
+!          alpam(1:4,2,1) = (/ 3.04, 1.19, -2.01, 2.62/)
+!          alpbm(1:4,2,1) = (/ 2.58, -1.69, -1.57, 0.89/)
+!          s(1:4,2,1,1,1) = (/ 2*wc, 2*noWc, 2*noWc, z/)        !Br2  1,1 -> q1=0, q2=0
+!          s(1:4,2,1,1,2) = (/ z, 2*noWcq, 2*noWcq, z/)            !Br2  1,2 -> q1=0, q2=1
+!          s(1:4,2,1,2,1) = (/ z, 2*noWcq, 2*noWcq, 2*tit/)      !Br2  2,1 -> q1=1, q2=0
+!          s(1:4,2,1,2,2) = (/ z, 2*noWcq, 2*noWcq, 2*tit/)      !Br2  2,2 -> q1=1, q2=1
+
+!          Nparam(2,1) = 4
+!          dREF(:,1,2) = dREF(:,2,1)
+!          alpam(:,1,2) = alpbm(:,2,1)
+!          alpbm(:,1,2) = alpam(:,2,1)
+!          s(:,1,2,1,1) = s(:,2,1,1,1)
+!          s(:,1,2,1,2) = s(:,2,1,2,1)
+!          s(:,1,2,2,1) = s(:,2,1,1,2)
+!          s(:,1,2,2,2) = s(:,2,1,2,2)
+          
+!          Nparam(1,2) = Nparam(2,1)
+
+
+!         A-G
+          dREF(1:3,2,1) = (/ 4.88, 6.63, 6.05/)         !  WW_c, HSt, +Hc
+          alpam(1:3,2,1) = (/ 3.04, 1.19,  2.62/)
+          alpbm(1:3,2,1) = (/ 2.58, -1.69,  0.89/)
+          s(1:3,2,1,1,1) = (/ 2*wc, 2*noWc, z/)        !Br2  1,1 -> q1=0, q2=0
+          s(1:3,2,1,1,2) = (/ z, 2*noWcq, z/)            !Br2  1,2 -> q1=0, q2=1
+          s(1:3,2,1,2,1) = (/ z, 2*noWcq, 1.6*tit/)     !Br2  2,1 -> q1=1, q2=0
+          s(1:3,2,1,2,2) = (/ z, 2*noWcq, 1.6*tit/)      !Br2  2,2 -> q1=1, q2=1
+
+          Nparam(2,1) = 3
+          dREF(:,1,2) = dREF(:,2,1)
+          alpam(:,1,2) = alpbm(:,2,1)
+          alpbm(:,1,2) = alpam(:,2,1)
+          s(:,1,2,1,1) = s(:,2,1,1,1)
+          s(:,1,2,1,2) = s(:,2,1,2,1)
+          s(:,1,2,2,1) = s(:,2,1,1,2)
+          s(:,1,2,2,2) = s(:,2,1,2,2)
+
+          Nparam(1,2) = Nparam(2,1)
+
+!         A-U
+          dREF(1:3,2,4) = (/ 4.92, 5.78, 5.89/)        ! WWc, HWt, HWc
+          alpam(1:3,2,4) = (/ 2.84, 0.91, 0.93/)
+          alpbm(1:3,2,4) = (/ 2.36, 1.82, 2.46/)
+          s(1:3,2,4,1,1) = (/ 2.2*wcCanonic, 2*noWc, 2*noWc/)     !Br2  1,1 -> q1=0, q2=0      !OKKIO : cambiato a mano 14.4 -> 16!!!
+          s(1:3,2,4,1,2) = (/ z, z, z/)                     !Br2  1,2 -> q1=0, q2=1
+          s(1:3,2,4,2,1) = (/ z, 2*noWcq, 2*noWcq/)          !Br2  2,1 -> q1=1, q2=0
+          s(1:3,2,4,2,2) = (/ z, z, z/)                     !Br2  2,2 -> q1=1, q2=1
+          Nparam(2,4) = 3
+          
+          dREF(:,4,2) = dREF(:,2,4)
+          alpam(:,4,2) = alpbm(:,2,4)
+          alpbm(:,4,2) = alpam(:,2,4)
+          s(:,4,2,1,1) = s(:,2,4,1,1)
+          s(:,4,2,1,2) = s(:,2,4,2,1)
+          s(:,4,2,2,1) = s(:,2,4,1,2)
+          s(:,4,2,2,2) = s(:,2,4,2,2)
+          Nparam(4,2) = Nparam(2,4)
+
+! !         C-C
+!           dREF(1:1,3,3) =  (/ 4.91/)  !Br3 NO significant CC pairing
+!           alpam(1:1,3,3) = (/ 2.22/)
+!           alpbm(1:1,3,3) = (/ 2.24/)
+!           s(1:1,3,3,1,1) = (/ z /) !Br2  1,1 -> q1=0, q2=0
+!           s(1:1,3,3,1,2) = (/ z /) !Br2  1,2 -> q1=0, q2=1
+!           s(1:1,3,3,2,1) = (/ z /) !Br2  2,1 -> q1=1, q2=0
+!           s(1:1,3,3,2,2) = (/ z /) !Br2  2,2 -> q1=1, q2=1
+!           Nparam(3,3) = 1
+
+!         C-G
+          dREF(1:3,3,1) = (/ 4.75, 5.28, 5.68/)              ! WWc, WWt, +Wc
+          alpam(1:3,3,1) = (/ 2.17, 1.64, 1.92/)
+          alpbm(1:3,3,1) = (/ 2.71, -3.07, 2.34/)
+          s(1:3,3,1,1,1) = (/ 2.6*wcCanonic, 2*wc, z/)       !Br2  1,1 -> q1=0, q2=0
+          s(1:3,3,1,1,2) = (/ z, z, z/)                      !Br2  1,2 -> q1=0, q2=1
+          s(1:3,3,1,2,1) = (/ z, z, 0.5*tit/)                  !Br2  2,1 -> q1=1, q2=0
+          s(1:3,3,1,2,2) = (/ z, z, z/)                      !Br2  2,2 -> q1=1, q2=1
+          Nparam(3,1) = 3
+          
+          dREF(:,1,3) = dREF(:,3,1)
+          alpam(:,1,3) = alpbm(:,3,1)
+          alpbm(:,1,3) = alpam(:,3,1)
+          s(:,1,3,1,1) = s(:,3,1,1,1)
+          s(:,1,3,1,2) = s(:,3,1,2,1)
+          s(:,1,3,2,1) = s(:,3,1,1,2)
+          s(:,1,3,2,2) = s(:,3,1,2,2)
+          Nparam(1,3) = Nparam(3,1)
+
+!         C-U
+          dREF(1:1,3,4) = (/ 4.81 /)             ! WWc
+          alpam(1:1,3,4) = (/ 2.02 /)
+          alpbm(1:1,3,4) = (/-2.50 /)            !Br3 CHECK when particles are inverted
+          s(1:1,3,4,1,1) = (/2*wc/)               !Br2  1,1 -> q1=0, q2=0     
+          s(1:1,3,4,1,2) = (/ z /)                 !Br2  1,2 -> q1=0, q2=1
+          s(1:1,3,4,2,1) = (/ z /)                 !Br2  2,1 -> q1=1, q2=0
+          s(1:1,3,4,2,2) = (/ z /)                 !Br2  2,2 -> q1=1, q2=1
+          Nparam(3,4) = 1
+          
+          dREF(:,4,3) = dREF(:,3,4)
+          alpam(:,4,3) = alpbm(:,3,4)
+          alpbm(:,4,3) = alpam(:,3,4)
+          s(:,4,3,1,1) = s(:,3,4,1,1)
+          s(:,4,3,1,2) = s(:,3,4,2,1)
+          s(:,4,3,2,1) = s(:,3,4,1,2)
+          s(:,4,3,2,2) = s(:,3,4,2,2)
+          Nparam(4,3) = Nparam(3,4)
+
+!         G-G
+          dREF(1:3,1,1) =  (/ 6.22, 6.25, 6.73 /)        !     HWc, HWt, SSt
+          alpam(1:3,1,1) = (/ 1.27, 3.02, -1.78 /)
+          alpbm(1:3,1,1) = (/ 2.90, 0.82, -1.83 /)
+          s(1:3,1,1,1,1) = (/ 2*noWc, 2*noWc, 2*noWc /)   !Br2  1,1 -> q1=0, q2=0     
+          s(1:3,1,1,1,2) = (/ z, z, 2*noWcq /)             !Br2  1,2 -> q1=0, q2=1
+          s(1:3,1,1,2,1) = (/  2*noWcq, 2*noWcq, 2*noWcq/)   !Br2  2,1 -> q1=1, q2=0
+          s(1:3,1,1,2,2) = (/ z, z, 2*noWcq/)             !Br2  2,2 -> q1=1, q2=1
+          Nparam(1,1) = 3
+
+!         G-U
+          dREF(1:1,1,4) = (/ 5.05 /)               ! WWc         
+          alpam(1:1,1,4) = (/ 2.29 /)
+          alpbm(1:1,1,4) = (/ 1.68 /)
+          s(1:1,1,4,1,1) = (/ 2.1*wc /)            !Br2  1,1 -> q1=0, q2=0 !OKKIO : cambiato a mano 14.7 -> 16!!!
+          s(1:1,1,4,1,2) = (/ z /)                 !Br2  1,2 -> q1=0, q2=1
+          s(1:1,1,4,2,1) = (/ z /)                 !Br2  2,1 -> q1=1, q2=0
+          s(1:1,1,4,2,2) = (/ z /)                 !Br2  2,2 -> q1=1, q2=1
+          Nparam(1,4) = 1
+          
+          dREF(:,4,1) = dREF(:,1,4)
+          alpam(:,4,1) = alpbm(:,1,4)
+          alpbm(:,4,1) = alpam(:,1,4)
+          s(:,4,1,1,1) = s(:,1,4,1,1)
+          s(:,4,1,1,2) = s(:,1,4,2,1)
+          s(:,4,1,2,1) = s(:,1,4,1,2)
+          s(:,4,1,2,2) = s(:,1,4,2,2)
+          Nparam(4,1) = Nparam(1,4)
+
+!         U-U
+          dREF(1:3,4,4) =  (/ 4.94, 4.84, 5.63 /)           ! WWc, WWt, wht
+          alpam(1:3,4,4) = (/ 1.85, -1.88, 2.36 /)
+          alpbm(1:3,4,4) = (/ 2.48, 1.71, -2.57 /)
+          s(1:3,4,4,1,1) = (/ 2*wc, 2*wc, 2*noWc /)        !Br2  1,1 -> q1=0, q2=0
+          s(1:3,4,4,1,2) = (/ z, z, 2*noWcq /)                !Br2  1,2 -> q1=0, q2=1
+          s(1:3,4,4,2,1) = (/ z, z, z /)                    !Br2  2,1 -> q1=1, q2=0
+          s(1:3,4,4,2,2) = (/ z, z, z /)                    !Br2  2,2 -> q1=1, q2=1
+          Nparam(4,4) = 3
+
+
+!     ------------------------------------------------------------------
+!         G: CY G1 G2
+!          planarityDistEq(1,1:3) = (/ 0, 0, 0/)
+!         A: CY A1 A2
+!          planarityDistEq(2,1:3) = (/ 0, 0, 0/)
+!         C: CA CY C1
+!          planarityDistEq(3,1:3) = (/ 0, 0, 0/)
+!!         U: CA CY U1
+!          planarityDistEq(4,1:3) = (/ 0, 0, 0/)
+          planarityDistEq(1,1:3) = (/ 5.2, 3.7, 2.7/)
+!         A
+          planarityDistEq(2,1:3) = (/ 4.5, 4.0, 2.8/)
+!         C
+          planarityDistEq(3,1:3) = (/ 1.9, 0.79, 0.38/)
+!         U
+          planarityDistEq(4,1:3) = (/ 2.7, 1.4, 0.30/)
+
+      end subroutine fillDNAHBparams

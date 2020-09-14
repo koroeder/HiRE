@@ -1,0 +1,178 @@
+MODULE PREC_HIRE
+   INTEGER, PARAMETER  :: INT32  = SELECTED_INT_KIND(9)
+   INTEGER, PARAMETER  :: INT64  = SELECTED_INT_KIND(18)
+   INTEGER, PARAMETER  :: REAL32 = SELECTED_REAL_KIND(6, 37)
+   INTEGER, PARAMETER  :: REAL64 = SELECTED_REAL_KIND(15, 307)  
+END MODULE PREC_HIRE
+
+module energies
+  use prec_hire
+    real(kind = real64) evdw,elec,eph,epa,ethh,etha,ebonh,ebona, &
+        enbph,enbpa,eelph,eelpa,ehydro, &
+        Ehhb, Ehbr, Ecoop, Estak, Eplane, Econst, Erest, Eposres, nFconst
+!     energy vector, for the optimization
+    real(kind = real64) Evec(35)
+end module energies
+
+MODULE RNAparams
+  USE PREC_HIRE, ONLY: REAL64
+  IMPLICIT NONE
+  !Some generic variables
+  INTEGER :: NRES      !number of nucleotides
+  INTEGER :: NBONA     !number of bonds
+  INTEGER :: NTHETA    !number of angles
+  INTEGER :: NPHIA     !number of dihedrals
+  INTEGER :: NATOM3    !number of degrees of freedom
+
+  REAL(KIND = REAL64), ALLOCATABLE :: AMASS(:)  !Masses of the beads
+  INTEGER, ALLOCATABLE :: IAC(:), LABRES(:)     !Atom and nucleotide ids
+
+  !RNA bases
+  INTEGER, ALLOCATABLE :: BLIST(:)
+  INTEGER, ALLOCATABLE :: BTYPE(:)
+  INTEGER, ALLOCATABLE :: BPROT(:)   
+  INTEGER, ALLOCATABLE :: BOCC(:)
+  REAL(KIND = REAL64), ALLOCATABLE :: BPCH(:)
+
+  !Cut off definitions
+  REAL(KIND = REAL64), PARAMETER :: CUT   = 1.0D2 ! NO CUTOFF
+  REAL(KIND = REAL64), PARAMETER :: SCNB  = 8.0D1 ! divide the 1-4 VDW interactions by 8.0
+  REAL(KIND = REAL64), PARAMETER :: SCEE  = 8.0D1 ! divide the 1-4 ELEC interactions by 2.0
+  REAL(KIND = REAL64), PARAMETER :: IDIEL = 0.0D0 ! 2.0 dielectric constant epsilon = 2r
+  REAL(KIND = REAL64), PARAMETER :: DIELC = 1.0D0 ! Dielectric constant
+
+  !Some other definitions
+
+  !Bonds: E = RK * (R - REQ)**2 with R the current distance
+  REAL(KIND = REAL64), ALLOCATABLE :: RK(:)     !Force constants for bonds
+  REAL(KIND = REAL64), ALLOCATABLE :: REQ(:)    !Equilibrium bond lengths
+
+  !Angles: E = TK * (T - TEQ)**2 with T the current angle
+  REAL(KIND = REAL64), ALLOCATABLE :: TK(:)     !Angular force constants
+  REAL(KIND = REAL64), ALLOCATABLE :: TEQ(:)    !Equilibrium angle
+  
+  !Dihedrals: E = PK * (1 + COS(PN * P - PHASE)) with P the current dihedral angle
+  REAL(KIND = REAL64), ALLOCATABLE :: PK(:)    !Torsional force constant
+  REAL(KIND = REAL64), ALLOCATABLE :: PN(:)    !Number of torsional equilibrium states 
+  INTEGER, ALLOCATABLE :: IPN(:)               !Interger value of PN
+  REAL(KIND = REAL64), ALLOCATABLE :: PHASE(:) !Torsional phase factor
+  REAL(KIND = REAL64), ALLOCATABLE :: GAMC(:)  !Reference values for torsions (cosine)
+  REAL(KIND = REAL64), ALLOCATABLE :: GAMS(:)  !Reference values for tosrions (sine)
+  REAL(KIND = REAL64), ALLOCATABLE :: FMN(:)   !Multiplication used in determining forces for multiple equilibrium angles
+    
+  !bonding book-keeping
+  INTEGER, ALLOCATABLE :: IB(:)                 !Bond atom1
+  INTEGER, ALLOCATABLE :: JB(:)                 !Bond atom2
+  INTEGER, ALLOCATABLE :: ICB(:)                !Type of bond 
+  
+  !book-keeping for angles
+  INTEGER, ALLOCATABLE :: IT(:)                 !Angle atom1
+  INTEGER, ALLOCATABLE :: JT(:)                 !Angle atom2
+  INTEGER, ALLOCATABLE :: KT(:)                 !Angle atom3
+  INTEGER, ALLOCATABLE :: ICT(:)                !Type of angle
+
+  !book-keeping for torsionals
+  INTEGER, ALLOCATABLE :: IP(:)                 !Dihedral atom1
+  INTEGER, ALLOCATABLE :: JP(:)                 !Dihedral atom2
+  INTEGER, ALLOCATABLE :: KP(:)                 !Dihedral atom3
+  INTEGER, ALLOCATABLE :: LP(:)                 !Dihedral atom4
+  INTEGER, ALLOCATABLE :: ICP(:)                !Type of dihedral
+
+  INTEGER :: NUMBND   !Number of unique bond types
+  INTEGER :: NUMANG   !Number of unique angle types
+  INTEGER :: NPTRA    !Number of unique dihedral types
+
+  INTEGER, ALLOCATABLE :: IPRES(:)
+  CHARACTER(4), ALLOCATABLE :: IGRAPH(:)
+  
+  INTEGER, ALLOCATABLE :: NPHITYPE(:)          !Torsion scaling for backbone (0) or base (1)
+
+  character(len=20) :: molecule_type           !RNA or DNA?
+  
+   !Non-bonded variables
+   ! NTYPES is the number of particle types, found in the .top file
+   ! While the number can potentially change, we have 15 types implemented 
+   ! Currently, it's taken to be :
+   ! 1: C5*  2: O5*  3: P  4: CA  5: CY
+   ! 6,7: G1,2  8,9: A1,2  10: U1  11: C1
+   ! 12: D 13: MG 14: NA  15:CL
+  INTEGER, PARAMETER  :: NTYPES =15              !number of different particles 
+  REAL(KIND = REAL64) :: NBCOEF(NTYPES,NTYPES)   !1-4 coefficients
+  REAL(KIND = REAL64) :: NBCT2(NTYPES,NTYPES)    !Bead size
+  REAL(KIND = REAL64) :: NBSCORE(NTYPES,NTYPES)  ! 
+  !Charge of particle types, these charges should never change!
+  REAL(KIND = REAL64), DIMENSION(NTYPES), PARAMETER :: CHRG = (/0.0, 0.0,-1.0, 0.0, 0.0, &
+                                                                0.0, 0.0, 0.0, 0.0, 0.0, &
+                                                                0.0, 0.0, 2.0, 1.0,-1.0 /)              
+  REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: CHATM    !Charge of atoms in simulation
+  
+  CHARACTER(LEN=1), DIMENSION(4) :: basenum = (/'G','A','C','U'/)        !
+  REAL(KIND = REAL64) :: alpa(4,4)            ! 
+  REAL(KIND = REAL64) :: alpb(4,4)            !
+
+  REAL(KIND = REAL64) :: alpam(6,4,4)         ! 
+  REAL(KIND = REAL64) :: alpbm(6,4,4)         !
+  REAL(KIND = REAL64) :: calpam(6,4,4)        ! 
+  REAL(KIND = REAL64) :: calpbm(6,4,4)        !
+  REAL(KIND = REAL64) :: salpam(6,4,4)        ! 
+  REAL(KIND = REAL64) :: salpbm(6,4,4)        !
+  REAL(KIND = REAL64) :: dREF(6,4,4)          ! 
+ 
+  REAL(KIND = REAL64) :: s(6,4,4,2,2)         !
+  
+  REAL(KIND = REAL64) :: planarityDistEq(4,3) !
+  
+  INTEGER :: NPARAM(4,4) !
+  INTEGER :: bcoef(4,4)
+  
+  REAL(KIND = REAL64) :: wc                 !rna/dna parameter: wc coef
+  REAL(KIND = REAL64) :: wcCanonic          !rna/dna parameter: wcCanonic coef  
+  REAL(KIND = REAL64) :: noWc               !rna/dna parameter: noWc coef
+  REAL(KIND = REAL64) :: tit                !rna parameter titration
+  REAL(KIND = REAL64) :: noWCq              !rna parameter hb charged base
+   
+  !Variables for titration
+  INTEGER, ALLOCATABLE :: fatortit(:)       !titration start
+  
+  !Variables for restraining RNA
+  INTEGER :: NRESTS                         !Number of distance restraints
+  INTEGER :: NPOSRES                        !Number of position restraints
+! Distance restraints
+  INTEGER, ALLOCATABLE, DIMENSION(:) :: RESTI !Restraint atom1
+  INTEGER, ALLOCATABLE, DIMENSION(:) :: RESTJ !Restraint atom2
+  INTEGER, ALLOCATABLE, DIMENSION(:) :: TREST !Restraint type
+
+  REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: RESTK  !Restraint force constant
+  REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: RESTL  !Length 
+  REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: DRESTL !dl-->meaning?
+
+! Position restraints
+  INTEGER, ALLOCATABLE, DIMENSION(:) :: PRI                !Constraint ID
+  REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: PRK    !Constraint force
+  REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:,:) :: PRX  !coordinates
+  REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:,:) :: PRDX !-->meaning?
+
+  !RNA cutoffs
+  REAL(KIND = REAL64), PARAMETER :: rcut2_caca_scsc_out = 1.44D2
+  REAL(KIND = REAL64), PARAMETER :: rcut2_caca_scsc_in = 1.00D2
+  REAL(KIND = REAL64), PARAMETER :: rcut2_hb_mcmc_out = 1.44D2
+  REAL(KIND = REAL64), PARAMETER :: rcut2_hb_mcmc_in = 1.00D2
+  REAL(KIND = REAL64), PARAMETER :: rcut2_4b_out = 1.44D2
+  REAL(KIND = REAL64), PARAMETER :: rcut2_4b_in = 1.00D2
+  REAL(KIND = REAL64), PARAMETER :: rcut2_lj_out = 1.44D2
+  REAL(KIND = REAL64), PARAMETER :: rcut2_lj_in = 1.00D2
+  
+  !Size paramters set for the beads in setup_RNA.f90
+  REAL(KIND = REAL64), PARAMETER :: NBCT2GEN   = 3.6D0
+  REAL(KIND = REAL64), PARAMETER :: NBCT2C4    = 4.0D0
+  REAL(KIND = REAL64), PARAMETER :: NBCT2CY    = 4.0D0  
+  REAL(KIND = REAL64), PARAMETER :: NBCT2PP    = 3.2D0
+  REAL(KIND = REAL64), PARAMETER :: NBCT2BASE  = 4.0D0
+  REAL(KIND = REAL64), PARAMETER :: NBCT2DUMMY = 8.0D0
+
+  !effective radii for the beads in setup_RNA.f90
+  REAL(KIND = REAL64), PARAMETER :: NBRADGEN = 4.0D0
+  REAL(KIND = REAL64), PARAMETER :: NBRADLARGE = 5.0D0
+  
+  SAVE
+END MODULE

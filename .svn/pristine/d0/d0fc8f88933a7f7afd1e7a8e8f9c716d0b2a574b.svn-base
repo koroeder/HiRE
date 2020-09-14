@@ -1,0 +1,29 @@
+! Subroutine to count the number of atoms, needed to allocate memory correctly
+
+MODULE NOA
+  USE HIRE_OPEP_INTERFACE_MOD, ONLY: OPEP_GET_NATOMS
+  USE COMMONS, ONLY: MYUNIT
+  IMPLICIT NONE
+  SAVE
+  INTEGER :: NUMBER_OF_ATOMS
+  
+CONTAINS
+  
+  SUBROUTINE COUNTATOMS()    
+    IMPLICIT NONE
+    LOGICAL :: YESNO,YESNORNA
+    
+    INQUIRE(FILE='conf_initiale.pdb',EXIST=YESNO)
+    INQUIRE(FILE='conf_initiale_RNA.pdb',EXIST=YESNORNA)    
+    NUMBER_OF_ATOMS=0
+    IF (YESNO.OR.YESNORNA) THEN
+        CALL OPEP_GET_NATOMS(NUMBER_OF_ATOMS)
+    ELSE
+        WRITE(MYUNIT , '(A)') 'countatoms> Cannot locate pdb file'
+        STOP 
+    ENDIF
+
+    RETURN
+  END SUBROUTINE COUNTATOMS
+
+END MODULE NOA

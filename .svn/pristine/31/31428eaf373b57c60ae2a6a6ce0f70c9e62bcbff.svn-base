@@ -1,0 +1,187 @@
+! Global variable definitions, module available to all parts of code
+
+      MODULE COMMONS
+      USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_PTR
+      USE PREC, ONLY: REAL64
+      IMPLICIT NONE
+      SAVE
+
+      INTEGER :: MYNODE, MYUNIT, MYEUNIT, MYMUNIT, MYBUNIT !globals for output units and computing nodes
+      INTEGER :: NATOMS, NATOMSALLOC !number of atoms (need two variables one for use, one for allocation)
+      INTEGER :: NPAR                                      !number of parallel runs 
+      INTEGER :: NSAVE                                     !number of saved structures
+      INTEGER :: NACCEPT                                   !number of accepted steps
+      INTEGER :: MCSTEPS                                   !number of steps
+      INTEGER :: MAXIT, MAXIT2                             !maximum iteration for the sloppy and tight quenching
+      INTEGER :: MUPDATE                                   !number of stored previous steps in LBFGS minimiser
+      INTEGER :: NPCALL                                    !number of potential calls
+      INTEGER :: CHECKDID                                  !ID for CHECKD keyword (0 is potential, 1 is gradient, 2 is Hessian)
+      INTEGER :: DUMPINT                                   !interval for dumping 'GMIN.dump'
+      INTEGER :: NSEED                                     !random number seed?
+      INTEGER :: QUENCHFRQ                                 !frequency of quenching (should be done every step?)
+      INTEGER :: PRTFRQ                                    !print frequency for febh routines
+
+      REAL(KIND = REAL64) :: TSTART                        !initial CPU time
+      REAL(KIND = REAL64) :: CQMAX                         !tight convergence limit
+      REAL(KIND = REAL64) :: BQMAX                         !sloppy convergence limit
+      REAL(KIND = REAL64) :: RADIUS                        !radius of particle container
+      REAL(KIND = REAL64) :: TFAC                          !Temperature scaling factor	
+      REAL(KIND = REAL64) :: GEOMDIFFTOL                   !Tolerance on distance for two structures to be classed as the same
+      REAL(KIND = REAL64) :: SRATIO                        !Step size ratio for scaling
+      REAL(KIND = REAL64) :: TRATIO                        !Temperature ratio for scaling
+      REAL(KIND = REAL64) :: MAXERISE                      !Maximum energy increase in minimisation
+      REAL(KIND = REAL64) :: MAXBFGS                       !Maximum step in minimiser
+      REAL(KIND = REAL64) :: IDIFFTOL                      !Tolerance on inertia
+      REAL(KIND = REAL64) :: ECONV                         !Tolerance on energy difference for two structures to be the same
+      REAL(KIND = REAL64) :: DGUESS                        !Initial guess for Hessian elements
+      REAL(KIND = REAL64) :: COLDFUSIONLIMIT               !Energy limit considered as cold fusion
+      REAL(KIND = REAL64) :: MAXEFALL                      !Maximum decrease in energy allowed
+      REAL(KIND = REAL64) :: SYMFCTR                       ! 
+      REAL(KIND = REAL64) :: GMAX                          !Current convergence (set to either BQMAX or CQMAX in quench.F)
+      REAL(KIND = REAL64) :: POTEL                         !Current potential energy (removed common block)
+      REAL(KIND = REAL64) :: RMS                           !Current RMS force
+
+
+
+      LOGICAL :: DEBUG                                     !Enable debug printing and extra checks
+      LOGICAL :: MPIT                                      !PT run using MPI
+      LOGICAL :: RESTORET                                  !Restore previous run
+      LOGICAL :: RANSEEDT                                  !Seed random numbers from input integer
+      LOGICAL :: RANDOMSEEDT                               !Seed random numbers from system time
+      LOGICAL :: RATIOT                                    !Set ratio for temperature and step size
+      LOGICAL :: MAXERISE_SET                              !Set maximum energy increase
+      LOGICAL :: TRACKDATAT                                !Turn on tracking for additional properties  
+      LOGICAL :: DUMPSTRUCTURES                            !Dump pdb files
+      LOGICAL :: DUMPMINT                                  !additional output
+      LOGICAL :: SAVEQ                                     !save results
+      LOGICAL :: USEFRQS                                   !Use quantum partition function
+      LOGICAL :: COLDFUSION                                !Has coldfusion been diagnosed?
+      LOGICAL :: GRADPROBLEMT                              !Any gradient probelsm encountered?
+      LOGICAL :: CHECKDT                                   !Run CHECKD routines
+ 
+      CHARACTER(LEN=130) DUMPFILE
+
+! Run-time variables, dimension will be NPAR to account for parallel runs
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: NQ                             !Number of quenches for each run 
+
+      REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:,:) :: COORDS, COORDSO  !Coordinatees
+      REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: ATMASS             !Mass of atoms/beads
+      REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: TEMP               !Temperature
+      REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: STEP               !Step size taken
+      REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: OSTEP              !
+      REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: ASTEP              !
+      REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: ACCRAT             !
+      REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: EPREV              !
+
+      LOGICAL, ALLOCATABLE, DIMENSION(:) :: FIXBOTH                        !
+      LOGICAL, ALLOCATABLE, DIMENSION(:) :: FIXTEMP                        !
+      LOGICAL, ALLOCATABLE, DIMENSION(:) :: FIXSTEP                        !
+      LOGICAL, ALLOCATABLE, DIMENSION(:) :: TMOVE                          !
+      LOGICAL, ALLOCATABLE, DIMENSION(:) :: OMOVE                          !
+
+
+! Ratio variables
+      REAL(KIND = REAL64) :: SUMSTEP, SUMTEMP
+
+! Acceptance ratio method for step-size scaling
+      LOGICAL :: ARMT=.TRUE.
+      REAL(KIND = REAL64) :: ARMA, ARMB
+
+! Q module variables necessary
+      INTEGER, ALLOCATABLE :: FF(:)                                        !Number of steps when first found
+      INTEGER, ALLOCATABLE :: NPCALL_QMIN(:)                               !Number of potential calls when found
+      REAL(KIND = REAL64), ALLOCATABLE :: QMIN(:)                          !Energy of saved minima
+      REAL(KIND = REAL64), ALLOCATABLE :: QMINP(:,:)                       !coordinates of saved minima
+      INTEGER, ALLOCATABLE :: QMINT(:,:), QMINNATOMS(:)
+
+
+! PT basin-hopping
+      REAL(KIND = REAL64) ::  PTTMIN, PTTMAX, EXCHPROB
+      INTEGER :: EXCHINT
+      LOGICAL :: PTRANDOM, PTINTERVAL, PTSINGLE, PTSETS
+
+! set centre
+      LOGICAL :: CENT, QUCENTRET, SETCENT
+      REAL(KIND = REAL64) :: CENTX, CENTY, CENTZ
+
+      CHARACTER(LEN=80) :: INFILE=''
+ 
+! OPEP+HiRE interface
+      LOGICAL :: OPEPT, OPEPHIRE_DEBUG
+      INTEGER :: HIREOPEP_VERSION 
+
+! Titrations for HiRE
+      LOGICAL :: TITRATION      !Tritration steps?
+      INTEGER :: TITMETHOD      !which method
+      INTEGER :: TITNSTEPS      !frequency of steps applied
+      REAL(KIND = REAl64) :: PH !PH value used for titration
+       
+! SAXS refinement
+      LOGICAL :: SAXST          !use SAXS
+      LOGICAL :: SAXSSOLT       !vacuum (false) or solution (true) calculation
+      LOGICAL :: REFINET        !refine hydration
+      LOGICAL :: SAXSPRINT      !additional printing
+      INTEGER :: SAXSNSTEPS     !frequency of applying SAXS
+      INTEGER :: NWATLAY        !number of hydration layers
+      INTEGER :: NORMTYPE       !SAXS norm type used
+      REAL(KIND = REAL64) :: SAXSNORM(2)   !norm range for SAXS
+      REAL(KIND = REAL64) :: WATRAD        !water radius
+      
+! FEBH variables
+      LOGICAL           :: FEBHT, SPARSET, SPARSE_BENCH
+      REAL(KIND = REAL64)  :: FEBH_POT_ENE, FETEMP, ZERO_THRESH
+      REAL(KIND = REAL64), PARAMETER :: SMALL_DOUBLE = 1.0D-100
+      REAL(KIND = REAL64), ALLOCATABLE :: QENERGIES(:), QCOORDINATES(:,:), QPE(:)
+      INTEGER           :: FE_FILE_UNIT
+      ! Variables for converging to a certain separation of zero and non-zero eigenvalues.
+      REAL(KIND = REAL64)  :: MIN_ZERO_SEP
+      INTEGER           :: MAX_ATTEMPTS
+      LOGICAL :: USEROT
+      REAL(KIND = REAL64) :: PLANCK
+! Needed for partition function calculation
+      REAL(KIND = REAL64), ALLOCATABLE :: PFSUM(:)
+      REAL(KIND = REAL64), ALLOCATABLE :: EMIN(:), FVIBMIN(:), PFMIN(:), IXMIN(:), IYMIN(:), IZMIN(:), LNFAC(:)
+
+! Rigid body routines
+      REAL(KIND = REAL64) :: EPSRIGID
+      LOGICAL :: UPDATERIGIDREFT, HYBRIDMINT, RELAXFQ
+      ! ROTATERIGID variables
+      REAL(KIND = REAL64) :: ROTATEFACTOR
+      INTEGER :: ROTATERIGIDFREQ
+      LOGICAL :: ROTATERIGIDT, DOROTATERIGID=.FALSE.
+      ! TRANSLATERIGID variables
+      REAL(KIND = REAL64) :: TRANSLATEFACTOR = 1D0
+      INTEGER :: TRANSLATERIGIDFREQ = 1
+      LOGICAL :: TRANSLATERIGIDT = .FALSE.,DOTRANSLATERIGID=.FALSE.
+
+! Freezing routines
+      INTEGER :: NFREEZE
+      INTEGER, ALLOCATABLE, DIMENSION(:) :: FROZENLIST  !  NATOMS
+      LOGICAL :: FREEZE , FREEZERES, UNFREEZERES, FREEZEALL,  UNFREEZEFINALQ, FREEZESAVE 
+      LOGICAL, ALLOCATABLE, DIMENSION(:) :: FROZENRES  ! NATOMS for safety
+      LOGICAL, ALLOCATABLE, DIMENSION(:) :: FROZEN  !  NATOMS
+
+! GROUP ROTATION MOVE PARAMETERS
+      INTEGER :: GROUPROTFREQ, NGROUPS
+      LOGICAL :: GROUPROTT, DOGROUPROT=.FALSE., GR_SCALEROT, GR_SCALEPROB
+      LOGICAL :: GROUPROT_SUPPRESS
+      CHARACTER(LEN=10), ALLOCATABLE :: ATOMGROUPNAMES(:)
+      CHARACTER(LEN=30) :: GR_SCALEMODE
+      INTEGER, ALLOCATABLE :: ATOMGROUPAXIS(:,:)
+      REAL(KIND = REAL64), ALLOCATABLE :: ATOMGROUPSCALING(:),ATOMGROUPPSELECT(:)
+      LOGICAL, ALLOCATABLE :: ATOMGROUPS(:,:)
+
+! Adding pulling force
+      LOGICAL :: PULLT
+      INTEGER :: PATOM1, PATOM2
+      REAL(KIND = REAL64) :: PFORCE
+
+! Adding harmonic field
+      LOGICAL :: HARMONICF
+      REAL(KIND = REAL64) :: HARMONICSTR
+      REAL(KIND = REAL64), ALLOCATABLE :: HARMONICR0(:)
+      LOGICAL, ALLOCATABLE, DIMENSION(:) :: HARMONICFLIST  !  NATOMS
+
+
+
+END MODULE COMMONS
