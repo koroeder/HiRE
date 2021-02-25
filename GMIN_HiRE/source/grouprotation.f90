@@ -70,25 +70,63 @@ CONTAINS
       USE PREC
       IMPLICIT NONE
       REAL(KIND = REAL64) :: DPRAND, PI, TWOPI, GROUPROTANGLE, GROUPROTANGLEDEG
-      INTEGER :: I1,JP
+      INTEGER :: I1,JP,J1,J2,FIRSTAT,LASTAT,NROTBP
+      LOGICAL :: INBP(NNUCL), INBPAT(NATOMS), INBPGROUP(NGROUPS)
       ! Some helpful parameters
       PI=ATAN(1.0D0)*4
       TWOPI=2.0D0*PI
+      ! Avoid current base pairs
+      ! 1. find current base pairs
+      INBP(:) = .FALSE.
+      DO J1=1,NNUCL-1
+         DO J2=2,NNUCL
+            IF (BP_CURR(J1,J2)) THEN
+               INBP(J1) = .TRUE.
+               INBP(J2) = .TRUE.
+            ENDIF
+         ENDDO
+      ENDDO
+      ! 2. Create list of atoms in base pairs
+      INBPAT(:) = .FALSE.     
+      DO J1=1,NNUCL
+         IF (INBP(J1)) THEN
+            FIRSTAT = LIST_NUCL(J1)%FATOM
+            LASTAT = LIST_NUCL(J1)%LATOM  
+            DO J2=FIRSTAT,LASTAT
+               INBPAT(J2) = .TRUE.
+            ENDDO         
+         ENDIF
+      ENDDO
+      ! 3. Translate into list of groups with atoms in base pairs
+      INBPGROUP(:) = .FALSE.
+      DO J1=1,NGROUPS
+         DO J2=1,NATOMS
+            IF (ATOMGROUPS(J1,J2).AND.INBPAT(J2)) THEN
+               INBPGROUP(J1)=.TRUE.
+               EXIT
+            ENDIF
+         ENDDO
+      ENDDO
+      NROTBP = 0 
       ! For each group....      
       DO I1=1,NGROUPS
-         IF (ATOMGROUPPSELECT(I1).GE.DPRAND()) THEN
-            ! Group selected to be rotated - calculate rotation angle
-            GROUPROTANGLE=(DPRAND()-0.5)*twopi*ATOMGROUPSCALING(I1)
-            GROUPROTANGLEDEG=GROUPROTANGLE*(180/pi)
-            ! Print some into to GMIN_out for the user
-            IF (.NOT. GROUPROT_SUPPRESS) THEN
-               WRITE(MYUNIT,*) 'GROUPROTATION> Rotating group ',TRIM(ADJUSTL(ATOMGROUPNAMES(I1))),' by ',GROUPROTANGLEDEG
-            END IF
-            ! Call the rotation subroutine
-            CALL GROUPROTATION(ATOMGROUPAXIS(I1,1),ATOMGROUPAXIS(I1,2),GROUPROTANGLE,ATOMGROUPS(I1,:),COORDS(:,JP))
+         IF (SKIPBPT.AND.INBPGROUP(I1)) THEN
+            NROTBP = NROTBP + 1        
+         ELSE
+            IF (ATOMGROUPPSELECT(I1).GE.DPRAND()) THEN
+               ! Group selected to be rotated - calculate rotation angle
+               GROUPROTANGLE=(DPRAND()-0.5)*twopi*ATOMGROUPSCALING(I1)
+               GROUPROTANGLEDEG=GROUPROTANGLE*(180/pi)
+               ! Print some into to GMIN_out for the user
+               IF (.NOT. GROUPROT_SUPPRESS) THEN
+                  WRITE(MYUNIT,*) ' GROUPROTATION> Rotating group ',TRIM(ADJUSTL(ATOMGROUPNAMES(I1))),' by ',GROUPROTANGLEDEG
+               END IF
+               ! Call the rotation subroutine
+               CALL GROUPROTATION(ATOMGROUPAXIS(I1,1),ATOMGROUPAXIS(I1,2),GROUPROTANGLE,ATOMGROUPS(I1,:),COORDS(:,JP))
+            ENDIF
          ENDIF
       ENDDO 
-
+      WRITE(MYUNIT,*) " GROUPROTATION> ", NROTBP," groups skipped as they involve breaking base pairs."
       END SUBROUTINE GROUPROTSTEP
 
 ! The GROUPROTATION subroutine allows for almost any rotation of a defined set of atoms.

@@ -196,6 +196,7 @@
       INTEGER, ALLOCATABLE :: ATOMGROUPAXIS(:,:)
       REAL(KIND = REAL64), ALLOCATABLE :: ATOMGROUPSCALING(:),ATOMGROUPPSELECT(:)
       LOGICAL, ALLOCATABLE :: ATOMGROUPS(:,:)
+      LOGICAL :: SKIPBPT=.FALSE.                         ! skip groups involving paired bases
 
 ! Adding pulling force
       LOGICAL :: PULLT = .FALSE.

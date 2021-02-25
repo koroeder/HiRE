@@ -467,6 +467,10 @@
       ELSE IF (WORD .EQ. 'QUIETGROUPROT') THEN
          GROUPROT_SUPPRESS = .TRUE.
 
+! Keyword to prevent rotation of paired bases
+      ELSE IF (WORD .EQ. 'SKIPBPROT') THEN
+         SKIPBPT = .TRUE.
+
 ! Global hinge moves for loose 3' or 5' tails
       ELSE IF (WORD .EQ. 'BPHINGE') THEN
          BPHINGET = .TRUE.
