@@ -309,6 +309,11 @@ module calcforces
          endif
             Econst = Erest + Eposres
 
+         if ((NRESTS.GT.0).OR.(NPOSRES.GT.0)) THEN
+            WRITE(*,*) " restraints> Restraint energy is currently: ", Econst
+            WRITE(*,*) " restraints> Sum over restraint force (absolute) is currently: ", SUM(ABS(Frest)) 
+         endif
+
          ETOT = ETOT + Econst + Esaxs
          F(1:natom3) = F(1:natom3) + Frest(1:natom3) + F_saxs(1:natom3)
 

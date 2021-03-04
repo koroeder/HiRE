@@ -51,7 +51,7 @@ subroutine RNA_RESTRAINTS(X, F)
       
       use geometric_corrections, only: euc_norm
       use RNAparams
-      use energies, only: Econst, nFconst
+      use energies, only: Erest, nFconst
       use prec_hire
       implicit none
 
@@ -72,6 +72,8 @@ subroutine RNA_RESTRAINTS(X, F)
 
 !       linear for d > 2
         v = dlen - restl(idx)
+        !write (*,*) "========="
+        !write (*,*) " restraint> Restraint: ", idx, " Difference to ref dist: ", v
         if((trest(idx) .ge. 2) .and. (abs(v) .gt. 2)) then
           Econ = restk(idx)*(4*abs(v)-4)
           df = restk(idx)*4*v/abs(v)*diff/dlen
@@ -79,13 +81,16 @@ subroutine RNA_RESTRAINTS(X, F)
           Econ = restk(idx)*v**2
           df = 2*restk(idx)*v*diff/dlen
         endif
-
+        !write (*,*) " restraint> Energy contribution for this restraint: ", Econ
+        !write (*,*) " restraint> Forces from this restraint: ", df
         if(trest(idx) .eq. 2) then
           Econ = Econ*escale
           df = df*escale
         endif
 
-        Econst = Econst + Econ
+        Erest = Erest + Econ
+        !write (*,*) " restraint> Overall restraint energy after adding this contribution: ", Erest
+        !write (*,*) " restraint> Overall restraint forces: ", df
         nFconst = nFconst + euc_norm(df)
         F(resti(idx)*3-2 : resti(idx)*3) = F(resti(idx)*3-2 : resti(idx)*3) - df
         F(restj(idx)*3-2 : restj(idx)*3) = F(restj(idx)*3-2 : restj(idx)*3) + df
@@ -151,7 +156,7 @@ subroutine RNA_RESTRAINTS_MIN(X, F, Econ, nFcon)
       implicit none
 
       real(kind = real64), intent(in) :: X(*)
-      real(kind = real64), intent(out) :: F(*)
+      real(kind = real64), intent(inout) :: F(*)
       real(kind = real64) v
 
       integer idx
