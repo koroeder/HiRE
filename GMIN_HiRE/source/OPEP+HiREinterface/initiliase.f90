@@ -173,6 +173,8 @@ END SUBROUTINE initialise_SAXS
 SUBROUTINE initialise_HB()
     use commons, only: RNAHBT
     use definitions, only: do_hb, save_hb, hbdat, ihb
+    integer:: getunit
+    
     do_hb=RNAHBT
     save_hb=.false.
     ihb=0
