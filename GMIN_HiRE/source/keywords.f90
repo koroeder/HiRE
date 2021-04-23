@@ -824,13 +824,20 @@
          CALL READI(DUMP_MARKOV_NWAIT)
          CALL READI(DUMP_MARKOV_NFREQ)
 
+      ELSE IF (WORD.eq.'DUMPMIN') THEN
+        DUMPMINT=.TRUE.
+        WRITE(MYUNIT,'(A)') ' keywords> The SAVE lowest minima will be dumped every DUMPINT steps as dumpmin.x files'      
+
+      ELSE IF (WORD.EQ.'DUMPPIGS') THEN
+        DUMPPIGST = .TRUE.
+        IF (NITEMS.GT.1) THEN
+           CALL READF(EPIGSLIM)
+        ENDIF
+        WRITE(MYUNIT,'(A)') ' keywords> Minimisation output for PiGS'
+
       ELSE IF (WORD.eq.'DUMPSTRUCTURES') THEN
         DUMPSTRUCTURES=.TRUE.
         WRITE(MYUNIT,'(A)') ' keywords> Final structures will be dumped in different formats (.rst, .xyz, .pdb)'
-
-      ELSE IF (WORD.eq.'DUMPMIN') THEN
-        DUMPMINT=.TRUE.
-        WRITE(MYUNIT,'(A)') ' keywords> The SAVE lowest minima will be dumped every DUMPINT steps as dumpmin.x files'
 
       ELSE IF (WORD.EQ.'PRTFRQ') THEN
          CALL READI(PRTFRQ)

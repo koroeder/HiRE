@@ -150,7 +150,9 @@
       REAL(KIND=REAL64) :: WATW = 0.037              !water contrast
 
 
-
+! Dump energies for PiGS
+      LOGICAL :: DUMPPIGST = .FALSE.                 !write output for PiGS reading
+      REAL(KIND = REAL64) :: EPIGSLIM=HUGE(1.0D0)
      
 ! FEBH variables
       LOGICAL           :: FEBHT = .FALSE., SPARSET = .FALSE., SPARSE_BENCH = .FALSE.
