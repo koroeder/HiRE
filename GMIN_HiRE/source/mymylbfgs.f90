@@ -27,7 +27,7 @@
       REAL(KIND = REAL64) :: DUMMY, ENEW, GNORM, STP, YS, YY, SQ, YR, BETA
       REAL(KIND = REAL64) :: DOT1, DOT2, OVERLAP, SLENGTH, DDOT
       INTEGER :: J1, BOUND, CP, INMC, IYCN, ISCN, NFAIL, NDECREASE
-
+      LOGICAL :: EPIGSSET
 
       IF (.NOT.ALLOCATED(DIAG)) ALLOCATE(DIAG(N))       
       IF (.NOT.ALLOCATED(W)) ALLOCATE(W(N*(2*M+1)+2*M))
@@ -36,6 +36,8 @@
          CALL EXIT(10)
       ENDIF
 
+      EPIGSSAVE(:) = 0.0D0
+      EPIGSSET = .FALSE.
 
       NFAIL=0
       IF (RESET) ITER=0
@@ -76,9 +78,18 @@
 !  Termination test. 
 10    CALL FLUSH(MYUNIT)
       MFLAG=.FALSE.
+      IF (DUMPPIGST) THEN
+         IF (.NOT.(EPIGSSET)) THEN
+            IF (RMS.LT.EPIGSLIM) THEN
+               EPIGSSAVE(1) = ENERGY
+               EPIGSSET = .TRUE.
+            ENDIF
+         ENDIF
+      ENDIF
       IF (RMS.LE.EPS) THEN 
          MFLAG=.TRUE.
          IF (DEBUG) WRITE(MYUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
+         IF (DUMPPIGST) EPIGSSAVE(2) = ENERGY
          RETURN
       ENDIF
       

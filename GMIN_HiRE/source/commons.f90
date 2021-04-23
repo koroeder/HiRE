@@ -152,7 +152,8 @@
 
 ! Dump energies for PiGS
       LOGICAL :: DUMPPIGST = .FALSE.                 !write output for PiGS reading
-      REAL(KIND = REAL64) :: EPIGSLIM=HUGE(1.0D0)
+      REAL(KIND = REAL64) :: EPIGSLIM=HUGE(1.0D0)    !limit for optimisation to save first energy
+      REAL(KIND = REAL64) :: EPIGSSAVE(2)            !saved energy
      
 ! FEBH variables
       LOGICAL           :: FEBHT = .FALSE., SPARSET = .FALSE., SPARSE_BENCH = .FALSE.
