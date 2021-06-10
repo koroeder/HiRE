@@ -83,7 +83,7 @@ MODULE HIRE_OPEP_INTERFACE_MOD
       ELSE
          GOTO 30
       ENDIF
-      !close the pdb file and return to main program
+      !close the pdb file and return to main program GMIN
 40    CONTINUE
       CLOSE(PDB_FILE_UNIT)
       NATOM_ = L !return number of atoms
