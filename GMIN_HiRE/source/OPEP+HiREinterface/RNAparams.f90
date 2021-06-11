@@ -86,6 +86,7 @@ MODULE RNAparams
   CHARACTER(4), ALLOCATABLE :: IGRAPH(:)
   
   INTEGER, ALLOCATABLE :: NPHITYPE(:)          !Torsion scaling for backbone (0) or base (1)
+  INTEGER, ALLOCATABLE :: NTHETTYPE(:)         !Angle scaling
 
   character(len=20) :: molecule_type           !RNA or DNA?
   
@@ -167,7 +168,7 @@ MODULE RNAparams
   REAL(KIND = REAL64), PARAMETER :: NBCT2C4    = 4.0D0
   REAL(KIND = REAL64), PARAMETER :: NBCT2CY    = 4.0D0  
   REAL(KIND = REAL64), PARAMETER :: NBCT2PP    = 4.0D0
-  REAL(KIND = REAL64), PARAMETER :: NBCT2BASE  = 3.2D0
+  REAL(KIND = REAL64), PARAMETER :: NBCT2BASE  = 4.0D0
   REAL(KIND = REAL64), PARAMETER :: NBCT2DUMMY = 8.0D0
 
   !effective radii for the beads in setup_RNA.f90

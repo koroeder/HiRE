@@ -114,7 +114,7 @@ module score
   use prec_hire
     implicit none
     real(kind = real64), dimension(272) :: score_prot
-    real(kind = real64), dimension(25)  :: score_RNA
+    real(kind = real64), dimension(47)  :: score_RNA
     save
 end module score
 

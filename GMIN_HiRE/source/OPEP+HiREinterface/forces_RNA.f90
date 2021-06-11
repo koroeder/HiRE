@@ -19,7 +19,7 @@ subroutine RNA_SAXS_force(XYZ, Esaxs, F_saxs)
   SAXS_save = SAXS_print .and. SAXSSAVET
   if(calc_SAXS_force) then
       calc_SAXS_force = .false.
-      Ksaxs = score_RNA(25)
+      Ksaxs = score_RNA(46)
       if (modulate_saxs_serial) then
           Kmodul = exp(-(sin(3.14159 * SAXSOFFI) * saxs_invsig)**2)
           Kdecre = (1.0 + cos(3.14159 * SAXSMODI)) / 2.0
@@ -249,7 +249,8 @@ subroutine RNA_ETHETA(NTHETH,X,F,ETHH)
 !
       use commons, only: debug
       use score
-      use RNAparams, only: IT, JT, KT, ICT, TEQ, TK, natom3
+      use RNAparams, only: IT, JT, KT, ICT, TEQ, TK, natom3, & 
+                           NTHETTYPE,IAC
       use PBC_defs
       use prec_hire
       implicit none
@@ -259,7 +260,8 @@ subroutine RNA_ETHETA(NTHETH,X,F,ETHH)
       real(kind = real64), intent(in) :: X(natom3)
       real(kind = real64), intent(out) :: ETHH, F(natom3)
 
-      integer :: i3, j3, k3, ic, jn, p1, p2, p3
+      integer :: i3, j3, k3, ic, jn, p1, p2, p3, it0, it1, it2
+      integer :: tangle
       integer :: QDETunit, getunit
       
       real(kind = real64) :: ct0, ct1, ct2
@@ -290,6 +292,10 @@ subroutine RNA_ETHETA(NTHETH,X,F,ETHH)
            rIJ = X(I3+1:I3+3)-X(J3+1:J3+3)
            rKJ = X(K3+1:K3+3)-X(J3+1:J3+3)
 
+           it0 = iac(I3)
+           it1 = iac(J3)
+           it2 = iac(K3)
+
            if(periodicBC)then
               rIJ = pbc_mic(rIJ)
               rKJ = pbc_mic(rKJ)
@@ -306,7 +312,7 @@ subroutine RNA_ETHETA(NTHETH,X,F,ETHH)
 
 !     ENERGY
            DA = ANT-TEQ(IC)
-           DF = TK(IC)*DA*score_RNA(2)
+           DF = TK(IC)*DA*score_RNA(2+nthettype(JN))*score_RNA(47)
            EAW = DF*DA
            DFW = -(2*DF)/DSIN(ANT)
            if(QDET) then
@@ -480,8 +486,8 @@ end subroutine RNA_ETHETA
     
         vDF = DF1*vFMUL
 
-        vEPW = vEPW*score_RNA(3)*score_RNA(16+nphitype(JN))   ! score(16) backbone k, score(17) base k
-        vDF = vDF*score_RNA(3)*score_RNA(16+nphitype(JN))
+        vEPW = vEPW*score_RNA(10)*score_RNA(29+nphitype(JN))   ! Check 
+        vDF = vDF*score_RNA(10)*score_RNA(29+nphitype(JN))
 
         if(QDET) then
              P1 = I3/3+1
@@ -491,7 +497,7 @@ end subroutine RNA_ETHETA
              eqangle = atan2(gams(IC)/pk(IC), gamc(IC)/pk(IC))*180/PI
              curangle = atan2(sinnp, cosnp)*180/PI
              write(7,'(i4, i4, i4, i4, i4, f9.3,f9.3,f9.3,f9.3,f9.3,f9.3)') &
-                IC, P1, P2, P3, P4, PK(IC),PN(IC), curangle, eqangle, vEPW, score_RNA(3)*score_RNA(16+nphitype(JN))
+                IC, P1, P2, P3, P4, PK(IC),PN(IC), curangle, eqangle, vEPW, score_RNA(10)*score_RNA(29+nphitype(JN))
         endif
 !     END ENERGY WITH RESPECT TO COSPHI
 
@@ -671,7 +677,7 @@ end subroutine RNA_ETHETA
          ! skip if residues are not nucleic acids
          if (ti .gt. 0 .and. tj .gt. 0) then
            !----- HBOND ----
-           call RNA_BB(i, j, blist(i), ti, blist(j)-1, tj, score_RNA(10), X, F, Ehhb1, hbexist, bprot(i), bprot(j)) !Br2 add charge
+           call RNA_BB(i, j, blist(i), ti, blist(j)-1, tj, score_RNA(23), X, F, Ehhb1, hbexist, bprot(i), bprot(j)) !Br2 add charge
            EHHB = EHHB + EHHB1
            if (((j+1).eq.i).or.(j.eq.(i+1))) then
                    BP_curr(i,j) = .false.
@@ -812,9 +818,9 @@ end subroutine RNA_ETHETA
         real(kind = real64), intent(out) :: eahyd, df
         real(kind = real64) :: r, excl_vol, barrier, ct2mod, ratio
 
-        excl_vol = score_RNA(4)  ! steepness
-        barrier = score_RNA(23) ! height = 100
-        ratio = score_RNA(24) ! unused with old barrier
+        excl_vol = score_RNA(11)  ! steepness
+        barrier = score_RNA(44) ! height = 100
+        ratio = score_RNA(45) ! unused with old barrier
         r = dsqrt(da2)
 
         ct2mod=ratio*ct2 ! introduced by sp Apr20
@@ -843,8 +849,8 @@ end subroutine RNA_ETHETA
         real(kind = real64) r
         real(kind = real64) Dlength, Diel
 
-        Diel = score_RNA(5)              ! 1/epsilon_r 
-        Dlength = score_RNA(6)
+        Diel = score_RNA(12)              ! 1/epsilon_r 
+        Dlength = score_RNA(13)
     
 
         r = dsqrt(da2)
@@ -974,7 +980,7 @@ end subroutine RNA_ETHETA
         endif
       endif
       !lm759> save Hbond pairs to hbonds.dat
-      REhhb=Ehhb*(Enp1+Enp2)/(epshb*score_RNA(15)) !Mul: * **2 !Add: +
+      REhhb=Ehhb*(Enp1+Enp2)/(epshb*score_RNA(28)) !Mul: * **2 !Add: +
       if(save_hb)then
         if(abs(REhhb).ge.1.0d0) write(hbdat,'(4i4,4f8.3)') i, j+1, bi, bj, REhhb, Ehhb, Enp1, Enp2 !Mul: * !Add: +
       endif
@@ -1065,9 +1071,9 @@ end subroutine RNA_ETHETA
 
       QDET = .FALSE. .or. debug
 
-      p = score_RNA(12)
-      y = score_RNA(13)
-      ctit = score_RNA(11)
+      p = score_RNA(25)
+      y = score_RNA(26)
+      ctit = score_RNA(24)
     
       EHHB = 0
       fa = 0
@@ -1316,8 +1322,8 @@ salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0))+crossproduct(rb0-sinb*mb
       endif
 
       ! Br3: segno ??          
-      Enewpl = +score_RNA(15)*exp(-(delta/score_RNA(14))**2)/1.0d0 !OLD: -/3.0 !Add: + !Mul: -        
-      dedd = +2*(delta/score_RNA(14)**2)*Enewpl                    ! FORCE !!!
+      Enewpl = +score_RNA(28)*exp(-(delta/score_RNA(27))**2)/1.0d0 !OLD: -/3.0 !Add: + !Mul: -        
+      dedd = +2*(delta/score_RNA(27)**2)*Enewpl                    ! FORCE !!!
 
       if(QDET) then
         write(999,'(i4, i4, i4, i4, f8.3, f8.3, f8.3, f8.3)') i, j, k, l, dist, distEq, Enewpl
@@ -1349,6 +1355,7 @@ salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0))+crossproduct(rb0-sinb*mb
       use commons, only: debug
       use score
       use prec_hire
+      use RNAparams, only: btype
       implicit none
 
       integer, intent(in) :: I, J
@@ -1365,6 +1372,7 @@ salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0))+crossproduct(rb0-sinb*mb
       real(kind = real64) eq, wid
       ! used in energy function cos(x)**cosp
       integer cosp
+      integer ti, tj !basetype of i and j
 
       logical QDET
       QDET = .FALSE. .or. debug
@@ -1373,7 +1381,25 @@ salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0))+crossproduct(rb0-sinb*mb
       wid = score_RNA(9)
       cosp = 2
 
-      SK = score_RNA(7)
+      ti = btype(i)
+      tj = btype(j)
+
+      if ((ti.lt.3.and.tj.gt.2).or.(tj.lt.3.and.ti.gt.2)) then
+        !pyr-pur
+        eq = score_RNA(17)
+        wid = score_RNA(20)
+        SK = score_RNA(14)
+      else if (ti.lt.3.and.tj.lt.3) then
+        !pur-pur
+        eq = score_RNA(18)
+        wid = score_RNA(21)
+        SK = score_RNA(15)
+      else
+        !pyr-pyr
+        eq = score_RNA(19)
+        wid = score_RNA(22)
+        SK = score_RNA(16)
+      endif
 
       a = X(i*3-8:i*3-6) - X(i*3-5:i*3-3)   !! vector a : I-1 -> I-2
       b = X(i*3-2:i*3  ) - X(i*3-5:i*3-3)    !! vector b : I-1 -> I

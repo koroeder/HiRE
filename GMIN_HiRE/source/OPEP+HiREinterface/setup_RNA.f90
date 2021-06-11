@@ -35,7 +35,7 @@
       character(50) dummy, dummych
 
       integer i, j, idum, ikl, idatom
-      integer nf, jn, i3, j3, k3t, l3t, it1, it2
+      integer nf, jn, i3, j3, k3t, l3t, it0, it1, it2, it3
 
       integer getunit
 
@@ -154,7 +154,7 @@
 !---  read weight file for RNA
       nf=getunit()
       OPEN(nf,FILE="scale_RNA.dat",status="old")
-      do i=1,25
+      do i=1,47
          read(nf,'(i4,f15.10,A)') ikl, score_temp, dummy
          score_RNA(i)=dble(score_temp)
       enddo
@@ -233,18 +233,85 @@
       
       QDET = .FALSE. .or. debug
 
+      allocate(nthettype(NTHETA))
+      do jn = 1,NTHETA
+         i3 = it(jn)/3 +1
+         j3 = jt(jn)/3 +1
+         k3t = kt(jn)/3 +1
+         it0 = iac(i3)
+         it1 = iac(j3)
+         it2 = iac(k3t)
+
+         if (it0.eq.4.and.it1.eq.5.and.(it2.eq.6.or.it2.eq.8.or.it2.eq.10.or.it2.eq.11))then
+            nthettype(jn)=0
+
+         else if (it0.eq.5.and.(it1.eq.6.and.it2.eq.7.or.it1.eq.8.and.it2.eq.9))then
+            nthettype(jn)=1
+         
+         else if (it0.eq.3.and.it1.eq.2.and.it2.eq.1)then
+            nthettype(jn)=2
+         
+         else if (it0.eq.2.and.it1.eq.1.and.it2.eq.4)then
+            nthettype(jn)=3
+         
+         else if (it0.eq.1.and.it1.eq.4.and.it2.eq.3)then
+            nthettype(jn)=4
+         
+         else if (it0.eq.4.and.it1.eq.3.and.it2.eq.2)then
+            nthettype(jn)=5
+         
+         else if (it0.eq.1.and.it1.eq.4.and.it2.eq.5)then
+            nthettype(jn)=6
+         
+         else if (it0.eq.5.and.it1.eq.4.and.it2.eq.3)then
+            nthettype(jn)=7
+         
+         endif
+      enddo
+
+
+
       allocate(nphitype(NPHIA))
       do jn = 1,NPHIA                ! torsion info backbone or base
          i3 = ip(jn)/3+1
          j3 = jp(jn)/3+1
          k3t = kp(jn)/3+1
          l3t = lp(jn)/3+1
+         it0=iac(i3)
          it1=iac(j3)
          it2=iac(k3t)
-         if(it1.le.4.and.it2.le.4)then
+         it3=iac(l3t)
+
+         if(it0.eq.4.and.it1.eq.5.and.(it2.eq.6.or.it2.eq.8).and.(it3.eq.7.or.it3.eq.9))then
             nphitype(jn)=0
-         else
+
+         else if(it0.eq.4.and.(it1.eq.6.or.it1.eq.8).and.(it2.eq.7.or.it2.eq.9).and.it3.eq.5)then
             nphitype(jn)=1
+
+         else if(it0.eq.1.and.it1.eq.4.and.it2.eq.5.and.(it3.eq.6.or.it3.eq.8.or.it3.eq.10.or.it3.eq.11))then
+            nphitype(jn)=2
+
+         else if(it0.eq.3.and.it1.eq.4.and.it2.eq.5.and.(it3.eq.6.or.it3.eq.8.or.it3.eq.10.or.it3.eq.11))then
+            nphitype(jn)=3
+
+         else if(it0.eq.1.and.it1.eq.4.and.it2.eq.3.and.it3.eq.2)then
+            nphitype(jn)=4
+
+         else if(it0.eq.5.and.it1.eq.4.and.it2.eq.3.and.it3.eq.2)then
+            nphitype(jn)=5
+
+         else if(it0.eq.2.and.it1.eq.1.and.it2.eq.4.and.it3.eq.3)then
+            nphitype(jn)=6
+
+         else if(it0.eq.2.and.it1.eq.1.and.it2.eq.4.and.it3.eq.5)then
+            nphitype(jn)=7
+
+         else if(it0.eq.3.and.it1.eq.2.and.it2.eq.1.and.it3.eq.4)then
+            nphitype(jn)=8
+
+         else if(it0.eq.4.and.it1.eq.3.and.it2.eq.2.and.it3.eq.1)then
+            nphitype(jn)=9
+
          endif
           if(QDET) then
            write(7,'(8i4)') jn,i3,j3,k3t,l3t,it1,it2,nphitype(jn) 
@@ -290,11 +357,11 @@
           implicit none
           real(kind = real64) z
 
-          wc = score_RNA(18)
-          wcCanonic = score_RNA(19)
-          noWc = score_RNA(20)
-          tit = score_RNA(21)
-          noWCq = score_RNA(22)
+          wc = score_RNA(39)
+          wcCanonic = score_RNA(40)
+          noWc = score_RNA(41)
+          tit = score_RNA(42)
+          noWCq = score_RNA(43)
           z=0.0d0
          
 !         A-A
@@ -474,9 +541,9 @@
           implicit none
           real(kind = real64) :: z
           
-          wc = score_RNA(18)
-          wcCanonic = score_RNA(19)
-          noWc = score_RNA(20)
+          wc = score_RNA(39)
+          wcCanonic = score_RNA(40)
+          noWc = score_RNA(41)
 
 !         A-A
           dREF(1:3,2,2) =  (/ 5.63, 6.84, 5.92/)       !WWt, HHt, HWt                    
