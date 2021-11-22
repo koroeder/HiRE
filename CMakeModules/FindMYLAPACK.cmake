@@ -7,10 +7,10 @@
 
 option(WITH_MYLAPACK "Compile own lapack (needed for charmm, can cause problems with gfortran 4.7)" ON)
 if(WITH_MYLAPACK)
-    file(GLOB MYLAPACK_SOURCES ${HiRE_ROOT}/LAPACK/*.f)
+    file(GLOB MYLAPACK_SOURCES ${GIT_ROOT}/LAPACK/*.f)
     add_library(mylapack ${MYLAPACK_SOURCES})
 
-    message("${HiRE_ROOT}/CMakeModules/FindMYLAPACK.cmake: creating LAPACK library.")                      
+    message("${GIT_ROOT}/CMakeModules/FindMYLAPACK.cmake: creating LAPACK library.")                      
 
     set(MYLAPACK_LIBS mylapack ${MYBLAS_LIBS})
     mark_as_advanced(MYLAPACK_LIBS)

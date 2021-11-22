@@ -3,7 +3,7 @@ MODULE BP_MOVES_MOD
   USE PREC
   USE VEC3
   USE ROTATIONS, ONLY: ROT_AA2MX
-  USE HIRE_OPEP_INTERFACE_MOD, ONLY: OPEP_WRITE_PDB
+  USE HIRE_INTERFACE, ONLY: DUMP_PDB
 
   IMPLICIT NONE
   INTEGER, SAVE :: BP_STEPS = 0
@@ -151,7 +151,7 @@ MODULE BP_MOVES_MOD
     !save a pdb file to check steps (comment as needed)
     WRITE(J1_STRING,'(I6)') BP_STEPS
     IF (PRINTPDB.AND.DEBUG) THEN
-       CALL OPEP_WRITE_PDB(NATS,X,"bp_hinge_move_a."//TRIM(ADJUSTL(J1_STRING))//".pdb")
+       CALL DUMP_PDB(3*NATS,X,"bp_hinge_move_a."//TRIM(ADJUSTL(J1_STRING))//".pdb",.TRUE.)
     ENDIF
 
     !Now find vector between nucid and nucid - 1 (BBVEC1), and vector between nucid +1 and nucid (BBVEC2)
@@ -197,7 +197,7 @@ MODULE BP_MOVES_MOD
     !save a pdb file to check steps (comment as needed)
     WRITE(J1_STRING,'(I6)') BP_STEPS
     IF (PRINTPDB.AND.DEBUG) THEN
-       CALL OPEP_WRITE_PDB(NATS,X,"bp_hinge_move_b."//TRIM(ADJUSTL(J1_STRING))//".pdb")
+       CALL DUMP_PDB(3*NATS,X,"bp_hinge_move_b."//TRIM(ADJUSTL(J1_STRING))//".pdb",.TRUE.)
     ENDIF
 
   !2. Rotate third free nucleotide to be approximately in line with base pair
@@ -254,7 +254,7 @@ MODULE BP_MOVES_MOD
     !save a pdb file to check steps (comment as needed)
     WRITE(J1_STRING,'(I6)') BP_STEPS
     IF (PRINTPDB.AND.DEBUG) THEN
-       CALL OPEP_WRITE_PDB(NATS,X,"bp_hinge_move_c."//TRIM(ADJUSTL(J1_STRING))//".pdb")
+       CALL DUMP_PDB(3*NATS,X,"bp_hinge_move_c."//TRIM(ADJUSTL(J1_STRING))//".pdb",.TRUE.)
     ENDIF
 
   !3. If we have more than 3 loose nucleotides, rotate the next bond closer to the CoM of rest of the molecule
@@ -319,7 +319,7 @@ MODULE BP_MOVES_MOD
     !save a pdb file to check steps (comment as needed)
     WRITE(J1_STRING,'(I6)') BP_STEPS
     IF (PRINTPDB.AND.DEBUG) THEN
-       CALL OPEP_WRITE_PDB(NATS,X,"bp_hinge_move_d."//TRIM(ADJUSTL(J1_STRING))//".pdb")
+       CALL DUMP_PDB(3*NATS,X,"bp_hinge_move_d."//TRIM(ADJUSTL(J1_STRING))//".pdb",.TRUE.)
     ENDIF
     RETURN
   END SUBROUTINE MOVE_FTAIL
@@ -359,7 +359,7 @@ MODULE BP_MOVES_MOD
     !save a pdb file to check steps (comment as needed)
     WRITE(J1_STRING,'(I6)') BP_STEPS
     IF (PRINTPDB.AND.DEBUG) THEN
-       CALL OPEP_WRITE_PDB(NATS,X,"bp_hinge_move_a."//TRIM(ADJUSTL(J1_STRING))//".pdb")
+       CALL DUMP_PDB(3*NATS,X,"bp_hinge_move_a."//TRIM(ADJUSTL(J1_STRING))//".pdb",.TRUE.)
     ENDIF
 
     !Now find vector between nucid and nucid + 1 (BBVEC1), and vector between nucid - 1 and nucid (BBVEC2)
@@ -405,7 +405,7 @@ MODULE BP_MOVES_MOD
     !save a pdb file to check steps (comment as needed)
     WRITE(J1_STRING,'(I6)') BP_STEPS
     IF (PRINTPDB.AND.DEBUG) THEN
-       CALL OPEP_WRITE_PDB(NATS,X,"bp_hinge_move_b."//TRIM(ADJUSTL(J1_STRING))//".pdb")
+       CALL DUMP_PDB(3*NATS,X,"bp_hinge_move_b."//TRIM(ADJUSTL(J1_STRING))//".pdb",.TRUE.)
     ENDIF
 
   !2. Rotate third free nucleotide to be approximately in line with base pair
@@ -462,7 +462,7 @@ MODULE BP_MOVES_MOD
     !save a pdb file to check steps (comment as needed)
     WRITE(J1_STRING,'(I6)') BP_STEPS
     IF (PRINTPDB.AND.DEBUG) THEN
-       CALL OPEP_WRITE_PDB(NATS,X,"bp_hinge_move_c."//TRIM(ADJUSTL(J1_STRING))//".pdb")
+       CALL DUMP_PDB(3*NATS,X,"bp_hinge_move_c."//TRIM(ADJUSTL(J1_STRING))//".pdb",.TRUE.)
     ENDIF
 
   !3. If we have more than 3 loose nucleotides, rotate the next bond closer to the CoM of rest of the molecule
@@ -528,7 +528,7 @@ MODULE BP_MOVES_MOD
     !save a pdb file to check steps (comment as needed)
     WRITE(J1_STRING,'(I6)') BP_STEPS
     IF (PRINTPDB.AND.DEBUG) THEN
-       CALL OPEP_WRITE_PDB(NATS,X,"bp_hinge_move_d."//TRIM(ADJUSTL(J1_STRING))//".pdb")
+       CALL DUMP_PDB(3*NATS,X,"bp_hinge_move_d."//TRIM(ADJUSTL(J1_STRING))//".pdb",.TRUE.)
     ENDIF
     RETURN
 

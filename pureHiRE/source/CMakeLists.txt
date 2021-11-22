@@ -1,3 +1,9 @@
+###########################################################
+#
+# CMake file for stand alone HiRE
+# 
+############################################################
+
 cmake_minimum_required(VERSION 3.0)
 
 # Silence warnings about PROJECT_VERSION not being set
@@ -7,12 +13,12 @@ if (CMAKE_CURRENT_SOURCE_DIR MATCHES "^${CMAKE_BINARY_DIRECTORY}$")
   message( FATAL_ERROR "CMake should not be built in the source directory" )
 endif (CMAKE_CURRENT_SOURCE_DIR MATCHES "^${CMAKE_BINARY_DIRECTORY}$")
 
-project(GMIN)
+project(HIRE)
 
 set(PROJECT_VERSION "1.0")
 set(PROJECT_CONTACT "kr366@cam.ac.uk")
-get_filename_component(GIT_ROOT ${GMIN_SOURCE_DIR}/../.. ABSOLUTE)
-
+get_filename_component(GIT_ROOT ${HIRE_SOURCE_DIR}/../.. ABSOLUTE)
+message(WARNING "Root directory is ${HIRE_SOURCE_DIR}")
 if (CMAKE_C_COMPILER_ID MATCHES "Intel")
     set(CMAKE_C_FLAGS_RELEASE "-O1 -DNDEBUG")
 endif (CMAKE_C_COMPILER_ID MATCHES "Intel")
@@ -78,95 +84,22 @@ if (${COMPILER_SWITCH} STREQUAL "pgi")
 endif()
 
 message("CMAKE_Fortran_COMPILER = ${CMAKE_Fortran_COMPILER}")
-set(CMAKE_Fortran_MODULE_DIRECTORY ${GMIN_BINARY_DIR}/modules)
+set(CMAKE_Fortran_MODULE_DIRECTORY ${HIRE_BINARY_DIR}/modules)
 include_directories(${CMAKE_SOURCE_DIR})
 
-file(GLOB DUMMY_HIRE ${GIT_ROOT}/HiRE_lib/HiRE_interface.F90)
-
-set(ALL_DUMMIES ${DUMMY_HIRE})
-
 # Glob all the sources
-file(GLOB GMIN_LIB_SOURCES *.f
-                           *.f90
-                           *.F
-                           *.F90
-                           )
+file(GLOB HIRE_LIB_SOURCES ${GIT_ROOT}/HiRE_lib/*.f90
+                           ${GIT_ROOT}/HiRE_lib/*.F90)
 
-file(GLOB NOT_GMIN_SOURCES myblas.f
-                           mylapack.f
-                           # These files are generated later
-                           porfuncs.f90 )
+# Make a hire library
+add_library(hirelib ${HIRE_LIB_SOURCES})
+set_module_dir(hirelib)
+set_target_properties(hirelib PROPERTIES LINKER_LANGUAGE "Fortran") 
 
-# Due to a compiler bug in ifort 13.1.3, we can't use -O3 for genrigid.f90
-# Investigations continue...
-if( ${COMPILER_SWITCH} STREQUAL "ifort" )
-  SET_SOURCE_FILES_PROPERTIES( genrigid.f90 PROPERTIES COMPILE_FLAGS -O2 )
-endif ( ${COMPILER_SWITCH} STREQUAL "ifort" )
-
-list(REMOVE_ITEM GMIN_LIB_SOURCES ${NOT_GMIN_SOURCES}
-                                  ${ALL_DUMMIES} )
-
-# Add generated source files 
-set(GMIN_LIB_SOURCES ${GMIN_LIB_SOURCES}
-                     porfuncs.f90 )
-
-# ---- porfuncs.f90 TODO: John is writing a replacement
-add_custom_command (
-   OUTPUT porfuncs.f90 
-   COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/porfuncs.sh ${COMPILER_SWITCH} > porfuncs.f90)
-
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES porfuncs.f90)
-
-# Collect all the extra source files into one place. It's just dummies at the moment.
-set(ALL_EXTRA_SOURCES ${ALL_DUMMIES})
-
-########################
-# LIBRARIES START HERE #
-########################
-
-# Find BLAS and LAPACK libraries
-find_package(MYBLAS)
-find_package(MYLAPACK)
-
-# Make an extras library for dummies, this is necessary because some of the
-# files in gminlib use modules made by extralib
-add_library(extralib ${ALL_EXTRA_SOURCES})
-set_module_dir(extralib)
-set_target_properties(extralib PROPERTIES LINKER_LANGUAGE "Fortran") 
-set_target_properties(extralib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};${DUMMY_CPP_FLAGS};__SPARSE")
-
-# Link CHOLMOD, if we're using it
-option(WITH_SPARSE "Compile with SuiteSparse for sparse hessian diagonalisation" OFF)
-if(WITH_SPARSE)
-   add_subdirectory(${GIT_ROOT}/SuiteSparse SuiteSparse)
-   include_directories(${GIT_ROOT}/SuiteSparse/SuiteSparse/CHOLMOD/Include)
-   include_directories(${GIT_ROOT}/SuiteSparse/SuiteSparse/SuiteSparse_config)
-   if(SuiteSparse_GPU)
-      include_directories(${CUDA_TOOLKIT_ROOT_DIR}/include)
-   endif(SuiteSparse_GPU)
-   add_definitions(-D__SPARSE)
-   file(GLOB SPARSE_INTERFACE sparse/*.f90
-                              sparse/*.c ) 
-   list(APPEND GMIN_LIB_SOURCES ${SPARSE_INTERFACE})
-endif(WITH_SPARSE)
-
-# Make a gmin library
-add_library(gminlib ${GMIN_LIB_SOURCES})
-set_module_dir(gminlib)
-set_module_depends(gminlib extralib)
-set_target_properties(gminlib PROPERTIES LINKER_LANGUAGE "Fortran") 
-
-if(WITH_SPARSE)
-   target_link_libraries(gminlib cholmod)
-endif(WITH_SPARSE)
-
-# MPI flag 
-option(WITH_MPI "Enable MPI compilation" OFF)
-if(WITH_MPI)
-  # append -DMPI to compile definitions
-  add_definitions(-DMPI) 
-  message("building with MPI: \n  ${CMAKE_Fortran_FLAGS}")   
-endif(WITH_MPI)
+option(ANALYSIS_VER "Enable printing for structural analysis" OFF)
+if(ANALYSIS_VER)
+        add_definitions(-DFOR_ANALYSIS)
+endif(ANALYSIS_VER)
 
 add_definitions(-D_GIT_ROOT_='${GIT_ROOT}')
 
@@ -174,15 +107,9 @@ add_definitions(-D_GIT_ROOT_='${GIT_ROOT}')
 # EXECUTABLES START HERE #
 ##########################
 
-# HiREGMIN  
-add_subdirectory(${GIT_ROOT}/HiRE_lib hire_interface)
+add_executable(HIRE main.f90)
+set_target_properties(HIRE PROPERTIES LINKER_LANGUAGE "Fortran") 
+set_target_properties(HIRE PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
+set_module_depends(HIRE hirelib)
+target_link_libraries(HIRE hirelib)
 
-add_executable(HIREGMIN main.F90 ${DUMMY_HIRE})
-set_module_dir(HIREGMIN)
-set_module_depends(HIREGMIN gminlib
-                            hire_base)
-set_target_properties(HIREGMIN PROPERTIES LINKER_LANGUAGE "Fortran") 
-set_target_properties(HIREGMIN PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
-target_link_libraries(HIREGMIN gminlib 
-			             hire_base
-                      ${MYLAPACK_LIBS} )

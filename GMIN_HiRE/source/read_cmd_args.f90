@@ -14,9 +14,6 @@ I=0
 IF (NARGS.GT.0) THEN 
   DO WHILE(I.LT.NARGS) ; I=I+1 ; CALL GETARG_SUBR(I,BFF)
      SELECTCASE(BFF)
-        CASE('-v') 
-           CALL DISPLAY_VERSION(0)
-           STOP
         CASE('-t')
            I=I+1
            CALL GETARG_SUBR(I,BFF)
