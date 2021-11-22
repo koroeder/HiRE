@@ -7,37 +7,37 @@
 
 option(WITH_MYBLAS "Compile own blas  (needed for charmm, can cause problems with gfortran 4.7)" ON)
 if(WITH_MYBLAS)
-    file(GLOB MYBLAS_SOURCES ${HiRE_ROOT}/BLAS/*.f)
+    file(GLOB MYBLAS_SOURCES ${GIT_ROOT}/BLAS/*.f)
     file(GLOB NOT_MYBLAS_SOURCES 
-      ${HiRE_ROOT}/BLAS/zhpmv.f
-      ${HiRE_ROOT}/BLAS/ztpsv.f
-      ${HiRE_ROOT}/BLAS/ztrsv.f
-      ${HiRE_ROOT}/BLAS/zgbmv.f
-      ${HiRE_ROOT}/BLAS/zgerc.f
-      ${HiRE_ROOT}/BLAS/zgemv.f
-      ${HiRE_ROOT}/BLAS/ztbsv.f
-      ${HiRE_ROOT}/BLAS/ztrsm.f
-      ${HiRE_ROOT}/BLAS/zher2k.f
-      ${HiRE_ROOT}/BLAS/zher2.f
-      ${HiRE_ROOT}/BLAS/zgemm.f
-      ${HiRE_ROOT}/BLAS/zhbmv.f
-      ${HiRE_ROOT}/BLAS/zhpr2.f
-      ${HiRE_ROOT}/BLAS/zhpr.f
-      ${HiRE_ROOT}/BLAS/ztbmv.f
-      ${HiRE_ROOT}/BLAS/zherk.f
-      ${HiRE_ROOT}/BLAS/ztrmm.f
-      ${HiRE_ROOT}/BLAS/ztpmv.f
-      ${HiRE_ROOT}/BLAS/zher.f
-      ${HiRE_ROOT}/BLAS/ztrmv.f
-      ${HiRE_ROOT}/BLAS/zhemm.f
-      ${HiRE_ROOT}/BLAS/zhemv.f
+      ${GIT_ROOT}/BLAS/zhpmv.f
+      ${GIT_ROOT}/BLAS/ztpsv.f
+      ${GIT_ROOT}/BLAS/ztrsv.f
+      ${GIT_ROOT}/BLAS/zgbmv.f
+      ${GIT_ROOT}/BLAS/zgerc.f
+      ${GIT_ROOT}/BLAS/zgemv.f
+      ${GIT_ROOT}/BLAS/ztbsv.f
+      ${GIT_ROOT}/BLAS/ztrsm.f
+      ${GIT_ROOT}/BLAS/zher2k.f
+      ${GIT_ROOT}/BLAS/zher2.f
+      ${GIT_ROOT}/BLAS/zgemm.f
+      ${GIT_ROOT}/BLAS/zhbmv.f
+      ${GIT_ROOT}/BLAS/zhpr2.f
+      ${GIT_ROOT}/BLAS/zhpr.f
+      ${GIT_ROOT}/BLAS/ztbmv.f
+      ${GIT_ROOT}/BLAS/zherk.f
+      ${GIT_ROOT}/BLAS/ztrmm.f
+      ${GIT_ROOT}/BLAS/ztpmv.f
+      ${GIT_ROOT}/BLAS/zher.f
+      ${GIT_ROOT}/BLAS/ztrmv.f
+      ${GIT_ROOT}/BLAS/zhemm.f
+      ${GIT_ROOT}/BLAS/zhemv.f
     )
     
     list(REMOVE_ITEM MYBLAS_SOURCES ${NOT_MYBLAS_SOURCES})
     
     add_library(myblas ${MYBLAS_SOURCES})
     
-    message("${HiRE_ROOT}/CMakeModules/FindMYBLAS.cmake: creating BLAS library.")         
+    message("${GIT_ROOT}/CMakeModules/FindMYBLAS.cmake: creating BLAS library.")         
     
     SET(MYBLAS_LIBS myblas)
     MARK_AS_ADVANCED(MYBLAS_LIBS)

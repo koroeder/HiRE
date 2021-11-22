@@ -6,12 +6,12 @@
       USE GENRIGID, ONLY: RIGIDINIT, ATOMRIGIDCOORDT, DEGFREEDOMS, TRANSFORMCTORIGID
       USE PREC
       USE MODHESS
-      USE HIRE_OPEP_INTERFACE_MOD, ONLY: OPEP_FINISH, OPEP_WRITE_PDB
+      USE HIRE_INTERFACE, ONLY: HIRE_FINISH, DUMP_PDB
       IMPLICIT NONE
 
       INTEGER             :: IVRNO, IVRNO1, IVRNO2, dof, ITERATIONS, MYUNIT2, J2, GETUNIT
       REAL(KIND = REAL64) :: X(3*NATOMS), G(3*NATOMS), ENERGY, FM, FP, DFA, DFN, TMPCOORDS(3*NATOMS)
-      REAL(KIND = REAL64) :: TIME1, TIME2
+      REAL(KIND = REAL64) :: TIME1, TIME2, RMSF
       LOGICAL             :: GTEST, STEST, CFLAG
       REAL(KIND = REAL64), PARAMETER :: ERRLIM = 1.D-04, DELX = 1.0D-4
 
@@ -31,7 +31,8 @@
          GTEST = .FALSE.
          CALL POTENTIAL (X, G, ENERGY, GTEST, STEST)
          WRITE(MYUNIT, *) 'Energy  = ', ENERGY
-
+         RMSF=MAX(SQRT(SUM(G(1:3*NATOMS)**2)/(3*NATOMS)), 1.0D-100 )
+         WRITE(MYUNIT,'(A,2G15.7)') "RMS force: ", RMSF,RMS
       ELSEIF (CHECKDID == 1) THEN
          ! Checks gradients
          ! check derivatives wrt atomic positions
@@ -115,7 +116,7 @@
                WRITE(MYUNIT,'(A,G20.10,A,I5,A,G12.5,A,F11.1)') &
                             ' E=', POTEL,' steps=',ITERATIONS,' RMS=',RMS, &
                             ' t=',TIME2-TIME1
-               CALL OPEP_WRITE_PDB(NATOMS, X,'quench.pdb')
+               CALL DUMP_PDB(3*NATOMS, X,'quench.pdb',.TRUE.)
                OPEN(MYUNIT2,FILE='start.quench',STATUS="unknown",form="formatted")
                DO J2=1,NATOMS
                   WRITE(MYUNIT2,'(3F28.20)') X(3*(J2-1)+1),X(3*(J2-1)+2),X(3*(J2-1)+3)
@@ -126,6 +127,6 @@
             ENDIF
 
       ENDIF
-      CALL OPEP_FINISH()
+      CALL HIRE_FINISH()
       STOP
       END SUBROUTINE CHECKD

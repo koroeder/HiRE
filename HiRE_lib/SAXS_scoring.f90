@@ -1,8 +1,8 @@
 module SAXS_scoring
-  use commons, only: debug
-  use geometric_corrections
+  use vec_utils
+  use UTILS_IO, only: GETUNIT
   use prec_hire
-  use definitions
+  use saxs_defs
   implicit none
   ! A (somewhat) protected UNIT for file I/O
   integer :: QFILE
@@ -75,14 +75,17 @@ module SAXS_scoring
     !> @brief Setter method for the parameters of the entire module.
     !> Used for setting up simulation parameters, as well as whecking the existence/generating form factors.
     subroutine set_SAXS_scoring()
-      use definitions
+      use var_defs, only: nparticles
       implicit none
-      integer :: point_q, getunit
+      integer :: point_q
       logical :: found_mean_correction = .false.
       real(kind = real64) :: q
 
+      !new dummy variable 
+      INTEGER :: N_REPLICA = 0
+
       QFILE=GETUNIT() !find free io unit number
-      num_atoms = NATOMS
+      num_atoms = nparticles
       delta_q = max_q/num_points
       population_count = N_REPLICA
       max_q_point = int(saxs_max / delta_q)
@@ -173,25 +176,30 @@ module SAXS_scoring
     end subroutine write_SAXS_options_to_unit
 
     !> @brief Call this method to update the SAXS score of a conformation.
-    subroutine compute_score(conformation, write_to_unit)
-      use definitions
-      implicit none
-      type(t_conformations), intent(inout) :: conformation
-      integer, optional :: write_to_unit
-      real(kind = real64), dimension(0:max_q_point-1) :: curve1
-      real(kind = real64) :: Esaxs
-      real(kind = real64), dimension(1:3*num_atoms) :: F_saxs
+!    subroutine compute_score(conformation, write_to_unit)
+!      implicit none
+      !TODO: commented out to allow compilation
+      ! Stand-alone HiRE has no conformations saved
+      !type(t_conformations), intent(inout) :: conformation
+!      integer, optional :: write_to_unit
+!      real(kind = real64), dimension(0:max_q_point-1) :: curve1
+!      real(kind = real64) :: Esaxs
+!      real(kind = real64), dimension(1:3*num_atoms) :: F_saxs
 
       ! Generate SAXS Curve
-      call fct_generate_SAXS_curve(conformation%pos, ATOMIC_TYPE, curve1, Esaxs, F_saxs)
+      !TODO: commented out to allow compilation
+      ! Stand-alone HiRE has no conformations saved
+      !call fct_generate_SAXS_curve(conformation%pos, ATOMIC_TYPE, curve1, Esaxs, F_saxs)
       !curve1(0:num_points-1) = fct_generate_SAXS_curve(conformation%pos, ATOMIC_TYPE) ! ATOMIC_TYPE is sourced in 'module defs'
 
       ! Compute the new score, and set it
-      conformation%score = norm_curves(curve1, target_curve)
-
-      if ( present(write_to_unit)) call write_SAXS_curve_to_unit(curve1,write_to_unit)
-
-    end subroutine compute_score
+      !TODO: commented out to allow compilation
+      ! Stand-alone HiRE has no conformations saved
+      !conformation%score = norm_curves(curve1, target_curve)
+!
+!      if ( present(write_to_unit)) call write_SAXS_curve_to_unit(curve1,write_to_unit)
+!
+!    end subroutine compute_score
 
 
     !> @brief Returns the (log10) SAXS intensity of a given structure (pos + atomNames).
@@ -211,7 +219,8 @@ module SAXS_scoring
       real(kind = real64), dimension(:,:), allocatable :: DistanceMatrix_TOT, F_CG_TOT
       integer :: grain_i, grain_j, q, num_TOT, num_SOL
       real(kind = real64) :: time1, time2
-      if (debug)  call cpu_time(time1)
+      
+      call cpu_time(time1)
 
 
       if_refine_hydration_layer: if (in_solution_curve .and. refine_hydration_layer) then
@@ -323,10 +332,10 @@ module SAXS_scoring
         deallocate(F_CG_TOT, DistanceMatrix_TOT)
       end if
 
-      if (debug) then
-        call cpu_time(time2)
-        print *, 'fct_generate_SAXS_curve : ',time2-time1
-      endif
+
+      call cpu_time(time2)
+      print *, 'fct_generate_SAXS_curve : ',time2-time1
+
       return
 
     !end function fct_generate_SAXS_curve
@@ -336,7 +345,7 @@ module SAXS_scoring
       implicit none
       real(kind = real64), dimension(0:max_q_point-1), intent(in) :: curve1
       character*360, intent(in) :: file_name
-      integer :: q_point, getunit, curvef
+      integer :: q_point,  curvef
 
       !print *, 'file_name : ', file_name
       curvef = getunit()
@@ -481,83 +490,87 @@ module SAXS_scoring
 
     !> @brief Quicksort algorithm on conf%score.
     !> Taken from http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Fortran
-    recursive subroutine QSort_score(a,na)
-      use definitions
+!    recursive subroutine QSort_score(a,na)
+
 
       ! DUMMY ARGUMENTS
-      integer, intent(in) :: nA
-      type (t_conformations), dimension(nA), intent(in out) :: A
+!      integer, intent(in) :: nA
+!      type (t_conformations), dimension(nA), intent(in out) :: A
 
       ! LOCAL VARIABLES
-      integer :: left, right
-      real(kind = real64) :: random
-      real(kind = real64) :: pivot
-      type (t_conformations) :: temp
-      integer :: marker
+!      integer :: left, right
+!      real(kind = real64) :: random
+!      real(kind = real64) :: pivot
+!      type (t_conformations) :: temp
+!      integer :: marker
 
-          if (nA > 1) then
+!          if (nA > 1) then
 
-              call random_number(random)
-              pivot = A(int(random*dble(nA-1))+1)%score   ! random pivor (not best performance, but avoids worst-case)
-              left = 0
-              right = nA + 1
-
-              do while (left < right)
-                  right = right - 1
-                  do while (A(right)%score > pivot)
-                      right = right - 1
-                  end do
-                  left = left + 1
-                  do while (A(left)%score < pivot)
-                      left = left + 1
-                  end do
-                  if (left < right) then
-                    temp = A(left)
-                    A(left) = A(right)
-                    A(right) = temp
-                  end if
-              end do
-
-              if (left == right) then
-                  marker = left + 1
-              else
-                  marker = left
-              end if
-
-              call QSort_score(A(1:marker-1),marker-1)
-              call QSort_score(A(marker:nA),nA-marker+1)
-
-          end if
-
-    end subroutine QSort_score
+      !TODO: commented out to allow compilation
+      ! Stand-alone HiRE has no conformations saved
+!              call random_number(random)
+!              pivot = A(int(random*dble(nA-1))+1)%score   ! random pivor (not best performance, but avoids worst-case)
+!              left = 0
+!              right = nA + 1
+!
+!              do while (left < right)
+!                  right = right - 1
+!                  do while (A(right)%score > pivot)
+!                      right = right - 1
+!                  end do
+!                  left = left + 1
+!                  do while (A(left)%score < pivot)
+!                      left = left + 1
+!                  end do
+!                  if (left < right) then
+!                    temp = A(left)
+!                    A(left) = A(right)
+!                    A(right) = temp
+!                  end if
+!              end do
+!
+!              if (left == right) then
+!                  marker = left + 1
+!              else
+!                  marker = left
+!              end if
+!
+!              call QSort_score(A(1:marker-1),marker-1)
+!              call QSort_score(A(marker:nA),nA-marker+1)
+!
+!          end if
+!
+!    end subroutine QSort_score
 
 
     !> @brief Bubble algorithm on conf%score.
     !> Taken from http://rosettacode.org/wiki/Sorting_algorithms/Bubble_sort#Fortran
-    subroutine BubbleSort_score(A, nA)
-      use definitions
+!    subroutine BubbleSort_score(A, nA)
+
 
       ! DUMMY ARGUMENTS
-      integer, intent(in) :: nA
-      type(t_conformations), dimension(nA), intent(in out) :: A
+!      integer, intent(in) :: nA
+!      type(t_conformations), dimension(nA), intent(in out) :: A
 
-      INTEGER :: i, j
-      LOGICAL :: swapped = .TRUE.
-      type(t_conformations) :: temp
+!      INTEGER :: i, j
+!      LOGICAL :: swapped = .TRUE.
+!      type(t_conformations) :: temp
 
-      DO j = nA-1, 1, -1
-        swapped = .FALSE.
-        DO i = 1, j
-          IF (a(i)%score > a(i+1)%score) THEN
-            temp = a(i)
-            a(i) = a(i+1)
-            a(i+1) = temp
-            swapped = .TRUE.
-          END IF
-        END DO
-        IF (.NOT. swapped) EXIT
-      END DO
-    end subroutine BubbleSort_score
+      !TODO: commented out to allow compilation
+      ! Stand-alone HiRE has no conformations saved
+!      DO j = nA-1, 1, -1
+!        swapped = .FALSE.
+!        DO i = 1, j
+!          IF (a(i)%score > a(i+1)%score) THEN
+!            temp = a(i)
+!            a(i) = a(i+1)
+!            a(i+1) = temp
+!            swapped = .TRUE.
+!          END IF
+!        END DO
+!        IF (.NOT. swapped) EXIT
+!      END DO
+!    end subroutine BubbleSort_score
 
     !> @brief (Re)generates corrected Form Factors for grains.
     !> @warning When multiple threads are launch on the same machine, there seem to be
@@ -568,7 +581,7 @@ module SAXS_scoring
       implicit none
 
       integer :: grain_i, point, solvent_grain_hash
-      integer :: unit1, unit2, getunit
+      integer :: unit1, unit2
       logical :: file_exists
       character*100 :: corrected_dat_file, uncorrected_dat_file
       real(kind = real64) :: V_i, q, F_q
@@ -689,7 +702,7 @@ module SAXS_scoring
       real(kind = real64), dimension(1:6) :: MinMaxCoordsArray
       integer, dimension(1:6) :: latticeArray
 
-      integer :: contact_num, outunit, getunit
+      integer :: contact_num, outunit
 
       ! Fill the cutoff array with the value of each grain
       call fill_cutoff_array(AtomNames, CutoffArrayInternal_pow2, CutoffArrayExternal_pow2)
@@ -804,7 +817,7 @@ module SAXS_scoring
       real(kind = real64) :: bufferValue, bufferValue2, bufferValue3, bufferValue4, temp
       character*180 :: datFile, parameter_line
       character*5 :: bufferKey
-      integer :: NF,getunit
+      integer :: NF
       integer :: grain_hash_num, stat
 
       NF=getunit()
@@ -903,7 +916,7 @@ module SAXS_scoring
       real(kind = real64) :: bufferValue, bufferValue2, V_i, q
       character*180 :: parameter_line
       character*5 :: bufferKey
-      integer :: NF, GETUNIT
+      integer :: NF
       integer :: grain_hash_num, stat
       ! Cromer-Mann parameters
       real(kind = real64) :: a1, a2, a3, a4, c, b1, b2, b3, b4

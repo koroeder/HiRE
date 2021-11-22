@@ -8,12 +8,12 @@
       USE INPUTmod, ONLY : NITEMS, INPUT, READA, READI, READF, REPORT
       USE PORFUNCS
 
-      USE HIRE_OPEP_INTERFACE_MOD, ONLY : OPEP_INIT, OPEP_SAXS_INIT, HIRE_HB_INIT
+      USE HIRE_INTERFACE, ONLY : SETUP_SAXS, HIRE_HB_INIT
      
       IMPLICIT NONE
 
-      INTEGER IX, J1, JP, NPCOUNT, NDUMMY
-      INTEGER DATA_UNIT, FUNIT
+      INTEGER IX, I, J1, JP, NPCOUNT, NDUMMY
+      INTEGER DATA_UNIT, FUNIT, XUNIT
 
       LOGICAL YESNO, ENDT
 
@@ -24,10 +24,6 @@
       CHARACTER(LEN=10) :: WORD2
       INTEGER :: GROUPOFFSET = 0
       INTEGER :: GETUNIT
-
-      CHARACTER(LEN=10) :: OPEP_DUMMY
-
-      LOGICAL :: OPEP_RNAT = .FALSE., OPEP_PROT = .FALSE., OPEP_DNAT = .FALSE.
 
       UNSTRING='UNDEFINED'
       NPCOUNT=0
@@ -89,55 +85,27 @@
          GOTO 190
 
 !######################!
-!OPEP and HiRE controls!
+!HiRE controls!
 !######################!
 
-      ELSE IF (WORD.EQ.'OPEPHIRE_DEBUG') THEN
-         OPEPHIRE_DEBUG = .TRUE.
-         DEBUG = .TRUE.
-
-      ELSE IF ((WORD.EQ.'OPEPHIRE').OR.(WORD.EQ.'HIRE').OR.(WORD.EQ.'OPEP')) THEN
-         OPEPT=.TRUE.
-!         HIREOPEP_VERSION = 4
-         CALL READA(OPEP_DUMMY)
-         IF (OPEP_DUMMY.EQ.'RNA') THEN
-            OPEP_RNAT = .TRUE.
-            WRITE(MYUNIT,'(A)') 'keyword> RNA simulation using HiRE'
-         ELSEIF (OPEP_DUMMY.EQ.'DNA') THEN
-            OPEP_DNAT = .TRUE.
-            WRITE(MYUNIT,'(A)') 'keyword> DNA simulation using HiRE'
-         ELSEIF (OPEP_DUMMY.EQ.'Protein') THEN
-            OPEP_PROT = .TRUE.
-            WRITE(MYUNIT,'(A)') 'keyword> Protein simulation using OPEP'
-         ELSEIF (OPEP_DUMMY.EQ.'MixedRNA') THEN
-            OPEP_PROT = .TRUE.
-            OPEP_RNAT = .TRUE.
-            WRITE(MYUNIT,'(A)') 'keyword> Simulation of a mixed system (protein+RNA)'
-         ELSEIF (OPEP_DUMMY.EQ.'MixedDNA') THEN
-            OPEP_PROT = .TRUE.
-            OPEP_DNAT = .TRUE.
-            WRITE(MYUNIT,'(A)') 'keyword> Simulation of a mixed system (protein+DNA)'
-         ELSE
-            WRITE(MYUNIT,'(A)') 'keyword> Invalid system choice'
-            STOP           
-         ENDIF
-!         kr366> disabled option for different versions         
-!         CALL READI(HIREOPEP_VERSION)
-!         IF (HIREOPEP_VERSION.EQ.3) THEN
-!            WRITE(MYUNIT,'(A)') 'keyword> OPEP/HiRE simulation with version 3'
-!         ELSEIF (HIREOPEP_VERSION.EQ.4) THEN
-!            WRITE(MYUNIT,'(A)') 'keyword> OPEP/HiRE simulation with version 4 (recommended)'
-!         ELSE
-!            WRITE(MYUNIT,'(A)') 'keyword> OPEP/HiRE invalid version number'
-!            STOP
-!         ENDIF
+      ELSE IF (WORD.EQ.'HIRE') THEN
          IF(.NOT.ALLOCATED(COORDS1)) ALLOCATE(COORDS1(3*NATOMS))
          IF(ALLOCATED(COORDS)) DEALLOCATE(COORDS)
-         CALL OPEP_INIT(NATOMS, COORDS1(:),OPEP_RNAT,OPEP_DNAT,OPEP_PROT)
          ALLOCATE(COORDS(3*NATOMS,NPAR))
+         XUNIT = GETUNIT()
+         OPEN(XUNIT, FILE="start")
+         READ(XUNIT, *) (COORDS1(I), I=1,3*NATOMS)
+         CLOSE(XUNIT)
+         WRITE(MYUNIT,'(A)') " keywords> Read coordinates"
          DO J1=1,NPAR
             COORDS(:,J1) = COORDS1(:)
          END DO
+
+      ELSE IF (WORD.EQ.'HIRETOP') THEN
+         CALL READA(TOPNAME)
+
+      ELSE IF (WORD.EQ.'HIRESCALE') THEN
+         CALL READA(SCALENAME)
 
       ELSE IF (WORD.EQ.'TITRATION') THEN
          TITRATION = .TRUE.
@@ -177,7 +145,8 @@
           SAXST =.TRUE.
           CALL READI(SAXSNSTEPS)
           CALL READF(SAXSMAX)
-          CALL OPEP_SAXS_INIT()
+          CALL SETUP_SAXS(SAXST,SAXSPRINT,SAXSMODULT,SAXSINVSIG,SAXSMAX, &
+                          SAXSSOLT,REFINET,WATRAD,NWATLAY)
 
 !
 !  Keyword for applied static force.

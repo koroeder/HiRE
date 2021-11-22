@@ -66,6 +66,8 @@
       LOGICAL :: DOCARTSTEP = .FALSE.                      !Do Cartesian step in this BH step?
  
       CHARACTER(LEN=130) :: DUMPFILE = ''
+      CHARACTER(LEN=50) :: TOPNAME = 'parameters.top'      !Name of topology file 
+      CHARACTER(LEN=50) :: SCALENAME = 'scale_RNA.dat'     !Name of scale.dat file 
 
 ! Run-time variables, dimension will be NPAR to account for parallel runs
       INTEGER, ALLOCATABLE, DIMENSION(:) :: NQ                             !Number of quenches for each run 

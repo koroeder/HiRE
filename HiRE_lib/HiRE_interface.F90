@@ -1,0 +1,181 @@
+MODULE HIRE_INTERFACE
+#ifdef __HIRE
+  USE PREC_HIRE
+#endif
+  IMPLICIT NONE
+  INTEGER, PARAMETER  :: R64 = SELECTED_REAL_KIND(15, 307)
+
+  CONTAINS
+  
+    SUBROUTINE HIRE_INITIALISE(TOPNAME, SCALEDATNAME, NATOMS)
+#ifdef __HIRE
+        USE CALCFORCES, ONLY: EVEC, RESET_POT_ENE
+        USE  VAR_DEFS, ONLY: NPARTICLES
+#endif
+        IMPLICIT NONE
+        CHARACTER(LEN=*), INTENT(IN) :: TOPNAME !Name of topology file 
+        CHARACTER(LEN=*), INTENT(IN) :: SCALEDATNAME !Name of scale.dat file     
+        INTEGER, INTENT(OUT) :: NATOMS
+
+        NATOMS = 0
+#ifdef __HIRE       
+        !call setup subroutine for HiRe
+        CALL SETUP(TOPNAME, SCALEDATNAME)
+        !initialise all energies to zero
+        CALL RESET_POT_ENE(EVEC)
+        
+        NATOMS = NPARTICLES
+#endif
+      END SUBROUTINE HIRE_INITIALISE 
+  
+  
+    SUBROUTINE HIRE_ENERGY_GRAD(NOPT, X, E, GRAD)
+#ifdef __HIRE
+       USE CALCFORCES, ONLY: CALCFORCE
+#endif   
+       INTEGER, INTENT(IN) :: NOPT                    !should be 3*NATOMS
+       REAL(KIND = R64), INTENT(IN) :: X(NOPT)     !input coordinates
+       REAL(KIND = R64), INTENT(OUT) :: E          !energy
+       REAL(KIND = R64), INTENT(OUT) :: GRAD(NOPT) !gradient
+       
+       GRAD(:) = 0.0D0
+       E = 1.0D10     
+#ifdef __HIRE       
+       !call subroutine to calculate force and energy
+       CALL CALCFORCE(NOPT,X,GRAD,E)
+       GRAD(:)=-GRAD(:)
+#endif
+    END SUBROUTINE HIRE_ENERGY_GRAD
+
+    SUBROUTINE HIRE_NUMHESS(NOPT,COORDS,DELTA,HESSIAN)  
+       !input and output variables
+       INTEGER, INTENT(IN) :: NOPT
+       REAL(KIND = R64), INTENT(IN) :: COORDS(NOPT), DELTA
+       REAL(KIND = R64), INTENT(OUT) :: HESSIAN(NOPT,NOPT)
+       !variables used internally
+       REAL(KIND = R64), DIMENSION(NOPT) ::  COORDS_PLUS, COORDS_PLUS2, &
+                                                COORDS_MINUS, COORDS_MINUS2
+       REAL(KIND = R64), DIMENSION(NOPT) :: GRAD_PLUS, GRAD_PLUS2, &
+                                               GRAD_MINUS, GRAD_MINUS2
+       INTEGER :: I
+       REAL(KIND = R64) :: DUMMY_ENERGY 
+       
+       HESSIAN(:,:) = 0.0D0
+       !use central finite difference with 4 terms (Richardson interpolation)
+       DO I = 1,NOPT
+          COORDS_PLUS(:) = COORDS(:)
+          COORDS_PLUS(I) = COORDS(I) + DELTA
+          CALL HIRE_ENERGY_GRAD(NOPT,COORDS_PLUS,DUMMY_ENERGY,GRAD_PLUS)
+          COORDS_PLUS2(:) = COORDS(:)
+          COORDS_PLUS2(I) = COORDS(I) + 2.0D0 * DELTA
+          CALL HIRE_ENERGY_GRAD(NOPT,COORDS_PLUS2,DUMMY_ENERGY,GRAD_PLUS2)
+          COORDS_MINUS(:) = COORDS(:)
+          COORDS_MINUS(I) = COORDS(I) - DELTA
+          CALL HIRE_ENERGY_GRAD(NOPT,COORDS_MINUS,DUMMY_ENERGY,GRAD_MINUS)
+          COORDS_MINUS2(:) = COORDS(:)
+          COORDS_MINUS2(I) = COORDS(I) - 2.0D0 * DELTA
+          CALL HIRE_ENERGY_GRAD(NOPT,COORDS_MINUS2,DUMMY_ENERGY,GRAD_MINUS2)
+          HESSIAN(I,:) = (GRAD_MINUS2(:) - 8.0D0 * GRAD_MINUS(:) &
+                         + 8.0D0 *GRAD_PLUS(:) - GRAD_PLUS2(:))/(12.0D0*DELTA)
+       END DO            
+    END SUBROUTINE HIRE_NUMHESS
+
+    SUBROUTINE HIRE_DECOMPE(OUTUNIT)
+#ifdef __HIRE
+       USE CALCFORCES, ONLY: PRINT_POT_ENE, EVEC
+#endif
+       !output unit for writing
+       INTEGER, INTENT(IN) :: OUTUNIT
+#ifdef __HIRE       
+       CALL PRINT_POT_ENE(OUTUNIT, EVEC)
+#endif
+    END SUBROUTINE HIRE_DECOMPE 
+
+    SUBROUTINE DUMP_PDB(NOPT,X,PDBNAME,CHAINIDT)
+#ifdef __HIRE
+       USE PDB_OUT, ONLY: PDBFROMX
+#endif
+       INTEGER, INTENT(IN) :: NOPT
+       REAL(KIND=R64), INTENT(IN) :: X(NOPT)
+       CHARACTER(LEN=*), INTENT(IN) :: PDBNAME
+       LOGICAL, INTENT(IN) :: CHAINIDT
+#ifdef __HIRE
+       CALL PDBFROMX(X,PDBNAME,CHAINIDT)
+#endif
+    END SUBROUTINE DUMP_PDB
+
+    SUBROUTINE PASS_PARTICLE_NAMES(NPART,PNAMES)
+#ifdef __HIRE
+      USE VAR_DEFS, ONLY: IGRAPH
+#endif
+      INTEGER, INTENT(IN) :: NPART
+      CHARACTER(4), INTENT(OUT) :: PNAMES(NPART)
+      PNAMES(1:NPART) = ""
+#ifdef __HIRE
+      PNAMES(1:NPART) = IGRAPH(1:NPART)
+#endif
+    END SUBROUTINE PASS_PARTICLE_NAMES
+
+    SUBROUTINE PASS_HIRE_MASSES(NPART,MASSES)
+#ifdef __HIRE
+      USE VAR_DEFS, ONLY: AMASS
+#endif
+      INTEGER, INTENT(IN) :: NPART
+      REAL(KIND = R64), INTENT(OUT) :: MASSES(NPART)
+      MASSES(1:NPART) = 0.0D0
+#ifdef __HIRE
+      MASSES(1:NPART) = AMASS(1:NPART)
+#endif
+    END SUBROUTINE PASS_HIRE_MASSES
+
+    SUBROUTINE HIRE_FINISH()
+#ifdef __HIRE
+       CALL FINISH()
+#endif
+    END SUBROUTINE HIRE_FINISH
+
+    SUBROUTINE SETUP_SAXS(SAXST_,SAXSPRINT_,SAXSMODULT_,SAXSINVSIG_,SAXSMAX_, &
+                          SAXSSOLT_,REFINET_,WATRAD_,NWATLAY_)
+#ifdef __HIRE                        
+       USE MOD_INIT, ONLY: INITIALISE_SAXS
+       USE SAXS_DEFS
+#endif
+       LOGICAL, INTENT(IN) :: SAXST_, SAXSPRINT_,SAXSMODULT_,SAXSSOLT_,REFINET_
+       INTEGER, INTENT(IN) :: NWATLAY_
+       REAL(KIND = R64), INTENT(IN) :: SAXSINVSIG_, WATRAD_, SAXSMAX_
+#ifdef __HIRE
+       compute_saxs_serial = SAXST_
+       saxs_print = SAXSPRINT_
+       modulate_saxs_serial = SAXSMODULT_
+       saxs_invsig = SAXSINVSIG_
+       SAXSMAX = SAXSMAX_
+       SAXSSOLT = SAXSSOLT_
+       REFINET = REFINET_
+       WATRAD = WATRAD_
+       NWATLAY = NWATLAY_
+       CALL  INITIALISE_SAXS()
+#endif
+    END SUBROUTINE SETUP_SAXS  
+   
+    SUBROUTINE HIRE_HB_INIT()
+#ifdef __HIRE
+       USE HB_DEFS
+       USE UTILS_IO, ONLY: GETUNIT
+       
+       DO_HB = .TRUE.
+       HBDAT = GETUNIT()
+       OPEN(HBDAT, FILE = 'hbonds.dat', STATUS='UNKNOWN', ACTION='WRITE', POSITION = 'APPEND')
+#endif
+    END SUBROUTINE HIRE_HB_INIT
+
+    SUBROUTINE CALL_HBDAT(NOPT,X)
+#ifdef __HIRE
+       USE CALCFORCES, ONLY: CALC_HBONDS
+#endif
+       INTEGER, INTENT(IN) :: NOPT
+       REAL(KIND = R64), INTENT(IN) :: X(NOPT)
+#ifdef __HIRE      
+       CALL CALC_HBONDS(NOPT,X)
+#endif
+    END SUBROUTINE CALL_HBDAT
+END MODULE HIRE_INTERFACE
