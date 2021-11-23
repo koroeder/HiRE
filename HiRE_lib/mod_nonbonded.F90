@@ -116,7 +116,6 @@ MODULE MOD_NONBONDED
 #endif
                  NB = GET_NBCOEF(K,L)
                  EVDW = EVDW + THIS_EVDW*NB 
-                 WRITE(81, *) I, J, K, L, THIS_EVDW, NB, THIS_EVDW*NB 
                  DX(1:3) = DF*NB*A(1:3)    
                  F((3*K-2):(3*K)) = F((3*K-2):(3*K)) - DX(1:3)
                  F((3*L-2):(3*L)) = F((3*L-2):(3*L)) + DX(1:3)     

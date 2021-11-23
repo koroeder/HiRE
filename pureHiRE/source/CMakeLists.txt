@@ -94,7 +94,8 @@ file(GLOB HIRE_LIB_SOURCES ${GIT_ROOT}/HiRE_lib/*.f90
 # Make a hire library
 add_library(hirelib ${HIRE_LIB_SOURCES})
 set_module_dir(hirelib)
-set_target_properties(hirelib PROPERTIES LINKER_LANGUAGE "Fortran") 
+set_target_properties(hirelib PROPERTIES LINKER_LANGUAGE "Fortran")
+set_target_properties(hirelib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE") 
 
 option(ANALYSIS_VER "Enable printing for structural analysis" OFF)
 if(ANALYSIS_VER)

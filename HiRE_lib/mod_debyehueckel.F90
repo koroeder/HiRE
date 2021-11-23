@@ -40,7 +40,7 @@ MODULE MOD_DEBYEHUECKEL
      !       atoms in different residues?
      !TODO: this loop needs to be over the residues and then we iterate inside over the particles!
      DO K=1,NRES-1
-       DO L=I+1,NRES
+       DO L=K+1,NRES
          DO I = RESSTART(K),RESFINAL(K)
            DO J = RESSTART(L),RESFINAL(L)
              RIJ(1:3) = X(I*3-2:I*3) - X(3*J-2:3*J)
