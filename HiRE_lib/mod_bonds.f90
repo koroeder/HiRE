@@ -28,15 +28,10 @@ MODULE MOD_BONDS
       REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force from bonds
       REAL(KIND = REAL64), INTENT(OUT) :: EBOND
 
-      !temporary arrays for energy and force to allow parallel routines     
-      REAL(KIND = REAL64) :: TEMPF(NBONDS,NOPT)
-      REAL(KIND = REAL64) :: TEMPE(NBONDS)
       REAL(KIND = REAL64) :: XA(3), RIJ, DA, DF
       INTEGER :: JN, I, J, IC
          
       !initialise force and energy
-      TEMPF(1:NBONDS,1:NOPT) = 0.0d0
-      TEMPE(1:NBONDS) = 0.0d0
       F(1:NOPT) = 0.0d0
       EBOND = 0.0d0
       DO JN = 1,NBONDS
@@ -47,15 +42,13 @@ MODULE MOD_BONDS
          IC = ICB(JN)
          DA = RIJ-REQ(IC)
          DF = RK(IC)*DA*SCORE_RNA(1)
-         TEMPE(JN) = DF*DA
+         EBOND = EBOND + DF*DA
          DF = (DF+DF)/RIJ
          XA = DF*XA
-         TEMPF(JN,(I+1):(I+3)) = TEMPF(JN,(I+1):(I+3)) - XA
-         TEMPF(JN,(J+1):(J+3)) = TEMPF(JN,(J+1):(J+3)) + XA
+         F((I+1):(I+3)) = F((I+1):(I+3)) - XA
+         F((J+1):(J+3)) = F((J+1):(J+3)) + XA
       END DO
-      EBOND = SUM(TEMPE)
-      F = SUM(TEMPF,DIM=1)
-      RETURN
+
    END SUBROUTINE ENERGY_BONDS
   
    SUBROUTINE DEALLOC_BONDS()

@@ -111,11 +111,13 @@ MODULE MOD_NONBONDED
                  IF (DA2.GT.RCUT2_CACA_SCSC_OUT) CYCLE
                  CALL ENERGY_EXCLV(DA2, THIS_EVDW, DF, NBCT2(TK,TL), &
                         RCUT2_CACA_SCSC_IN, RCUT2_CACA_SCSC_OUT)
-#if FOR_ANALYSIS
-                 WRITE(EXCLVUNIT,'(4I6,3F15.67)') I, J , K, L, DSQRT(DA2), NBCT2(TK,TL), THIS_EVDW
-#endif
+                        
                  NB = GET_NBCOEF(K,L)
-                 EVDW = EVDW + THIS_EVDW*NB 
+                 EVDW = EVDW + THIS_EVDW*NB                         
+#if FOR_ANALYSIS
+                 WRITE(EXCLVUNIT,'(4I6,5F15.7)') I, J , K, L, DSQRT(DA2), NBCT2(TK,TL), THIS_EVDW, DF, DF*NB
+#endif
+
                  DX(1:3) = DF*NB*A(1:3)    
                  F((3*K-2):(3*K)) = F((3*K-2):(3*K)) - DX(1:3)
                  F((3*L-2):(3*L)) = F((3*L-2):(3*L)) + DX(1:3)     

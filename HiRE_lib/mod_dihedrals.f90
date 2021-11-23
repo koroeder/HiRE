@@ -150,9 +150,6 @@ MODULE MOD_DIHEDRALS
       REAL(KIND = REAL64) :: rDC(3), rDC2(3), rDR1(3), rDR2(3), rDR(3)
 
       INTEGER :: JN, IC, INC
-      !temporary arrays for energy and force to allow parallel routines     
-      REAL(KIND = REAL64) :: TEMPF(NDIHS,NOPT)
-      REAL(KIND = REAL64) :: TEMPE(NDIHS)
       !TODO: work out the meaning of the variables and comment as much as possible
       !numerous variables
       REAL(KIND = REAL64) :: COSNPs, SINNPs, EXPRB, vEPW, DF0, DF1 
@@ -280,14 +277,12 @@ MODULE MOD_DIHEDRALS
         rFK = + rDR + rDR2
         rFL = - rDR2
 
-        TEMPF(JN,I3+1:I3+3) = rFI
-        TEMPF(JN,J3+1:J3+3) = rFJ
-        TEMPF(JN,K3+1:K3+3) = rFK
-        TEMPF(JN,L3+1:L3+3) = rFL              
-        TEMPE(JN) = vEPW  !! torsions
+        F(I3+1:I3+3) = F(I3+1:I3+3) + rFI
+        F(J3+1:J3+3) = F(J3+1:J3+3) + rFJ
+        F(K3+1:K3+3) = F(K3+1:K3+3) + rFK
+        F(L3+1:L3+3) = F(L3+1:L3+3) + rFL
+        ETORS = ETORS + vEPW
      END DO
-     ETORS = SUM(TEMPE)
-     F = SUM(TEMPF,DIM=1)
      
   END SUBROUTINE ENERGY_DIHS
 

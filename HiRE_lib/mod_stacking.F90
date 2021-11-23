@@ -44,7 +44,7 @@ MODULE MOD_BASESTACKING
       INTEGER, INTENT(IN) :: TI,TJ
       INTEGER, INTENT(IN) :: STACKUNIT              !output unit, only assigned to file if FOR_ANALYSIS is used as compile flag
       REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    !input coordinates
-      REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force
+      REAL(KIND = REAL64), INTENT(INOUT) :: F(NOPT)   !force
       REAL(KIND = REAL64), INTENT(OUT) :: ESTK
 
       REAL(KIND = REAL64), PARAMETER :: COSP=2.0 !Power of cos(x) in energy function

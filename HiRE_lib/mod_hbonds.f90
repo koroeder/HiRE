@@ -39,7 +39,7 @@ MODULE MOD_HBONDS
       INTEGER, INTENT(IN) :: BI, BJ        ! indices of base I and J
       INTEGER, INTENT(IN) :: NOPT                   !should be 3*NATOMS
       REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    !input coordinates
-      REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force from bonds
+      REAL(KIND = REAL64), INTENT(INOUT) :: F(NOPT)   !force from bonds
       REAL(KIND = REAL64), INTENT(OUT) :: THIS_EHB
       LOGICAL, INTENT(OUT) :: HBEXIST      
       
@@ -63,7 +63,6 @@ MODULE MOD_HBONDS
       !set forces and energies to zero
       THIS_EHB = 0.0D0
       EHHB = 0.0D0
-      F(:) = 0.0D0
       FHB_I(:,:) = 0.0D0
       FHB_J(:,:) = 0.0D0
       
@@ -84,7 +83,7 @@ MODULE MOD_HBONDS
          FTEMP(:,:) = 0.0D0
          FTEMP_o(:) = 0.0D0
          DISTEQ = planarityDistEq(TJ, 3-IDX)
-         CALL RNA_NewPlanev(NOPT, I-b, I-a, I, JP-IDX, X, Etemp, Ftemp, Ftemp_o, distEq)
+         CALL RNA_NewPlanev(NOPT, I-b, I-a, I, JP-IDX, X, Etemp, Ftemp(:,3), Ftemp(:,2), Ftemp(:,1), Ftemp_o, distEq)
          Fnp1_i = Fnp1_i + Ftemp
          Fnp1_j(:,idx+1) = Fnp1_j(:,idx+1) + Ftemp_o
          Enp1 = Enp1 + Etemp
@@ -93,7 +92,7 @@ MODULE MOD_HBONDS
          FTEMP(:,:) = 0.0D0
          FTEMP_o(:) = 0.0D0
          DISTEQ = planarityDistEq(TI, 3-idx)
-         CALL RNA_NewPlanev(NOPT, JP-b, JP-a, JP, I-IDX, X, Etemp, Ftemp, Ftemp_o, distEq)
+         CALL RNA_NewPlanev(NOPT, JP-b, JP-a, JP, I-IDX, X, Etemp, Ftemp(:,3), Ftemp(:,2), Ftemp(:,1), Ftemp_o, distEq)
          Fnp2_j = Fnp2_j + Ftemp
          Fnp2_i(:,idx+1) = Fnp2_i(:,idx+1) + Ftemp_o
          Enp2 = Enp2 + Etemp
@@ -396,7 +395,7 @@ MODULE MOD_HBONDS
 !>     distance(l, plane(i,j,k))
 !>     The force and energy contributions are then calculated as well.
 !-------------------------------------------------------------------------
-   SUBROUTINE RNA_NewPlanev(NOPT, I, J, K, L, X, Enewpl, F_KJI, FL, distEq)
+   SUBROUTINE RNA_NewPlanev(NOPT, I, J, K, L, X, Enewpl, FI, FJ, FK, FL, distEq)
       USE VEC_UTILS
       IMPLICIT NONE
 
@@ -406,13 +405,12 @@ MODULE MOD_HBONDS
       
       REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)   ! coordinates
       REAL(KIND = REAL64), INTENT(OUT) :: Enewpl    ! planarity term
-      REAL(KIND = REAL64), INTENT(OUT) :: F_KJI(3,3), FL(3) ! forces on particles
+      REAL(KIND = REAL64), INTENT(OUT) :: FI(3), FJ(3), FK(3), FL(3) ! forces on particles
 
       ! position vectors for particles, and vectors between them
       REAL(KIND = REAL64) :: RI(3), RJ(3), RK(3), RL(3), RIJ(3), RKJ(3), RLJ(3)
       REAL(KIND = REAL64) :: NORMAL(3), DNDQ(3), DIST, DELTA, NNORM, DEDD
-      ! force components
-      REAL(KIND = REAL64) :: FI(3), FJ(3), FK(3)
+
       
       ! define particle positions from coordinates
       RI(1:3) = X(3*I-2:3*I)
@@ -454,10 +452,6 @@ MODULE MOD_HBONDS
       FJ(1:3) = dedd*(crossproduct(RLJ, DNDQ)-normal- dot_product(normal, RLJ) & 
                       * crossproduct(normal,DNDQ)/nnorm**2)/nnorm
 
-      !QUERY: is this assignment the correct one?
-      F_KJI(:,3) = FI(:)
-      F_KJI(:,2) = FJ(:)          
-      F_KJI(:,1) = FK(:)
    END SUBROUTINE RNA_NewPlanev
    
 END MODULE MOD_HBONDS

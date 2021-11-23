@@ -37,8 +37,8 @@ MODULE MOD_EXCLV
      EXPEXCL = EXP(-EXCL_VOL*(R-CT2MOD))
      EEXCL = BARRIER*(1-1/(1+EXPEXCL))
      DF = -BARRIER*EXCL_VOL*EXPEXCL/(R*(1+EXPEXCL)**2)       
-!    Eexcl = excl_vol*exp(4.0*(ct2-r))
-!    DF = -excl_vol*(4.0*exp(4.0*(ct2-r)))/r 
+!     Eexcl = excl_vol*exp(4.0*(ct2-r))
+!     DF = -excl_vol*(4.0*exp(4.0*(ct2-r)))/r 
      IF (DA2 .GE. R2IN) CALL RNA_SWITCH_CUTOFF(DA2,EEXCL,DF,R2IN,R2OUT)
   END SUBROUTINE ENERGY_EXCLV
   

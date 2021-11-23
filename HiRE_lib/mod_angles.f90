@@ -92,9 +92,6 @@ MODULE MOD_ANGLES
       REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force from bonds
       REAL(KIND = REAL64), INTENT(OUT) :: EANGLE  
 
-      !temporary arrays for energy and force to allow parallel routines     
-      REAL(KIND = REAL64) :: TEMPF(NANGLES,NOPT)
-      REAL(KIND = REAL64) :: TEMPE(NANGLES)
       REAL(KIND = REAL64) :: RIJ(3), RKJ(3), RIJ0, RKJ0, RIK0
       REAL(KIND = REAL64) :: RDI(3), RDJ(3), RDK(3)
       REAL(KIND = REAL64) :: CT0, CT1, CT2, ANT, DA, DF, EAW, DFW
@@ -103,8 +100,6 @@ MODULE MOD_ANGLES
       INTEGER :: P1, P2, P3
 
       !initialise force and energy
-      TEMPF(1:NANGLES,1:NOPT) = 0.0d0
-      TEMPE(1:NANGLES) = 0.0d0
       F(1:NOPT) = 0.0d0
       EANGLE = 0.0d0
 
@@ -133,19 +128,17 @@ MODULE MOD_ANGLES
             EAW = DF*DA
             DFW = -(2*DF)/DSIN(ANT)
 
-            TEMPE(JN) = EAW
+            EANGLE = EANGLE + EAW
             ! FORCE
             rDI = DFW*(rKJ/RIK0-CT2*rIJ/RIJ0)
             rDK = DFW*(rIJ/RIK0-CT2*rKJ/RKJ0)
             rDJ = -rDI-rDK
-            TEMPF(JN,I+1:I+3) = -rDI
-            TEMPF(JN,J+1:J+3) = -rDJ
-            TEMPF(JN,K+1:K+3) = -rDK                 
+            F(I+1:I+3) = F(I+1:I+3) - rDI
+            F(J+1:J+3) = F(J+1:J+3) - rDJ
+            F(K+1:K+3) = F(K+1:K+3) - rDK                 
          ENDIF
       END DO
-      EANGLE = SUM(TEMPE)
-      F = SUM(TEMPF,DIM=1)
-      RETURN   
+
    END SUBROUTINE ENERGY_ANGLES
 
    SUBROUTINE DEALLOC_ANGLES()
