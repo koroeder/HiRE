@@ -1,0 +1,54 @@
+Starting serial execution
+ keywords> Read coordinates
+input> Too few arguments provided, use default!
+input> Current input line:
+STEP 0.5                                                                                                                                                                                                
+input> Too few arguments provided, use default!
+input> Current input line:
+DUMP_MARKOV                                                                                                                                                                                             
+input> Too few arguments provided, use default!
+input> Current input line:
+DUMP_MARKOV                                                                                                                                                                                             
+main> No atomic masses allocated
+ io1>    146 HiRE beads
+Sloppy quench tolerance for RMS gradient     0.1000000000E-02
+In run   1 step size and angular threshold fixed at       0.5000      0.3000
+Temperature will be adjusted for acceptance ratio       0.5000 initial value=      1.0000
+Configuration will be reset to quench geometry
+Sampling using Boltzmann weights
+Nocedal LBFGS minimisation
+Number of updates before reset in LBFGS=   100
+Maximum step size=        0.5000000000
+Guess for initial diagonal elements in LBFGS=  0.1000    
+Final quench tolerance for RMS gradient     0.1000000000E-03
+Energy difference criterion for minima=        0.1000000000
+Maximum number of iterations: sloppy quenches 25000 final quenches 25000
+GMIN Run:        10 steps with temperature scaled by  0.10000000E+01
+Maximum allowed energy rise during a minimisation=    0.5000000000    
+Calculating initial energy
+mc calling initial quench
+Qu          0 E=    0.3659806068     steps=10764 RMS= 0.99343E-03 Markov E=    0.3659806068     t=        4.9
+ dprand> seed           87
+ mc> seeded random number generator with system time
+Starting run of         10 BH steps
+Temperature will be multiplied by      1.00000000 at every step
+Qu          1 E=    0.3656641770     steps= 1148 RMS= 0.92126E-03 Markov E=    0.3659806068     t=        5.5
+Qu          2 E=    0.3656845039     steps=  995 RMS= 0.98776E-03 Markov E=    0.3656641770     t=        6.0
+Qu          3 E=    0.3657164621     steps=  843 RMS= 0.94424E-03 Markov E=    0.3656845039     t=        6.4
+Qu          4 E=    0.3654025019     steps= 1473 RMS= 0.96455E-03 Markov E=    0.3657164621     t=        7.0
+Qu          5 E=    0.3652651473     steps= 1296 RMS= 0.87370E-03 Markov E=    0.3654025019     t=        7.6
+Qu          6 E=    0.3652977177     steps= 1161 RMS= 0.94670E-03 Markov E=    0.3652651473     t=        8.2
+Qu          7 E=    0.3653365848     steps= 1344 RMS= 0.88003E-03 Markov E=    0.3652977177     t=        8.8
+Qu          8 E=    0.3655297196     steps= 1227 RMS= 0.95786E-03 Markov E=    0.3653365848     t=        9.4
+Qu          9 E=    0.3654069602     steps= 1144 RMS= 0.93936E-03 Markov E=    0.3655297196     t=        9.9
+Qu         10 E=    0.3658019106     steps= 1124 RMS= 0.96418E-03 Markov E=    0.3654069602     t=       10.4
+Acceptance ratio for run=     0.00000 Step=     0.50000 Angular step factor=     0.30000 T=     1.00000
+Tightly converging the SAVE lowest energy minima found
+NOTE: these may NOT match the other output files - see below for a sorted list of Lowest minima
+Final Quench      1 energy=    0.3648744431     steps= 4231 RMS force=  0.9853395E-04 time=       12.38
+After re-sorting, the lowest found minima are (lowest free energy subtracted if applicable):
+Lowest Minimum      1 Energy=     0.3648744431    
+ Create chain ids
+ Done creating chain ids
+time elapsed               12.4 seconds
+Number of potential calls              26770
