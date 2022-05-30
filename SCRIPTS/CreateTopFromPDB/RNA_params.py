@@ -1,9 +1,9 @@
 class Atom_RNA:
     def __init__(self, idx, name, el, mass):
     	self.idx = idx
-    	self.name = name
-    	self.el = el
-    	self.mass = mass
+		self.name = name
+		self.el = el
+		self.mass = mass
 
     def set_idx(self,newidx):
     	self.idx = newidx
@@ -18,7 +18,7 @@ class Bond_RNA:
     def iscorrectbond(self, at1, at2):
     	if ((at1 is self.atom1) and (at2 is self.atom2)):
     	    return True
-    	elif ((at12 is self.atom1) and (at1 is self.atom2)):
+		elif ((at2 is self.atom1) and (at1 is self.atom2)):
     	    return True
     	else:
     	    return False

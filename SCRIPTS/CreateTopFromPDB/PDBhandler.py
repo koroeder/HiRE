@@ -75,6 +75,17 @@ def get_atomnames(natom,data):
         atomnames.append(data[idx+1][0])
     return atomnames
 
+def fix_termini(natom,termini):
+    if termini[-1] != natom:
+        termini.append(natom)
+    new_term = list()
+    for t in termini:
+        if t==1 or t==natom:
+            continue
+        else:
+            new_term.append(t+1)
+    return sorted(set(termini+new_term))
+
 def parse_pdb(inpfile):
     data, termini, natom = get_pdb_data(inpfile)
     nres, res, resnames, coordsbyres= get_residues(natom,data)
@@ -83,6 +94,7 @@ def parse_pdb(inpfile):
     if elements[0] == "":
         for idx,name in enumerate(atomnames):
             elements[idx] = name[0]
+    termini = fix_termini(natom, termini)
     return natom,nres,atomnames,elements,res,resnames,coordsbyres,termini
 
 if __name__ == "__main__":
