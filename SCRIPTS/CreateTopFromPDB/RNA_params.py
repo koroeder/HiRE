@@ -4,9 +4,9 @@ class Atom_RNA:
 		self.name = name
 		self.el = el
 		self.mass = mass
-
-    def set_idx(self,newidx):
-    	self.idx = newidx
+	
+	def set_idx(self,newidx):
+		self.idx = newidx
 
 class Bond_RNA:
     def __init__(self, atom1, atom2, force, dist):
