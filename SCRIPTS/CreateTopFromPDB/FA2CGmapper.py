@@ -12,6 +12,18 @@ def massW_centre(coords,masses):
         mtot += m
     return [X/mtot,Y/mtot,Z/mtot]
 
+def assign_atommass(atomnames):
+    atommasses = list()
+    for name in atomnames:
+        atommasses.append(CGmaps.atom_masses[name])
+    return atommasses
+
+def assign_CGmasses(CGnames):
+    CGmasses = list()
+    for name in CGnames:
+        CGmasses.append(CGmaps.CG_masses[name])
+    return CGmasses
+
 def FA2CG_res(resid,labels,masses,coords):
     if (resid == "A" or resid == "DA"):
         Part_labels = CGmaps.CG_bases["A1"] + CGmaps.CG_bases["A2"]
@@ -89,4 +101,16 @@ def get_CG_info(reslabel,resrange,atomlabels,masses,coords):
         end_p = end_p + len(resCG_labels)
         CG_resrange[idx+1] = [start_p,end_p]
     return CG_labels,CG_coords,CG_resrange
+
+def get_CG_termini(resrange, termini, CG_resrange):
+    CG_termini = list()
+    for idx,ids in enumerate(resrange):
+        start = ids[0]
+        end = ids[1]
+        if start in termini:
+            CG_termini.append(CG_resrange[idx][0])
+        if end in termini:
+            CG_termini.append(CG_resrange[idx][1])
+    return CG_termini           
+
 
