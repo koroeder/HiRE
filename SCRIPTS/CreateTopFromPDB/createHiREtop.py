@@ -1,6 +1,7 @@
 import PDBhandler
 import FA2CGmapper
 import topology
+import ChemData
 import sys
 
 data = PDBhandler.parse_pdb(sys.argv[1])
@@ -26,21 +27,27 @@ top_dict["npartypes"] = len(list(set(CG_labels)))
 top_dict["charges"] = CG_charges
 top_dict["particle_type"] = CG_partypes
 
+#bonding information
+bonds,bondtype = ChemData.get_bonds(top_dict["nmol"], termini, CG_labels)
+nbondtypes,rk,req,nbonds,bonds_top = ChemData(bonds,bondtype)
+top_dict["nbonds"] = nbonds
+top_dict["bonds"] = bonds_top
+top_dict["nbondtypes"] = nbondtypes
+top_dict["rk"] = rk
+top_dict["req"] = req
 
-top_dict["nbonds"]
+#angle information
 top_dict["nangles"]
-top_dict["ndihs"]
-top_dict["nbondtypes"]
+top_dict["angs"] 
 top_dict["nangtypes"] 
-top_dict["ndihstypes"] 
+top_dict["tk"]
+top_dict["teq"]
 
-top_dict["rk"] = list()                 #bond spring constant
-top_dict["req"] = list()                #equilibrium bond length
-top_dict["tk"] = list()                 #angular spring constant
-top_dict["teq"]  = list()               #equilibrium angle
-top_dict["pk"] = list()                 #pk
-top_dict["pn"] = list()                 #pn
-top_dict["phi"]  = list()               #torsional phase
-top_dict["bonds"] = list()              #bond information
-top_dict["angs"]  = list()              #angle information
-top_dict["dihs"] = list()               #torsional information
+#dihedral information
+top_dict["ndihs"]
+top_dict["dihs"] 
+top_dict["ndihstypes"] 
+top_dict["pk"] 
+top_dict["pn"] 
+top_dict["phi"]
+
