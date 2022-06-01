@@ -15,7 +15,7 @@ def massW_centre(coords,masses):
 def assign_atommass(atomnames):
     atommasses = list()
     for name in atomnames:
-        atommasses.append(CGmaps.atom_masses[name])
+        atommasses.append(CGmaps.atom_masses[name[0]])
     return atommasses
 
 def assign_CGmasses(CGnames):
