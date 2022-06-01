@@ -78,8 +78,8 @@ def get_bonds(nmol, termini, CG_partnames):
     for molid in range(nmol):
         offset = termini[2*molid] - 1
         start = termini[2*molid]
-        end = termini[2*molid+1] + 1
-        bonds_mol, bondtype_mol = get_bond_list(CG_partnames[start:end])
+        end = termini[2*molid+1]
+        bonds_mol, bondtype_mol = get_bond_list(CG_partnames[start-1:end])
         bondtype += bondtype_mol
         if offset == 0:
             bonds += bonds_mol           
@@ -185,8 +185,8 @@ def get_angles(nmol, termini, CG_partnames):
     angtype = list()
     for molid in range(nmol):
         offset = termini[2*molid] - 1
-        start = termini[2*molid]
-        end = termini[2*molid+1] + 1
+        start = termini[2*molid] - 1
+        end = termini[2*molid+1]
         angs_mol, angtype_mol = get_angle_list(CG_partnames[start:end])
         angtype += angtype_mol
         if offset == 0:
@@ -197,7 +197,6 @@ def get_angles(nmol, termini, CG_partnames):
                 at2 = ang[1]
                 at3 = ang[2]
                 angles.append((at1+offset, at2+offset, at3+offset))
-    
     return angles,angtype
 
 #getting list of dihs, assuming it is a single molecule
@@ -339,8 +338,8 @@ def get_dihs(nmol, termini, CG_partnames):
     torstype = list()
     for molid in range(nmol):
         offset = termini[2*molid] - 1
-        start = termini[2*molid]
-        end = termini[2*molid+1] + 1
+        start = termini[2*molid] - 1
+        end = termini[2*molid+1]
         angs_mol, torstype_mol = get_dih_list(CG_partnames[start:end])
         torstype += torstype_mol
         if offset == 0:
