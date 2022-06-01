@@ -1,12 +1,12 @@
 class Atom_DNA:
     def __init__(self, idx, name, el, mass):
-    	self.idx = idx
-    	self.name = name
-    	self.el = el
-    	self.mass = mass
+        self.idx = idx
+        self.name = name
+        self.el = el
+        self.mass = mass
 
     def set_idx(self,newidx):
-    	self.idx = newidx
+        self.idx = newidx
 
 class Bond_DNA:
     def __init__(self, atom1, atom2, force, dist):
@@ -16,12 +16,12 @@ class Bond_DNA:
         self.dist = dist
     
     def iscorrectbond(self, at1, at2):
-    	if ((at1 is self.atom1) and (at2 is self.atom2)):
-    	    return True
-    	elif ((at12 is self.atom1) and (at1 is self.atom2)):
-    	    return True
-    	else:
-    	    return False
+        if ((at1 is self.atom1) and (at2 is self.atom2)):
+            return True
+        elif ((at2 is self.atom1) and (at1 is self.atom2)):
+            return True
+        else:
+            return False
 
 class Angle_DNA:
     def __init__(self, atom1, atom2, atom3, force, ang):
