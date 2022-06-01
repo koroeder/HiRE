@@ -91,9 +91,9 @@ def get_CG_info(reslabel,resrange,atomlabels,masses,coords):
     for idx,label in enumerate(reslabel):
         start = resrange[idx+1][0]
         end = resrange[idx+1][1]
-        res_masses = masses[start:end+1]
+        res_masses = masses[start-1:end]
         res_coords = coords[idx+1]
-        res_labels = atomlabels[start:end+1]
+        res_labels = atomlabels[start-1:end]
         resCG_labels, resCG_coords = FA2CG_res(label, res_labels, res_masses, res_coords)
         CG_labels += resCG_labels
         CG_coords += resCG_coords
