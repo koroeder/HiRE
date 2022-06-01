@@ -4,6 +4,13 @@ import topology
 import ChemData
 import sys
 
+def create_start(coords):
+    outf = open("start","w")
+    for xyz in coords:
+        line = "{:16.10f}".format(xyz[0]) + "{:16.10f}".format(xyz[1]) + "{:16.10f}".format(xyz[2]) + "\n"
+        outf.write(line)
+    outf.close()
+
 # get data from pdb
 data = PDBhandler.parse_pdb(sys.argv[1])
 # unpack tuple
@@ -65,3 +72,4 @@ top_dict["pn"] = pn
 top_dict["phi"] = phi
 
 topology.create_newtopology(top_dict)
+create_start(CG_coords)
