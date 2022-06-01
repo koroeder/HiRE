@@ -1,3 +1,4 @@
+# Data dictionary needed to create the topology
 def init_topology():
     top_dict = dict()
     top_dict["nmol"] = 0        #number of molecules
@@ -32,7 +33,8 @@ def init_topology():
     top_dict["charges"] = list()            #charges 
     return top_dict
 
-
+# We use fix formatting to make parsing by fortran easier
+# This function creates the fixed format entries 
 def create_fw_lines(data,nentries,formatstr):
     lines = list()
     line = ""
@@ -49,6 +51,7 @@ def create_fw_lines(data,nentries,formatstr):
         lines.append(line)
     return lines
 
+#Function to create topology file from dictionary
 def create_newtopology(top_dict,fname="parameters.top"):
     outf = open(fname, "w")
     outf.write("Molecule RNA\n")
