@@ -104,14 +104,13 @@ def get_CG_info(reslabel,resrange,atomlabels,masses,coords):
 
 def get_CG_termini(resrange, termini, CG_resrange):
     CG_termini = list()
-    print(resrange.keys())
     for key in resrange.keys():
         start = resrange[key][0]
         end = resrange[key][1]
         if start in termini:
-            CG_termini.append(CG_resrange[key-1][0])
+            CG_termini.append(CG_resrange[key][0])
         if end in termini:
-            CG_termini.append(CG_resrange[key-1][1])
+            CG_termini.append(CG_resrange[key][1])
     return CG_termini         
 
 def assign_resnames(resnames):
