@@ -46,10 +46,12 @@ top_dict["tk"] = tk
 top_dict["teq"] = teq
 
 #dihedral information
-top_dict["ndihs"]
-top_dict["dihs"] 
-top_dict["ndihstypes"] 
-top_dict["pk"] 
-top_dict["pn"] 
-top_dict["phi"]
+dihs,dihtypes = ChemData.get_dihs(top_dict["nmol"], termini, CG_labels)
+ntorstypes,pk,phi,ndihs,dihs_top,pn = ChemData.get_dihinfo(dihs,dihtypes)
+top_dict["ndihs"] = ndihs
+top_dict["dihs"] = dihs_top
+top_dict["ndihstypes"] = ntorstypes
+top_dict["pk"] = pk
+top_dict["pn"] = pn
+top_dict["phi"] = phi
 

@@ -116,8 +116,7 @@ def get_angle_list(CG_partnames):
             except IndexError:
                 continue
         elif name == "R4":
-            angle_ids.append((idx,idx+1,idx+2)) #R4-R1-B1 bond
-            angle_type.append(1)            
+            angle_ids.append((idx,idx+1,idx+2)) #R4-R1-B1 bond           
             if CG_partnames[idx+2] == "A1":
                 angle_type.append(0)
             elif CG_partnames[idx+2] == "C1":
@@ -237,75 +236,69 @@ def get_dih_list(CG_partnames):
                     dih_type.append(19)
             except IndexError:
                 continue
-
-    #continue here
-    6	Dihedral_RNA( "C", "R4", "R1", "A1", 1.0,  -150.0, 1),
-	7	Dihedral_RNA( "C", "R4", "R1", "A1", 0.2,   150.0, 1),
-	8	Dihedral_RNA( "C", "R4", "R1", "G1", 1.0,  -150.0, 1),
-	9	Dihedral_RNA( "C", "R4", "R1", "C1", 1.0,  -150.0, 1),
-	10	Dihedral_RNA( "C", "R4", "R1", "C1", 0.2,   150.0, 1),
-	11	Dihedral_RNA( "C", "R4", "R1", "U1", 1.0,  -150.0, 1),
-	12	Dihedral_RNA( "C", "R4", "R1", "U1", 0.2,   150.0, 1),
-	17	Dihedral_RNA( "C", "R4",  "P",  "O", 1.2,    20.0, 1),
-        elif name == "C": 
-            dih_ids.append((idx,idx+1,idx+2)) #C5-C4-C1 dih
-            dih_type.append(10)
+        elif name == "C":
+            #C5-C4-C1-B1 dih
+            if (CG_partnames[idx+3] == "A1"):
+                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
+                dih_ids.append((idx,idx+1,idx+2,idx+3))
+                dih_type.append(6)
+                dih_type.append(7)
+            elif (CG_partnames[idx+3] == "C1"):
+                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
+                dih_ids.append((idx,idx+1,idx+2,idx+3))
+                dih_type.append(9)
+                dih_type.append(10)   
+            elif (CG_partnames[idx+3] == "G1"):
+                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
+                dih_type.append(8)
+            elif (CG_partnames[idx+3] == "U1"):
+                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
+                dih_ids.append((idx,idx+1,idx+2,idx+3))
+                dih_type.append(11)
+                dih_type.append(12)                               
             try:
-                if (CG_partnames[idx+4]== "P"): #C5-C4-P dih
-                    dih_ids.append((idx,idx+1,idx+4))
-                    dih_type.append(8)
+                if (CG_partnames[idx+4]== "P"): #C5-C4-P-O dih
+                    dih_ids.append((idx,idx+1,idx+4,idx+5))
+                    dih_type.append(17)
                 elif (CG_partnames[idx+5]== "P"):
-                    dih_ids.append((idx,idx+1,idx+5))
-                    dih_type.append(8)
+                    dih_ids.append((idx,idx+1,idx+5,idx+6))
+                    dih_type.append(17)
             except IndexError:
                 continue
-    
-    0   Dihedral_RNA("R4", "R1", "G1", "G2", 1.0,     -20, 1),
-	1	Dihedral_RNA("R4", "R1", "G1", "G2", 0.2,    -160, 1),
-	2	Dihedral_RNA("R4", "R1", "A1", "A2", 1.0,     -20, 1),
-	3	Dihedral_RNA("R4", "R1", "A1", "A2", 0.2,  -160.0, 1),    
-	4	Dihedral_RNA("R4", "A1", "A2", "R1", 1.0,  -165.0, 1),
-	5	Dihedral_RNA("R4", "G1", "G2", "R1", 1.0,  -165.0, 1),
-	24	Dihedral_RNA("R4",  "P",  "O",  "C", 1.00,    0.0, 2)] 
-        elif name == "R4":
-            dih_ids.append((idx,idx+1,idx+2)) #R4-R1-B1 bond
-            dih_type.append(1)            
-            if CG_partnames[idx+2] == "A1":
-                dih_type.append(0)
-            elif CG_partnames[idx+2] == "C1":
-                dih_type.append(3)
-            elif CG_partnames[idx+2] == "G1":
+        elif name == "R4":          
+            if CG_partnames[idx+2] == "A1": #R4-R1-B1-B2 dihs 
+                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
                 dih_type.append(2)
-            elif CG_partnames[idx+2] == "U1":
-                dih_type.append(1) 
-            try:
-                if CG_partnames[idx+3] == "P": #R4-P-O dih
-                    dih_ids.append((idx,idx+3,idx+4))
-                    dih_type.append(9)
-                elif CG_partnames[idx+4] == "P": #R4-P-O dih
-                    dih_ids.append((idx,idx+4,idx+5))
-                    dih_type.append(9)
-            except IndexError:
-                continue
-
-    	18	Dihedral_RNA("R1", "R4",  "P",  "O", 1.2,   160.0, 1),
-        elif name == "R1":
-            if CG_partnames[idx+1] == "A1": #R1-B1-B2 dih
-                dih_ids.append((idx,idx+1,idx+2))
+                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
+                dih_type.append(3)
+                dih_ids.append((idx,idx+2,idx+3,idx+1))
                 dih_type.append(4)
-            elif CG_partnames[idx+1] == "G1":
-                dih_ids.append((idx,idx+1,idx+2))
+            elif CG_partnames[idx+2] == "G1": #R4-R1-B1-B2 dihs 
+                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
+                dih_type.append(0)
+                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
+                dih_type.append(1)
+                dih_ids.append((idx,idx+2,idx+3,idx+1))
                 dih_type.append(5)
             try:
-                if CG_partnames[idx+2] == "P": #R1-R4-P dih
-                    dih_ids.append((idx,idx-1,idx+2))
-                    dih_type.append(11)
-                elif CG_partnames[idx+3] == "P":
-                    dih_ids.append((idx,idx-1,idx+3))
-                    dih_type.append(11)
+                if CG_partnames[idx+3] == "P": #R4-P-O dih
+                    dih_ids.append((idx,idx+3,idx+4,idx+5))
+                    dih_type.append(24)
+                elif CG_partnames[idx+4] == "P": #R4-P-O dih
+                    dih_ids.append((idx,idx+4,idx+5,idx+6))
+                    dih_type.append(24)
             except IndexError:
                 continue
-            
+        elif name == "R1":
+            try:
+                if CG_partnames[idx+2] == "P": #R1-R4-P-O dih
+                    dih_ids.append((idx,idx-1,idx+2,idx+3))
+                    dih_type.append(18)
+                elif CG_partnames[idx+3] == "P":
+                    dih_ids.append((idx,idx-1,idx+3,idx+4))
+                    dih_type.append(18)
+            except IndexError:
+                continue           
         else:
             continue
     return dih_ids, dih_type
@@ -313,28 +306,33 @@ def get_dih_list(CG_partnames):
 
 
 def get_dihinfo(dihs,dihtype):
-    dihtypes_used = [False, False, False, False, False, False, 
-                       False, False, False, False, False, False]
+    dihtypes_used = [False, False, False, False, False,
+                     False, False, False, False, False, 
+                     False, False, False, False, False,
+                     False, False, False, False, False,
+                     False, False, False, False, False]
     ndihs = len(dihtype)
     atypemap = dict()
-    teq = list()
-    tk = list()
+    phi = list()
+    pk = list()
     dihs_top = list()
+    pn = list()
     ntorstypes = 0
     for idx,dih in enumerate(dihs):
         this_type = dihtype[idx]
         if dihtypes_used[this_type]:
             this_toptype = atypemap[this_type]
-            dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], this_toptype]
+            dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], 3*dih[3], this_toptype]
         else:
             dihtypes_used[this_type] = True
             ntorstypes += 1
             atypemap[this_type] = ntorstypes
             this_toptype = ntorstypes
-            teq.append(RNA_params.RNA_dihs[this_type].ang)
-            tk.append(RNA_params.RNA_dihs[this_type].force)
-            dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], this_toptype]           
-    return ntorstypes,tk,teq,ndihs,dihs_top
+            phi.append(RNA_params.RNA_dihs[this_type].dih)
+            pk.append(RNA_params.RNA_dihs[this_type].force)
+            pn.append(RNA_params.RNA_dihs[this_type].nterm)
+            dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], 3*dih[3], this_toptype]           
+    return ntorstypes,pk,phi,ndihs,dihs_top,pn
 
 def get_dihs(nmol, termini, CG_partnames):
     dihs = list()
@@ -352,6 +350,7 @@ def get_dihs(nmol, termini, CG_partnames):
                 at1 = ang[0]
                 at2 = ang[1]
                 at3 = ang[2]
-                dihs.append((at1+offset, at2+offset, at3+offset))
+                at4 = ang[3]
+                dihs.append((at1+offset, at2+offset, at3+offset, at4+offset))
     
     return dihs,torstype
