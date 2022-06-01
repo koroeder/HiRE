@@ -16,7 +16,7 @@ CG_charges, CG_partypes = FA2CGmapper.assign_par_properties(CG_labels)
 top_dict = topology.init_topology()
 top_dict["nres"] = nres
 top_dict["nparticles"] = len(CG_labels)
-top_dict["nmol"] = len(CG_termini)/2
+top_dict["nmol"] = int(len(CG_termini)/2)
 top_dict["fl_mol"] = CG_termini
 top_dict["particle_names"] = CG_labels
 top_dict["res_names"] = CG_resnames
@@ -29,7 +29,7 @@ top_dict["particle_type"] = CG_partypes
 
 #bonding information
 bonds,bondtype = ChemData.get_bonds(top_dict["nmol"], termini, CG_labels)
-nbondtypes,rk,req,nbonds,bonds_top = ChemData.get_bond_list(bonds,bondtype)
+nbondtypes,rk,req,nbonds,bonds_top = ChemData.get_bondinfo(bonds,bondtype)
 top_dict["nbonds"] = nbonds
 top_dict["bonds"] = bonds_top
 top_dict["nbondtypes"] = nbondtypes
