@@ -55,3 +55,4 @@ top_dict["pk"] = pk
 top_dict["pn"] = pn
 top_dict["phi"] = phi
 
+topology.create_newtopology(top_dict)
