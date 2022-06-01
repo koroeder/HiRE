@@ -1,3 +1,5 @@
+#Classes and data to define DNA
+#Used in ChemData to create bond, angle and dihedral information
 class Atom_RNA:
     def __init__(self, idx, name, el, mass):
         self.idx = idx

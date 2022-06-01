@@ -1,3 +1,5 @@
+#Classes and data to define DNA
+#Currently not used
 class Atom_DNA:
     def __init__(self, idx, name, el, mass):
         self.idx = idx
