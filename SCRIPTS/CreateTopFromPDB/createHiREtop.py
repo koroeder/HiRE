@@ -10,7 +10,7 @@ atommasses = FA2CGmapper.assign_atommass(atomnames)
 resnames, CG_resnames = FA2CGmapper.assign_resnames(resnames)
 CG_labels,CG_coords,CG_resrange = FA2CGmapper.get_CG_info(resnames,res,atomnames,atommasses,coordsbyres)
 CG_masses = FA2CGmapper.assign_CGmasses(CG_labels)
-CG_termini,CG_teri_flags = FA2CGmapper.get_CG_termini(res,termini,CG_resrange)
+CG_termini = FA2CGmapper.get_CG_termini(res,termini,CG_resrange)
 CG_charges, CG_partypes = FA2CGmapper.assign_par_properties(CG_labels)
 
 top_dict = topology.init_topology()

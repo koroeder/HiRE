@@ -104,18 +104,15 @@ def get_CG_info(reslabel,resrange,atomlabels,masses,coords):
 
 def get_CG_termini(resrange, termini, CG_resrange):
     CG_termini = list()
-    CG_teri_flags = list()
-    for idx,ids in enumerate(resrange):
-        start = ids[0]
-        end = ids[1]
+    print(resrange.keys())
+    for key in resrange.keys():
+        start = resrange[key][0]
+        end = resrange[key][1]
         if start in termini:
-            CG_termini.append(CG_resrange[idx][0])
-            CG_teri_flags.append(True)
+            CG_termini.append(CG_resrange[key-1][0])
         if end in termini:
-            CG_termini.append(CG_resrange[idx][1])
-        if len(CG_teri_flags)<(idx+1):
-            CG_teri_flags.append(False)
-    return CG_termini,CG_teri_flags           
+            CG_termini.append(CG_resrange[key-1][1])
+    return CG_termini         
 
 def assign_resnames(resnames):
     CG_resnames = list()
