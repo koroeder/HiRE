@@ -1,10 +1,21 @@
+# Functions to obtain bond, angle and dihedral information
+# The way these fucntions work is identical for all three in the algorithmic approach
+# The functions for the bonding are annotated in detail
+
 import RNA_params
 import DNA_params
 
-#getting list of bonds, assuming it is a single molecule
+# getting list of bonds, assuming it is a single molecule
 def get_bond_list(CG_partnames):
     bond_ids = list()
     bond_type = list()
+    # We iterate over all particle names
+    # The bonds are fixed in our model, and hence we can find them by the first
+    # atom in the bond. It allows us to find all bonds and correctly identify 
+    # the parameters needed
+    # bond_ids contains tuples of the bonded atom indices
+    # bond_type contains the entry for the bond type found in RNA_bond from RNA_params
+    # For each bond an entry is added to both lists
     for idx,name in enumerate(CG_partnames):
         if name == "P": #P-O5 bond
             bond_ids.append((idx,idx+1))
@@ -47,31 +58,13 @@ def get_bond_list(CG_partnames):
             continue
     return bond_ids, bond_type
 
-
-def get_bondinfo(bonds,bondtype):
-    bondtypes_used = [False, False, False, False, False, False, 
-                      False, False, False, False, False]
-    nbonds = len(bondtype)
-    btypemap = dict()
-    req = list()
-    rk = list()
-    bonds_top = list()
-    nbondtypes = 0
-    for idx,bond in enumerate(bonds):
-        this_type = bondtype[idx]
-        if bondtypes_used[this_type]:
-            this_toptype = btypemap[this_type]
-            bonds_top += [3*bond[0], 3*bond[1], this_toptype]
-        else:
-            bondtypes_used[this_type] = True
-            nbondtypes += 1
-            btypemap[this_type] = nbondtypes
-            this_toptype = nbondtypes
-            req.append(RNA_params.RNA_bonds[this_type].dist)
-            rk.append(RNA_params.RNA_bonds[this_type].force)
-            bonds_top += [3*bond[0], 3*bond[1], this_toptype]           
-    return nbondtypes,rk,req,nbonds,bonds_top
-
+# To get the complete lists of bonds we go molecule by molecule
+# For each molecule, we call the above function to get the bonds and type
+# for the molecule. We record the offset for the first atom for each molecule,
+# and then fix the atom ids if necessary.
+# At the end, we have a full list of all bonds and types.
+# Importantly, this information needs to be parsed into the correct
+# format for the topology.
 def get_bonds(nmol, termini, CG_partnames):
     bonds = list()
     bondtype = list()
@@ -88,8 +81,41 @@ def get_bonds(nmol, termini, CG_partnames):
                 at1 = bond[0]
                 at2 = bond[1]
                 bonds.append((at1+offset, at2+offset))
-    
     return bonds,bondtype
+
+# Parsing the bond information produced so far into the correct format for 
+# the topology file. 
+def get_bondinfo(bonds,bondtype):
+    # Introduce bond types to track which ones we have already encountered
+    bondtypes_used = [False, False, False, False, False, False, 
+                      False, False, False, False, False]
+    nbonds = len(bondtype)
+    btypemap = dict()
+    req = list()
+    rk = list()
+    bonds_top = list()
+    nbondtypes = 0
+    # Iterate over all the bonds found earlier
+    for idx,bond in enumerate(bonds):
+        # Retrieve the bond type
+        this_type = bondtype[idx]
+        # If this type has been found before, we simply add
+        # the bond information (atom ids + type for topology)
+        if bondtypes_used[this_type]:
+            this_toptype = btypemap[this_type]
+            bonds_top += [3*bond[0], 3*bond[1], this_toptype]
+        # Otherwise, we add entries to the bond type maps,
+        # entries to the spring constants and eq distance and 
+        # change the number of bond types
+        else:
+            bondtypes_used[this_type] = True
+            nbondtypes += 1
+            btypemap[this_type] = nbondtypes
+            this_toptype = nbondtypes
+            req.append(RNA_params.RNA_bonds[this_type].dist)
+            rk.append(RNA_params.RNA_bonds[this_type].force)
+            bonds_top += [3*bond[0], 3*bond[1], this_toptype]           
+    return nbondtypes,rk,req,nbonds,bonds_top
 
 
 #getting list of angles, assuming it is a single molecule
