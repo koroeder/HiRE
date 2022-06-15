@@ -201,7 +201,7 @@ def get_angleinfo(angles,angletype):
             nangtypes += 1
             atypemap[this_type] = nangtypes
             this_toptype = nangtypes
-            teq.append(RNA_params.RNA_angles[this_type].ang)
+            teq.append(RNA_params.RNA_angles[this_type].ang/180.0*3.1415926535897)
             tk.append(RNA_params.RNA_angles[this_type].force)
             angles_top += [3*angle[0], 3*angle[1], 3*angle[2], this_toptype]           
     return nangtypes,tk,teq,nangles,angles_top
@@ -353,7 +353,7 @@ def get_dihinfo(dihs,dihtype):
             ntorstypes += 1
             atypemap[this_type] = ntorstypes
             this_toptype = ntorstypes
-            phi.append(RNA_params.RNA_dihs[this_type].dih)
+            phi.append(RNA_params.RNA_dihs[this_type].dih/180.0*3.1415926535897)
             pk.append(RNA_params.RNA_dihs[this_type].force)
             pn.append(RNA_params.RNA_dihs[this_type].nterm)
             dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], 3*dih[3], this_toptype]           
