@@ -1,16 +1,20 @@
 Call setup for HiRE
 Finished setup
 Read coordinates
-Energy:        289.771290
-Gradient:    0.142109E-13
+Energy:          6.452297
+RMS force:    0.986721    
  Ebond:          0.01622
- Eangle:       296.47999
+ Eangle:         0.47130
  Etors:         36.38675
  Edh:            1.36051
- Ehbond:       -11.78591
+ Ehbond:        -0.02350
  Evdw:           0.63041
- Estak:        -33.31668
+ Estak:        -32.38940
  Esaxs:          0.00000
  Edistr:         0.00000
  Eposr:          0.00000
- Etot:         289.77129
+ Etot:           6.45230
+ Create chain ids
+ Done creating chain ids
+ Create chain ids
+ Done creating chain ids
