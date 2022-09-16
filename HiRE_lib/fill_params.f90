@@ -1,9 +1,25 @@
+!> @file
+!> Contains FILL_PARAMS module handling nucleic acid parameters
+!>
+!> Module to deal with NA paramters
+!> @brief
+!>
+!> Contains the function to assign all nucleic acid parameters, as well as the required allocation and deallocation routines.
 MODULE FILL_PARAMS
    USE PREC_HIRE
    IMPLICIT NONE
 
    CONTAINS
-  
+      !> Subroutine to fill nucleic acid parameters
+      !> @brief
+      !>
+      !> This routine assigns the NA relevant from the scale.dat input.\n
+      !> We then allocate the associated arrays and assign the nucleobase type informations based on the residue information from the topology.\n
+      !> Then the parameters are populated for RNA and DNA.
+      !>
+      !> @see ALLOC_NAPARAMS
+      !> @see FILL_RNA_HB_PARAMS
+      !> @see FILL_RNA_HB_PARAMS
       SUBROUTINE FILL_HIRE_PARAMS()
          USE VAR_DEFS, ONLY: NRES, RESFINAL, RESNAMES
          USE UTILS_IO, ONLY: GETUNIT
@@ -52,6 +68,9 @@ MODULE FILL_PARAMS
          BP_CURR(:,:) = .FALSE.
       END SUBROUTINE FILL_HIRE_PARAMS
     
+      !> Allocate NA parameter arrays
+      !>
+      !> @param[in] NSIZE - number of nucleotides
       SUBROUTINE ALLOC_NAPARAMS(NSIZE)
          USE NAparams, ONLY: BLIST, BTYPE, BPROT, BOCC, BPCH, BP_CURR
          IMPLICIT NONE
@@ -62,6 +81,8 @@ MODULE FILL_PARAMS
                   BPCH(NSIZE), BP_CURR(NSIZE,NSIZE))
       END SUBROUTINE ALLOC_NAPARAMS 
 
+      !> Deallocate NA parameter arrays 
+      !> @brief   
       SUBROUTINE DEALLOC_NAPARAMS()
          USE NAparams, ONLY: BLIST, BTYPE, BPROT, BOCC, BPCH, BP_CURR    
          IF (ALLOCATED(BLIST)) DEALLOCATE(BLIST)
