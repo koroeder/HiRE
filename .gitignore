@@ -4,3 +4,5 @@ builds/
 bin
 *.pdb
 *.dat
+Docs/html
+Docs/latex
