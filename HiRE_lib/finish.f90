@@ -1,4 +1,14 @@
-!Deallocation of data
+!> @file
+!> Finishing use of library
+!>
+!> Calls to deallocate data
+!>
+!> @see DEALLOC_BONDS
+!> @see DEALLOC_ANGLES
+!> @see DEALLOC_DIHS
+!> @see DEALLOC_NAPARAMS
+!> @see DEALLOC_DISTRESTR
+!> @see DEALLOC_POSRESTR
 SUBROUTINE FINISH()
    USE MOD_BONDS, ONLY: DEALLOC_BONDS
    USE MOD_ANGLES, ONLY: DEALLOC_ANGLES
