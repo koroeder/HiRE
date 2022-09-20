@@ -1,3 +1,7 @@
+!> @file
+!> Contains SAXS_scoring module
+
+!> Functionality to obtain sAXS scoring
 module SAXS_scoring
   use vec_utils
   use UTILS_IO, only: GETUNIT
@@ -175,7 +179,7 @@ module SAXS_scoring
 
     end subroutine write_SAXS_options_to_unit
 
-    !> @brief Call this method to update the SAXS score of a conformation.
+!    !> @brief Call this method to update the SAXS score of a conformation.
 !    subroutine compute_score(conformation, write_to_unit)
 !      implicit none
       !TODO: commented out to allow compilation
@@ -488,8 +492,8 @@ module SAXS_scoring
     end function fct_mix_coords
 
 
-    !> @brief Quicksort algorithm on conf%score.
-    !> Taken from http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Fortran
+!    !> @brief Quicksort algorithm on conf%score.
+!    !> Taken from http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Fortran
 !    recursive subroutine QSort_score(a,na)
 
 
@@ -543,8 +547,8 @@ module SAXS_scoring
 !    end subroutine QSort_score
 
 
-    !> @brief Bubble algorithm on conf%score.
-    !> Taken from http://rosettacode.org/wiki/Sorting_algorithms/Bubble_sort#Fortran
+!    !> @brief Bubble algorithm on conf%score.
+!    !> Taken from http://rosettacode.org/wiki/Sorting_algorithms/Bubble_sort#Fortran
 !    subroutine BubbleSort_score(A, nA)
 
 
