@@ -1,8 +1,12 @@
+!> @file
+!> Contains VEC_UTILS module with generic vector utilities
+
+!> Module to handle vectors
 module vec_utils
 use prec_hire
 contains
 
-  ! Euclidean norm of a vector
+  !> Euclidean norm of a vector
   pure function euc_norm(v)
     real(kind = real64) :: euc_norm
     real(kind = real64), intent(in) :: v(3)
@@ -10,7 +14,7 @@ contains
     euc_norm = dsqrt(dot_product(v,v))
   end function euc_norm
   
-  ! Cross product
+  !> Cross product
   pure function crossproduct(u, v)
     real(kind = real64) :: crossproduct(3)
     real(kind = real64), intent (in) :: u(3), v(3)
@@ -20,7 +24,7 @@ contains
     crossproduct(3) = u(1)*v(2) - u(2)*v(1) 
   end function crossproduct
 
-  ! Normalised cross product
+  !> Normalised cross product
   subroutine normed_cp(u, v, uxv, norm)
     real(kind = real64), intent(out) :: uxv(3)
     real(kind = real64), intent(in)  :: u(3), v(3)  
@@ -31,7 +35,7 @@ contains
     uxv(1:3) = uxv(1:3)/norm
   end subroutine normed_cp
 
-  ! Normalised crossproduct, also returning unnormalised cp
+  !> Normalised crossproduct, also returning unnormalised cp
   subroutine normed_cp2(u, v, uxv, uxv0, norm)
     real(kind = real64), intent(out) :: uxv(3), uxv0(3)
     real(kind = real64), intent(in)  :: u(3), v(3)  
@@ -43,7 +47,7 @@ contains
   end subroutine normed_cp2
 
 
-  ! subroutine to get norm and normed vector
+  !> subroutine to get norm and normed vector
   subroutine normed_vec(vec, vec0, norm)
     real(kind = real64), intent(in) :: vec(3)
     real(kind = real64), intent(out) :: vec0(3)  
@@ -53,7 +57,7 @@ contains
     vec0(1:3) = vec(1:3)/norm   
   end subroutine normed_vec
 
-  ! difference between two vectors
+  !> difference between two vectors
   pure function vec_diff(v1, v2) result(v3)
      implicit none
      real(kind = real64), intent(in) :: v1(3), v2(3)
