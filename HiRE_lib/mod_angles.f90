@@ -1,7 +1,7 @@
 !> @file
 !> Contains MOD_ANGLES to handle bonding angles
 
-!> Module to contain all routines and variables to calculate the angular contribution to E and F\n
+!> Module containing all routines and variables to calculate the angular contribution to E and F\n
 !> Angles: E = TK * (T - TEQ)**2 with T the current angle
 MODULE MOD_ANGLES
    USE PREC_HIRE

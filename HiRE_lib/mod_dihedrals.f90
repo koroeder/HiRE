@@ -1,7 +1,7 @@
 !> @file
 !> Contains MOD_DIHEDRALS to handle dihedral angles
 
-!> Module to contain all routines and variables to calculate the dihedral contribution to E and F\n
+!> Module containing all routines and variables to calculate the dihedral contribution to E and F\n
 !> Dihedrals: E = PK * (1 + COS(PN * P - PHASE))
 MODULE MOD_DIHEDRALS
    USE PREC_HIRE

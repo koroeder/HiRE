@@ -1,7 +1,7 @@
 !> @file
 !> Contains MOD_BONDS to handle CG bonds
 
-!> Module to contain all routines and variables to calculate the bonding contribution to E and F\n
+!> Module containing all routines and variables to calculate the bonding contribution to E and F\n
 !> Bonds: E = RK * (R - REQ)**2 with R the current distance
 MODULE MOD_BONDS
    USE PREC_HIRE
