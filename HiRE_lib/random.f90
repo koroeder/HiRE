@@ -1,3 +1,7 @@
+!> @file
+!> Contains random module, only used in titration
+
+!> Random number facilities - not used
 MODULE random
   use prec_hire
   implicit none
