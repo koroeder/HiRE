@@ -1,38 +1,65 @@
+!> @file
+!> Contains PDB_OUT module to produce pdb files
+
+!> Module to handle pdb writing
 MODULE PDB_OUT
     USE PREC_HIRE
     IMPLICIT NONE
     !******************************************************************************
-    ! Types and parameters for writing pdb ATOM coordinate records to pdb
-    ! files.
+    !> Type pdb ATOM records.
     type pdb_atom_data
+        !> Record name
         character (len = 6)    :: record_name
+        !> Atom number
         integer                :: atom_number
+        !> Atom name
         character (len = 4)    :: atom_name
+        !> Alternative location indicator
         character (len = 1)    :: alt_loc_indicator
+        !> Residue name
         character (len = 3)    :: residue_name
+        !> Chain identifier
         character (len = 1)    :: chain_id
+        !> Residue number
         integer                :: residue_number
+        !> insertion code
         character (len = 1)    :: insertion_code
+        !> X coordinate
         real(kind = REAL64)    :: x_coord
+        !> Y coordinate
         real(kind = REAL64)    :: y_coord
+        !> Z coordinate
         real(kind = REAL64)    :: z_coord
+        !> Occupancy
         real(kind = REAL64)    :: occupancy
+        !> B factor
         real(kind = REAL64)    :: b_factor
+        !> Element
         character (len = 2)    :: element
+        !> Charge
         character (len = 2)    :: charge
     end type pdb_atom_data
-    ! This defines the format to be used when writing ATOM lines for PDB
-    ! files.    
+    !> Number of entries in pdb_atom_data
     integer, parameter                   :: pdb_atom_data_size = 15
+    !> Empty entry
     type(pdb_atom_data), parameter       :: null_pdb_atom_data = &
         pdb_atom_data('ATOM  ',0,'    ',' ','   ',' ',0,'',0.d0,0.d0,0.d0,1.d0,&
                  &0.d0,'  ','  ')
+    !> Format string for pdb data file
     character (len=*), parameter         :: atom_string_format = &
         &'(a6,i5,1x,a4,a1,a3,1x,a1,i4,a1,3x,f8.3,f8.3,f8.3,f6.2,f6.2,10x,a2,a2)'
 !******************************************************************************
   
     CONTAINS
 
+        !> Write pdb from coordintes
+        !> @brief
+        !>
+        !> Opens file unit for writing and then calls writepdb subroutine.
+        !>
+        !> @param[in] COORDS - input coordinates
+        !> @param[in] PDBNAME - name of pdb file for output
+        !> @param[in] CHAINIDT - should chain identifiers be written?
         SUBROUTINE PDBFROMX(COORDS,PDBNAME,CHAINIDT)
             USE UTILS_IO, ONLY: GETUNIT
             USE VAR_DEFS, ONLY: NPARTICLES
@@ -47,6 +74,7 @@ MODULE PDB_OUT
             CLOSE(PDBUNIT)
         END SUBROUTINE PDBFROMX
       
+        !> Writes pdb file using the system data loaded in HiRE
         SUBROUTINE WRITEPDB(COORDS,PDB_UNIT,CHAINIDT)
             USE VAR_DEFS, ONLY: NPARTICLES, NCHAINS, RESFINAL, &
                                 FRAG_PAR_PTR, IAC, IGRAPH, RESNAMES
