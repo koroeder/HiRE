@@ -44,7 +44,7 @@ top_dict["charges"] = CG_charges
 top_dict["particle_type"] = CG_partypes
 
 #bonding information
-bonds,bondtype = ChemData.get_bonds(top_dict["nmol"], termini, CG_labels)
+bonds,bondtype = ChemData.get_bonds(top_dict["nmol"], CG_termini, CG_labels)
 nbondtypes,rk,req,nbonds,bonds_top = ChemData.get_bondinfo(bonds,bondtype)
 top_dict["nbonds"] = nbonds
 top_dict["bonds"] = bonds_top
@@ -53,7 +53,7 @@ top_dict["rk"] = rk
 top_dict["req"] = req
 
 #angle information
-angles,angtype = ChemData.get_angles(top_dict["nmol"], termini, CG_labels)
+angles,angtype = ChemData.get_angles(top_dict["nmol"], CG_termini, CG_labels)
 nangtypes,tk,teq,nangles,angles_top = ChemData.get_angleinfo(angles,angtype)
 top_dict["nangles"] = nangles
 top_dict["angs"] = angles_top
@@ -62,7 +62,7 @@ top_dict["tk"] = tk
 top_dict["teq"] = teq
 
 #dihedral information
-dihs,dihtypes = ChemData.get_dihs(top_dict["nmol"], termini, CG_labels)
+dihs,dihtypes = ChemData.get_dihs(top_dict["nmol"], CG_termini, CG_labels)
 ntorstypes,pk,phi,ndihs,dihs_top,pn = ChemData.get_dihinfo(dihs,dihtypes)
 top_dict["ndihs"] = ndihs
 top_dict["dihs"] = dihs_top
