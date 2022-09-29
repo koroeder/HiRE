@@ -16,7 +16,7 @@ def find_termini_seqlist(seqlist):
 def get_atoms_from_seq(seqlist):
     CG_atoms = list()
     for res in seqlist:
-        if res in ["A3", "C3", "G3", "T3", "U3"]:
+        if res in ["A5", "C5", "G5", "T5", "U5"]:
             bb = ["O", "C", "R4", "R1"]
         else:
             bb = ["P", "O", "C", "R4", "R1"]
@@ -39,13 +39,13 @@ def get_resrange(seqlist):
     nstart = 1
     CG_resrange = dict()
     for res in seqlist:
-        if res in ["C3", "T3", "U3"]:
+        if res in ["C5", "T5", "U5"]:
             size = 5
-        elif res in ["A3", "G3"]:
+        elif res in ["A5", "G5"]:
             size = 6
-        elif res in ["C5", "T5", "U5", "C", "U", "DC", "DT"]:
+        elif res in ["C3", "T3", "U3", "C", "U", "DC", "DT"]:
             size = 6
-        elif res in ["A5", "G5", "A", "G", "DA", "DG"]:
+        elif res in ["A3", "G3", "A", "G", "DA", "DG"]:
             size = 7
         CG_resrange[len(CG_resrange)+1] = [nstart, nstart + size -1]
         nstart = nstart + size
@@ -61,7 +61,7 @@ def get_CGterminis(CG_resrange,termini):
                 CG_termini.append(CG_resrange[res][0])
                 start = False
             else:
-                CG_termini.append(CG_resrange[res][10])
+                CG_termini.append(CG_resrange[res][1])
                 start = True
     return CG_termini              
 
