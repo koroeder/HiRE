@@ -42,7 +42,7 @@ class Testclass(unittest.TestCase):
         res_dic = {1: [1, 28], 2: [29, 61], 3: [62, 92], 4: [93, 123], 5: [124, 157], 6: [158, 185], 7: [186, 219], 8: [220, 253], 9: [254, 283], 10: [284, 316], 11: [317, 346], 12: [347, 376], 13: [377, 407], 14: [408, 438], 15: [439, 472]}
         var.assertDictEqual(resdic("test_RNA.pdb"), res_dic)
     def test_res_names(var):
-        res_names = ['U3', 'A', 'C', 'C', 'G3', 'C5', 'G', 'G', 'U', 'A', 'U', 'U', 'C', 'C', 'A3']
+        res_names = ['U5', 'A', 'C', 'C', 'G3', 'C5', 'G', 'G', 'U', 'A', 'U', 'U', 'C', 'C', 'A3']
         var.assertListEqual(resnames("test_RNA.pdb"), res_names)
     #tests for FA2CGmapper
     def test_assign_mass(var):
