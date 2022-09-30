@@ -1,3 +1,7 @@
+## @file createHiREtop_pdb.py
+#
+# Create topology from sequence
+
 import FA2CGmapper
 import CGdatafromSeq
 import topology
