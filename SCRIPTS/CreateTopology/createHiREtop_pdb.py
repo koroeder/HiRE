@@ -22,9 +22,14 @@ natom,nres,atomnames,elements,res,resnames,coordsbyres,termini = data
 # get masses for all atoms
 atommasses = FA2CGmapper.assign_atommass(atomnames)
 # get CG res names and simplified res names
-resnames, CG_resnames = FA2CGmapper.assign_resnames(resnames)
+# Switch this if old version of topology is required
+CG_resnames = resnames
+resnames, _ = FA2CGmapper.assign_resnames(resnames)
+# resnames, CG_resnames = FA2CGmapper.assign_resnames(resnames)
+
 # obtain CG particle labels and coordinates, and map CG residue start and final particles
 CG_labels,CG_coords,CG_resrange = FA2CGmapper.get_CG_info(resnames,res,atomnames,atommasses,coordsbyres)
+
 # get CG particle masses
 CG_masses = FA2CGmapper.assign_CGmasses(CG_labels)
 # get CG molecule termini

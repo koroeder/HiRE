@@ -23,7 +23,9 @@ seqlist = read_seqlist(sys.argv[1])
 # get list of atoms
 CG_labels = CGdatafromSeq.get_atoms_from_seq(seqlist)
 # get res names used for topology
-CG_resnames = CGdatafromSeq.translate_CGresnames(seqlist)
+CG_resnames = seqlist
+# use call below to get old style topology
+# CG_resnames = CGdatafromSeq.translate_CGresnames(seqlist)
 # get residue ranges
 CG_resrange = CGdatafromSeq.get_resrange(seqlist)
 # get masses
