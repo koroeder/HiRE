@@ -1,3 +1,7 @@
+## @file  ChemData.py
+#
+# @brief Contains functions to create chemical descriptors for topology
+#
 # Functions to obtain bond, angle and dihedral information
 # The way these fucntions work is identical for all three in the algorithmic approach
 # The functions for the bonding are annotated in detail
@@ -5,17 +9,22 @@
 import RNA_params
 import DNA_params
 
-# getting list of bonds, assuming it is a single molecule
+## @brief Obtain bond information for topology
+#
+# Function obtains list of bonds, assuming it is a single molecule that is considered.\n
+# We iterate over all particle names
+# The bonds are fixed in our model, and hence we can find them by the first
+# atom in the bond. It allows us to find all bonds and correctly identify 
+# the parameters needed.\n
+# bond_ids contains tuples of the bonded atom indices.\n
+# bond_type contains the entry for the bond type found in RNA_bond from RNA_params.\n
+# For each bond an entry is added to both lists.
+#
+# @param[in] CG_partnames - List of particle names for molecule
 def get_bond_list(CG_partnames):
     bond_ids = list()
     bond_type = list()
-    # We iterate over all particle names
-    # The bonds are fixed in our model, and hence we can find them by the first
-    # atom in the bond. It allows us to find all bonds and correctly identify 
-    # the parameters needed
-    # bond_ids contains tuples of the bonded atom indices
-    # bond_type contains the entry for the bond type found in RNA_bond from RNA_params
-    # For each bond an entry is added to both lists
+
     for idx,name in enumerate(CG_partnames):
         if name == "P": #P-O5 bond
             bond_ids.append((idx,idx+1))
@@ -58,13 +67,21 @@ def get_bond_list(CG_partnames):
             continue
     return bond_ids, bond_type
 
-# To get the complete lists of bonds we go molecule by molecule
-# For each molecule, we call the above function to get the bonds and type
+## @brief get bonding information for all molecules
+#
+# To get the complete lists of bonds we go molecule by molecule.
+# For each molecule, we call get_bond_list to get the bonds and type
 # for the molecule. We record the offset for the first atom for each molecule,
 # and then fix the atom ids if necessary.
 # At the end, we have a full list of all bonds and types.
 # Importantly, this information needs to be parsed into the correct
 # format for the topology.
+#
+# @param[in] nmol - Number of molecules
+# @param[in] termini - list of terminal atoms, used to derive the start and end indices for each molecule
+# @param[in] CG_partnames - list of all CG particles names
+#
+# @see get_bond_list
 def get_bonds(nmol, termini, CG_partnames):
     bonds = list()
     bondtype = list()
@@ -83,8 +100,16 @@ def get_bonds(nmol, termini, CG_partnames):
                 bonds.append((at1+offset, at2+offset))
     return bonds,bondtype
 
+## @brief Parsing bond information to different format
+#
 # Parsing the bond information produced so far into the correct format for 
-# the topology file. 
+# the topology file.\n
+# The number of bond types is set (see RNA_params and DNA_params). In the topology, each bond type is refered to by an id,
+# and the bond paramters are provided only once for each bond type.\n
+# Here, the list of bonds and bondtypes is parsed into this format.
+# 
+# @param[in] bonds - list of bonded atoms as tuple
+# @param[in] bondtype - list of bond types for each bond
 def get_bondinfo(bonds,bondtype):
     # Introduce bond types to track which ones we have already encountered
     bondtypes_used = [False, False, False, False, False, False, 
@@ -118,7 +143,18 @@ def get_bondinfo(bonds,bondtype):
     return nbondtypes,rk,req,nbonds,bonds_top
 
 
-#getting list of angles, assuming it is a single molecule
+## @brief Obtain angle information for topology
+#
+# Function obtains list of bond angles, assuming it is a single molecule that is considered.\n
+# We iterate over all particle names.
+# The angles are fixed in our model, and hence we can find them by the first
+# atom in the angle. It allows us to find all angles and correctly identify 
+# the parameters needed.\n
+# angle_ids contains tuples of the atom indices in the angle.\n
+# angle_type contains the entry for the angle type found in RNA_angle from RNA_params.\n
+# For each bond an entry is added to both lists.
+#
+# @param[in] CG_partnames - List of particle names for molecule
 def get_angle_list(CG_partnames):
     angle_ids = list()
     angle_type = list()
@@ -181,7 +217,16 @@ def get_angle_list(CG_partnames):
             continue
     return angle_ids, angle_type
 
-
+## @brief Parsing bond angle information to different format
+#
+# Parsing the bond angle information produced so far into the correct format for 
+# the topology file.\n
+# The number of bond angle types is set (see RNA_params and DNA_params). In the topology, each bond angle type is refered to by an id,
+# and the bond angle paramters are provided only once for each bond angle type.\n
+# Here, the list of angles and angle types is parsed into this format.
+# 
+# @param[in] angles - list of atoms in angle as tuple
+# @param[in] angletype - list of bond angle types for each bond angle
 def get_angleinfo(angles,angletype):
     angletypes_used = [False, False, False, False, False, False, 
                        False, False, False, False, False, False]
@@ -206,6 +251,23 @@ def get_angleinfo(angles,angletype):
             angles_top += [3*angle[0], 3*angle[1], 3*angle[2], this_toptype]           
     return nangtypes,tk,teq,nangles,angles_top
 
+
+
+## @brief get bond angle information for all molecules
+#
+# To get the complete lists of bond angles we go molecule by molecule.
+# For each molecule, we call get_angle_list to get the bond angles and type
+# for the molecule. We record the offset for the first atom for each molecule,
+# and then fix the atom ids if necessary.
+# At the end, we have a full list of all bond angles and types.
+# Importantly, this information needs to be parsed into the correct
+# format for the topology.
+#
+# @param[in] nmol - Number of molecules
+# @param[in] termini - list of terminal atoms, used to derive the start and end indices for each molecule
+# @param[in] CG_partnames - list of all CG particles names
+#
+# @see get_angle_list
 def get_angles(nmol, termini, CG_partnames):
     angles = list()
     angtype = list()
@@ -225,7 +287,18 @@ def get_angles(nmol, termini, CG_partnames):
                 angles.append((at1+offset, at2+offset, at3+offset))
     return angles,angtype
 
-#getting list of dihs, assuming it is a single molecule
+## @brief Obtain dihedral information for topology
+#
+# Function obtains list of dihedrals, assuming it is a single molecule that is considered.\n
+# We iterate over all particle names.
+# The dihedrals are fixed in our model, and hence we can find them by the first
+# atom. It allows us to find all dihedrals and correctly identify 
+# the parameters needed.\n
+# dih_ids contains tuples of the atom indices in the dihedral.\n
+# dih_type contains the entry for the dihedral type found in RNA_dih from RNA_params.\n
+# For each bond an entry is added to both lists.
+#
+# @param[in] CG_partnames - List of particle names for molecule
 def get_dih_list(CG_partnames):
     dih_ids = list()
     dih_type = list()
@@ -330,6 +403,16 @@ def get_dih_list(CG_partnames):
 
 
 
+## @brief Parsing dihedral information to different format
+#
+# Parsing the dihedral information produced so far into the correct format for 
+# the topology file.\n
+# The number of dihedral types is set (see RNA_params and DNA_params). In the topology, each dihedral type is refered to by an id,
+# and the dihedral paramters are provided only once for each dihedral type.\n
+# Here, the list of dihedrals and dihedral types is parsed into this format.
+# 
+# @param[in] dihs - list of atoms in dihderals as tuples
+# @param[in] dihtype - list of dihedral types for each dihedral
 def get_dihinfo(dihs,dihtype):
     dihtypes_used = [False, False, False, False, False,
                      False, False, False, False, False, 
@@ -359,6 +442,22 @@ def get_dihinfo(dihs,dihtype):
             dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], 3*dih[3], this_toptype]           
     return ntorstypes,pk,phi,ndihs,dihs_top,pn
 
+
+## @brief get dihedral information for all molecules
+#
+# To get the complete lists of dihedrals we go molecule by molecule.
+# For each molecule, we call get_dih_list to get the dihedrals and type
+# for the molecule. We record the offset for the first atom for each molecule,
+# and then fix the atom ids if necessary.
+# At the end, we have a full list of all dihedrals and types.
+# Importantly, this information needs to be parsed into the correct
+# format for the topology.
+#
+# @param[in] nmol - Number of molecules
+# @param[in] termini - list of terminal atoms, used to derive the start and end indices for each molecule
+# @param[in] CG_partnames - list of all CG particles names
+#
+# @see get_dih_list
 def get_dihs(nmol, termini, CG_partnames):
     dihs = list()
     torstype = list()
