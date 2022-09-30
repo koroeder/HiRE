@@ -1,9 +1,15 @@
+## @file FA2CGmapper.py
+#
 # Set of functions to obtain HiRE coarse-grained information from atom data
 
 import CGmaps
 
-# Function to get centre of mass coordinates
-# Input xyz coordinates and list of masses
+## Function to get centre of mass coordinates
+#
+# @param[in] coords - coordinates of particles
+# @param[in] masses - masses of particles
+#
+# @return List with centre of mass coordinates
 def massW_centre(coords,masses):
     X = 0.0
     Y = 0.0
@@ -16,27 +22,42 @@ def massW_centre(coords,masses):
         mtot += m
     return [X/mtot,Y/mtot,Z/mtot]
 
-# Function to assign atom masses
+## Function to assign atom masses
+#
 # As the first letter of the atom names in pdbs generally correspond to
 # the element, and the element information in the pdb might be empty,
 # we use the first letter of the atom name to map to the atom mass.
 # The map is defined in CGmaps.py.
+#
+# @param[in] atomnames - names of atoms
+#
+# @return List of atom masses
 def assign_atommass(atomnames):
     atommasses = list()
     for name in atomnames:
         atommasses.append(CGmaps.atom_masses[name[0]])
     return atommasses
 
-# Function to assign the CG particle mass based on particle name
+## Function to assign the CG particle mass based on particle name
 # The map is defined in CGmaps.py.
+#
+# @param[in] CGnames - names of CG particles
+#
+# @return List of CG particle masses
 def assign_CGmasses(CGnames):
     CGmasses = list()
     for name in CGnames:
         CGmasses.append(CGmaps.CG_masses[name])
     return CGmasses
 
-# Function to map FA to CG for a single residue
-# Resid is the name of the residue, labels are the atom names
+## Function to map FA to CG for a single residue
+#
+# @param[in] resid - index of residue
+# @param[in] labels - list of atom names
+# @param[in] masses - list of atom masses
+# @param[in] coords - coordinates
+#
+# @return A list of CG particle names and the corresponding CG coordinates
 def FA2CG_res(resid,labels,masses,coords):
     # First we define the atoms we are interest in
     # This will depend on the nucleotide
@@ -103,9 +124,17 @@ def FA2CG_res(resid,labels,masses,coords):
     
     return CG_labels, CG_coords
 
-# Function to get CG information
+## Function to get CG information
 # The three sets of data are the particle names, their coordinates 
 # and the first and last particle for each residue
+#
+# @param[in] reslabel - List of residue names
+# @param[in] resrange - Dictionary containing the first and last atom index for each residue
+# @param[in] atomlabels - List of atom names
+# @param[in] masses - List of atom masses
+# @param[in] coords - Coordinates
+#
+# @return List of CG particle labels, CG coordinates and dictionary of first and last particle for each residue
 def get_CG_info(reslabel,resrange,atomlabels,masses,coords):
     CG_labels = list()
     CG_coords = list()
@@ -126,10 +155,18 @@ def get_CG_info(reslabel,resrange,atomlabels,masses,coords):
         CG_resrange[idx+1] = [start_p,end_p]
     return CG_labels,CG_coords,CG_resrange
 
-# Function to produce the terminal atoms for the molecules in our system
+## @brief Obtain CG termini
+#
+# Function to produce the terminal atoms for the molecules in our system.\n
 # This information is obtained by mapping the termini for the atomistic 
 # system to the CG system using the dictionaries with the first and last 
-# atom/particle for each residue
+# atom/particle for each residue.
+#
+# @param[in] resrange - Dictionary of residue ranges
+# @param[in] termini - Information on terminal residues
+# @param[in] resrange - Dictionary of residue ranges for CG
+#
+# @return CG terminal information
 def get_CG_termini(resrange, termini, CG_resrange):
     CG_termini = list()
     for key in resrange.keys():
@@ -141,9 +178,11 @@ def get_CG_termini(resrange, termini, CG_resrange):
             CG_termini.append(CG_resrange[key][1])
     return CG_termini         
 
+## Redundant apart form simplified information!
+#
 # Here, we assign the proper CG residue names, including terminal information
 # We also produce a simplified version of the residue names,
-# which is used in the fucntions that assign bonds, angles etc.
+# which is used in the functions that assign bonds, angles etc.
 # The maps are again defined in CGmaps.py
 def assign_resnames(resnames):
     CG_resnames = list()
@@ -153,7 +192,7 @@ def assign_resnames(resnames):
         new_resnames.append(CGmaps.resnames_simple[name])
     return new_resnames, CG_resnames
 
-# Function to assign CG charges and particle type
+## Function to assign CG charges and particle type
 # Again, we use fixed maps for this purpose and use the particle name
 def assign_par_properties(CG_labels):
     CG_charges = list()
