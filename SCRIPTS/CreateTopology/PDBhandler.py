@@ -1,25 +1,32 @@
-## PDB file format ATOM record
-#   Columns     Data                            Justification    Data Type
-#    1-4         “ATOM”                          character
-#    7-11        Atom serial number              right            integer
-#    13-16       Atom name                       left             character
-#    17          Alternate location indicator                     character
-#    18-20       Residue name                    right            character
-#    22          Chain identifier                                 character
-#    23-26       Residue sequence number         right            integer
-#    27          Code for residue insertion                       character
-#    31-38       X orthogonal Å coordinate       right            real (8.3)
-#    39-46       Y orthogonal Å coordinate       right            real (8.3)
-#    47-54       Z orthogonal Å coordinate       right            real (8.3)
-#    55-60       Occupancy                       right            real (6.2)
-#    61-66       Temperature factor              right            real (6.2)
-#    73-76       Segment identifier              left             character
-#    77-78       Element symbol                  right            character
+## @file PDBhandler.py
+#
+# Contains functions to deal with pdb files.\n 
+# PDB file format ATOM record\n
+#   Columns     Data                            Justification    Data Type\n
+#    1-4         “ATOM”                          character\n
+#    7-11        Atom serial number              right            integer\n
+#    13-16       Atom name                       left             character\n
+#    17          Alternate location indicator                     character\n
+#    18-20       Residue name                    right            character\n
+#    22          Chain identifier                                 character\n
+#    23-26       Residue sequence number         right            integer\n
+#    27          Code for residue insertion                       character\n
+#    31-38       X orthogonal Å coordinate       right            real (8.3)\n
+#    39-46       Y orthogonal Å coordinate       right            real (8.3)\n
+#    47-54       Z orthogonal Å coordinate       right            real (8.3)\n
+#    55-60       Occupancy                       right            real (6.2)\n
+#    61-66       Temperature factor              right            real (6.2)\n
+#    73-76       Segment identifier              left             character\n
+#    77-78       Element symbol                  right            character\n
 
 import sys
 
-# Function to parse line in pdb, element might result in an empty list
-# The parsing is based on the right alignment as detailed above
+## Function to parse line in pdb
+#
+# The parsing is based on the right alignment as detailed in the file descriptions. 
+# The element might be empty depending on the file format.
+#
+# @return Returns the atom name, residue name, residue id, atom coordinates and element for each entry
 def parse_line(line):
     atom_name = line[12:16].strip()
     res_name = line[17:20].strip()
@@ -28,11 +35,15 @@ def parse_line(line):
     element = line[76:78].strip()
     return atom_name, res_name, res_id, atom_xyz, element
 
-# Function to open pdb and parse it line by line
+## Function to open pdb and parse it line by line
+#
 # Returns the atom data as dictionary,
 # the number of atoms (natom) and a list of terminal atoms 
 # Recognition of termini is based on TER statements in pdb file
-# Argument: inpfile - input file name
+#
+# @param[in] inpfile - input file name
+#
+# @return Dictionary containg all pdb data, numebr of atoms and a list of terminal atoms
 def get_pdb_data(inpfile):
     data = dict()
     termini = [1] #first atom is always a terminus
@@ -51,9 +62,14 @@ def get_pdb_data(inpfile):
                 continue
     return data,termini,natom
 
+## Obtain residue information
+#
 # Function to obtain the number of residues (resid, dual used as counter),
 # the first and last atom of each residue as dictionary (res), a list of
-# all residue names (resnames), and the coordinates for each residue (coordsbyres)
+# all residue names (resnames), and the coordinates for each residue (coordsbyres).
+#
+# @param[in] natom - Number of atoms
+# @param[in] data - pdb information from parsing
 def get_residues(natom,data):
     res = {1: [1,0]}
     resid = 1
@@ -74,21 +90,22 @@ def get_residues(natom,data):
         coordsbyres[ridx+1] = coords
     return resid, res, resnames, coordsbyres
 
-# Function to get a list of elements from data dictionary
+## Function to get a list of elements from data dictionary
 def get_elements(natom,data):
     elements = list()
     for idx in range(natom):
         elements.append(data[idx+1][4])
     return elements
 
-# Function to get a list of atom names from data dictionary
+## Function to get a list of atom names from data dictionary
 def get_atomnames(natom,data):
     atomnames = list()
     for idx in range(natom):
         atomnames.append(data[idx+1][0])
     return atomnames
 
-# Function to make sure we have correct termini
+## Function to make sure we have correct termini
+#
 # The final entry should be the last atom
 # In addition, we added the last atom of each molecule, but not the first
 # Here, we fix this problem, and then transfer the list into a set to
@@ -104,8 +121,7 @@ def fix_termini(natom,termini):
             new_term.append(t+1)
     return sorted(set(termini+new_term))
 
-# Function to parse file and obtain all relevant data
-# This function should be called externally
+## Function to parse file and obtain all relevant data
 def parse_pdb(inpfile):
     data, termini, natom = get_pdb_data(inpfile)
     nres, res, resnames, coordsbyres= get_residues(natom,data)
