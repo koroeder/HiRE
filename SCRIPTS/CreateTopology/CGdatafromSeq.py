@@ -32,7 +32,7 @@ def get_atoms_from_seq(seqlist):
             sc = ["A1", "A2"]
         elif res in ["C3", "C5", "C", "DC", "DC3", "DC5"]:
             sc = ["C1"]
-        elif res in ["G3", "G5", "G", "DG", "DG3", "DG5]:
+        elif res in ["G3", "G5", "G", "DG", "DG3", "DG5"]:
             sc = ["G1", "G2"]
         elif res in ["DT3", "DT5", "DT"]:
             sc = ["T1"]
