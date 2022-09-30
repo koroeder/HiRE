@@ -1,7 +1,13 @@
+## @file CGdatafromSeq.py
+#
+# Contains functions to get cG information from sequence
 import CGmaps
 
-# find termini residue ids from sequence 
+
 def find_termini_seqlist(seqlist):
+## Find termini residue ids from sequence
+#
+# param[in] seqlist - List of residue names 
     CGres_termini = list()
     for idx,res in enumerate(seqlist):
         if res in ["A5", "C5", "G5", "U5", "DA5", "DC5", "DG5", "DT5"]:
@@ -12,8 +18,10 @@ def find_termini_seqlist(seqlist):
             continue
     return CGres_termini
 
-# get list of atoms from sequence
 def get_atoms_from_seq(seqlist):
+## Get list of CG particle names from sequence
+#
+# param[in] seqlist - List of residue names
     CG_atoms = list()
     for res in seqlist:
         if res in ["A5", "C5", "G5", "U5", "DA5", "DC5", "DG5", "DT5"]:
@@ -30,12 +38,14 @@ def get_atoms_from_seq(seqlist):
             sc = ["T1"]
         elif res in ["U3", "U5", "U"]:
             sc = ["U1"]                  
-        # now add all entries to the list
         CG_atoms = CG_atoms + bb + sc
     return CG_atoms
 
-# get list of ranges for each residue
+ 
 def get_resrange(seqlist):
+## Get list of id ranges for each residue
+#
+# param[in] seqlist - List of residue names
     nstart = 1
     CG_resrange = dict()
     for res in seqlist:
@@ -51,8 +61,11 @@ def get_resrange(seqlist):
         nstart = nstart + size
     return CG_resrange
 
-#get CG termini particle indices
 def get_CGterminis(CG_resrange,termini):
+## Get CG termini particle indices
+#
+# param[in] CG_resrange - dictionary of first and last particle in each residue
+# param[in] termini - list of terminal residues (3' and 5' nucleotides)
     CG_termini = list()
     start = True
     for res in CG_resrange.keys():
@@ -66,8 +79,9 @@ def get_CGterminis(CG_resrange,termini):
     return CG_termini              
 
 
-#return list of new residue names
 def translate_CGresnames(seqlist):
+## Return list of new residue names
+# TODO: remove this function as it is not needed
     new_resnames = list()
     for res in seqlist:
         new_resnames.append(CGmaps.CG_resnames[res])
