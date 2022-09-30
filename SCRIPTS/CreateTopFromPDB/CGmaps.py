@@ -35,9 +35,11 @@ CG_resnames = {"A5": "ADEi", "C5": "CYSi", "G5": "GUAi", "T5": "THYi", "U5": "UR
                "A": "ADE", "C": "CYS", "G": "GUA", "U": "URA",
                "DA": "ADE", "DC": "CYS", "DG": "GUA", "DT": "THY"}
 
-resnames_simple = {"A5": "A", "C5": "C", "G5": "G", "T5": "T", "U5": "U",
-                   "A3": "A", "C3": "C", "G3": "G", "T3": "T", "U3": "U",
+resnames_simple = {"A5": "A", "C5": "C", "G5": "G", "U5": "U",
+                   "A3": "A", "C3": "C", "G3": "G", "U3": "U",
                    "A":  "A", "C":  "C", "G":  "G", "U":  "U",
+		   "DA5": "A", "DC5": "C", "DG5": "G", "DT5": "T",
+                   "DA3": "A", "DC3": "C", "DG3": "G", "DT3": "T",
                    "DA": "A", "DC": "C", "DG": "G", "DT": "T"}
 
 # 1: C5*  2: O5*  3: P  4: CA  5: CY

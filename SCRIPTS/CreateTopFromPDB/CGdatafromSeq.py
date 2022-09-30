@@ -4,9 +4,9 @@ import CGmaps
 def find_termini_seqlist(seqlist):
     CGres_termini = list()
     for idx,res in enumerate(seqlist):
-        if res in ["A5", "C5", "G5", "T5", "U5"]:
+        if res in ["A5", "C5", "G5", "U5", "DA5", "DC5", "DG5", "DT5"]:
             CGres_termini.append(idx+1)
-        elif res in ["A3", "C3", "G3", "T3", "U3"] :
+        elif res in ["A3", "C3", "G3", "U3", "DA3", "DC3", "DG3", "DT3"] :
             CGres_termini.append(idx+1)
         else:
             continue
@@ -16,17 +16,17 @@ def find_termini_seqlist(seqlist):
 def get_atoms_from_seq(seqlist):
     CG_atoms = list()
     for res in seqlist:
-        if res in ["A5", "C5", "G5", "T5", "U5"]:
+        if res in ["A5", "C5", "G5", "U5", "DA5", "DC5", "DG5", "DT5"]:
             bb = ["O", "C", "R4", "R1"]
         else:
             bb = ["P", "O", "C", "R4", "R1"]
-        if res in ["A3", "A5", "A", "DA"]:
+        if res in ["A3", "A5", "A", "DA", "DA3", "DA5"]:
             sc = ["A1", "A2"]
-        elif res in ["C3", "C5", "C", "DC"]:
+        elif res in ["C3", "C5", "C", "DC", "DC3", "DC5"]:
             sc = ["C1"]
-        elif res in ["G3", "G5", "G", "DG"]:
+        elif res in ["G3", "G5", "G", "DG", "DG3", "DG5]:
             sc = ["G1", "G2"]
-        elif res in ["T3", "T5", "DT"]:
+        elif res in ["DT3", "DT5", "DT"]:
             sc = ["T1"]
         elif res in ["U3", "U5", "U"]:
             sc = ["U1"]                  
@@ -39,13 +39,13 @@ def get_resrange(seqlist):
     nstart = 1
     CG_resrange = dict()
     for res in seqlist:
-        if res in ["C5", "T5", "U5"]:
+        if res in ["C5", "U5", "DC5", "DT5"]:
             size = 5
-        elif res in ["A5", "G5"]:
+        elif res in ["A5", "G5", "DA5", "DG5"]:
             size = 6
-        elif res in ["C3", "T3", "U3", "C", "U", "DC", "DT"]:
+        elif res in ["C", "C3", "U", "U3", "DC", "DC3", "DT3", "DT"]:
             size = 6
-        elif res in ["A3", "G3", "A", "G", "DA", "DG"]:
+        elif res in ["A", "A3", "G", "G3", "DA", "DA3", "DG", "DG3"]:
             size = 7
         CG_resrange[len(CG_resrange)+1] = [nstart, nstart + size -1]
         nstart = nstart + size
