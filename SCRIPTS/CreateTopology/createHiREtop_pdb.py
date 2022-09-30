@@ -1,3 +1,7 @@
+## @file createHiREtop_pdb.py
+#
+# Create topology from FA pdb file
+
 import PDBhandler
 import FA2CGmapper
 import topology
