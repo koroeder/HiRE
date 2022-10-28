@@ -16,6 +16,7 @@ MODULE MCmod
       USE MOVES
       USE GROUPROTMOD
       USE BP_MOVES_MOD
+      USE STOCH_FORCE_STEPS, ONLY: STOCHFORCET, STOCHFORCESTEPT, GRADMOD_STEP
       USE porfuncs
 
 
@@ -330,6 +331,15 @@ MODULE MCmod
                   TWISTORPULL=.TRUE.
                ENDIF
             ENDIF 
+            ! kr366> Gradient modification steps
+            IF (STOCHFORCET) THEN
+               STOCHFORCESTEPT = .TRUE.
+               WRITE(MYUNIT,'(A)') " mc> Use stochastic forces (gradient modification)"
+               CALL GRADMOD_STEP(COORDS(:,JP))
+               DOCARTSTEP = .FALSE.
+            END IF
+
+
             !do Cartesian steps - only if no ther move is attempted!
             IF (DOCARTSTEP) CALL CARTESIAN_SPHERE(COORDS(:,JP), STEP(JP))
 

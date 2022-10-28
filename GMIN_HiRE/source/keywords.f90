@@ -9,6 +9,9 @@
       USE PORFUNCS
 
       USE HIRE_INTERFACE, ONLY : SETUP_SAXS, HIRE_HB_INIT
+      ! stochastic force steps
+      USE STOCH_FORCE_STEPS, ONLY: STOCHFORCET, MULTIPLIER, NMAXMULTSTEPS, NCOMPONENTS, RANDOMFACTORST, &
+                                   RMSCUTOFF, JUMPMULTIPLIER, MINMULT, LOWERMOD, RAISEMOD
      
       IMPLICIT NONE
 
@@ -203,6 +206,32 @@
             STOP
          END IF
 
+! stochastic step taking
+! kr366> gradient modificatio steps
+      ELSE IF (WORD.EQ.'GRADMODSTEPS') THEN
+         STOCHFORCET = .TRUE.
+         CALL READI(NCOMPONENTS)
+         CALL READI(NMAXMULTSTEPS)
+         CALL READF(MULTIPLIER)
+         WRITE(MYUNIT,'(A,I6,A,I4,A,F8.2)') " keywords> Use gradient modification steps, modifying ", &
+                                            NCOMPONENTS, " gradient components, for a maximum of ", &
+                                            NMAXMULTSTEPS, " gradient additions per step and an initial modifier of ", -MULTIPLIER
+
+      ELSE IF (WORD.EQ.'GRADMODADJUST') THEN
+         CALL READF(RMSCUTOFF)
+         CALL READF(JUMPMULTIPLIER)
+         CALL READF(MINMULT)
+         WRITE(MYUNIT,'(A,F10.2,A,F8.2,A,F6.2)') " keywords> Use a RMS cutoff of ", RMSCUTOFF, &
+                                                 " during gradient modification steps and a multiplier of ", &
+                                                 JUMPMULTIPLIER, " to increase multipliers once RMS falls below ", MINMULT
+         IF (NITEMS.GT.4) THEN
+            CALL READF(LOWERMOD)
+            CALL READF(RAISEMOD)
+            WRITE(MYUNIT,'(A,F10.2,A,F8.2,A)') " keywords> Multiplier modifications of ", LOWERMOD, " and ",RAISEMOD, " to adjust RMS per step"
+         END IF
+
+      ELSE IF (WORD.EQ.'GRADMODRANDOM') THEN
+         RANDOMFACTORST = .TRUE.
 
 
 !######################!
