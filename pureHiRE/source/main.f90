@@ -44,5 +44,5 @@ PROGRAM HIRE_CALC
    ! and one without chain id
    CALL DUMP_PDB(3*NATOMS, X, "conf_nochainid.pdb",.FALSE.)   
    ! Finish up
-   CALL HIRE_FINISH()
+   CALL TERMINATE_HIRE()
 END PROGRAM HIRE_CALC

@@ -63,6 +63,7 @@ MODULE STOCH_FORCE_STEPS
                MULTIPLIER = RAISEMOD*MULTIPLIER
             END IF
          END DO
+	 WRITE(*,*) " Current multiplier:", MULTIPLIER
       END SUBROUTINE GRADMOD_STEP
 
       ! Subroutine to fill factor array
