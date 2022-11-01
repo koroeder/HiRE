@@ -32,7 +32,6 @@ MODULE MOD_EXCLV
          REAL(KIND = REAL64), INTENT(IN) :: R2OUT      !higher cutoff
          REAL(KIND = REAL64), INTENT(OUT) :: DF        !force contribution
          REAL(KIND = REAL64), INTENT(OUT) :: EEXCL     !energy contribution
-
          REAL(KIND = REAL64) :: R, CT2MOD, EXPEXCL
 
          R = DSQRT(DA2)

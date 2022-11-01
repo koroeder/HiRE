@@ -37,7 +37,7 @@ MODULE HIRE_INTERFACE
          NATOMS = 0
 #ifdef __HIRE       
          !call setup subroutine for HiRe
-         CALL SETUP(TOPNAME, SCALEDATNAME)
+         CALL HIRE_SETUP(TOPNAME, SCALEDATNAME)
          !initialise all energies to zero
          CALL RESET_POT_ENE(EVEC)
         
@@ -200,11 +200,11 @@ MODULE HIRE_INTERFACE
       END SUBROUTINE PASS_HIRE_MASSES
 
       !> Subroutine to terminatew HiRE interface (deallocates all arrays in the library)
-      SUBROUTINE HIRE_FINISH()
+      SUBROUTINE TERMINATE_HIRE()
 #ifdef __HIRE
-         CALL FINISH()
+         CALL HIRE_FINISH()
 #endif
-      END SUBROUTINE HIRE_FINISH
+      END SUBROUTINE TERMINATE_HIRE
 
       !> Subroutine to initialise SAXS calculations
       SUBROUTINE SETUP_SAXS(SAXST_,SAXSPRINT_,SAXSMODULT_,SAXSINVSIG_,SAXSMAX_, &
