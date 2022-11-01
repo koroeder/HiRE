@@ -183,7 +183,7 @@ MODULE MOD_DIHEDRALS
          REAL(KIND = REAL64) :: GMUL(10)
          
          GMUL=(/0.0d+00, 2.0d+00, 0.0d+00, 4.0d+00, 0.0d+00, 6.0d+00, &  
-               0.0d+00, 8.0d+00, 0.0d+00, 10.0d+00/) 
+                0.0d+00, 8.0d+00, 0.0d+00, 10.0d+00/) 
          ETORS = 0.0D0
          F(1:NOPT) = 0.0D0
 
@@ -248,36 +248,36 @@ MODULE MOD_DIHEDRALS
             COSNP = DCOS(CT0)
             SINNP = DSIN(CT0)
 
-            if(PN(IC).eq.12)then
-                  !GAMCs=GAMC(IC)/PK(IC)
-                  !GAMSs=GAMS(IC)/PK(IC)
-                  COSNPs=DCOS(AP1)
-                  SINNPs=DSIN(AP1)
-                  EXPRB=ACOS(GAMC(IC)/PK(IC))*180.d0/PI
+            if (PN(IC).eq.12) then
+               !GAMCs=GAMC(IC)/PK(IC)
+               !GAMSs=GAMS(IC)/PK(IC)
+               COSNPs=DCOS(AP1)
+               SINNPs=DSIN(AP1)
+               EXPRB=ACOS(GAMC(IC)/PK(IC))*180.d0/PI
+   
+               vEPW=(PK(IC)*COSNPs**int(EXPRB))*vFMUL
 
-                  vEPW=(PK(IC)*COSNPs**int(EXPRB))*vFMUL
-
-                  if(EXPRB.eq.0)then
-                     DF0=0.d0
-                     df1=0.d0
-                  else
-                     DF0=PK(IC)*EXPRB*SINNPs*COSNPs**int(EXPRB-1.d0)
-                     !print*,DF0
-                     DUMS = vSPHI+SIGN(TM24,vSPHI)
-                     DFLIM = GAMC(IC)*(PN(IC)-GMUL(INC)+GMUL(INC)*vCPHI)
-                     
-                     df1 = df0/dums
-                     if(tm06.gt.abs(dums)) df1 = dflim
-                  endif
-                  !DF0 = -PN(IC)*PK(IC)*(GAMCs*SINNP-GAMSs*COSNP)*(COSNP*GAMCs+SINNP*GAMSs)**(PN(IC)-1.d0)
+               if (EXPRB.eq.0) then
+                  DF0=0.d0
+                  df1=0.d0
                else
-                  vEPW= (PK(IC)+COSNP*GAMC(IC)+SINNP*GAMS(IC))*vFMUL !! might be revised
-                  DF0 = PN(IC)*(GAMC(IC)*SINNP-GAMS(IC)*COSNP)
+                  DF0=PK(IC)*EXPRB*SINNPs*COSNPs**int(EXPRB-1.d0)
+                  !print*,DF0
                   DUMS = vSPHI+SIGN(TM24,vSPHI)
                   DFLIM = GAMC(IC)*(PN(IC)-GMUL(INC)+GMUL(INC)*vCPHI)
-                  
+               
                   df1 = df0/dums
-                  if(tm06.gt.abs(dums)) df1 = dflim
+                  if (tm06.gt.abs(dums)) df1 = dflim
+               endif
+               !DF0 = -PN(IC)*PK(IC)*(GAMCs*SINNP-GAMSs*COSNP)*(COSNP*GAMCs+SINNP*GAMSs)**(PN(IC)-1.d0)
+            else
+               vEPW= (PK(IC)+COSNP*GAMC(IC)+SINNP*GAMS(IC))*vFMUL !! might be revised
+               DF0 = PN(IC)*(GAMC(IC)*SINNP-GAMS(IC)*COSNP)
+               DUMS = vSPHI+SIGN(TM24,vSPHI)
+               DFLIM = GAMC(IC)*(PN(IC)-GMUL(INC)+GMUL(INC)*vCPHI)
+                  
+               df1 = df0/dums
+               if(tm06.gt.abs(dums)) df1 = dflim
             endif
             
             vDF = DF1*vFMUL

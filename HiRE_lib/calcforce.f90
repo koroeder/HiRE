@@ -68,7 +68,7 @@ MODULE CALCFORCES
          REAL(KIND = REAL64), INTENT(IN), OPTIONAL :: ESCALE
          
          REAL(KIND = REAL64) :: THIS_E, THIS_F(NOPT), EHHB, ESTAK, EVDW, &
-                                 F_SAXS(NOPT), F_CONST(NOPT), ESAXS, ECONST
+                                F_SAXS(NOPT), F_CONST(NOPT), ESAXS, ECONST
          
          ETOT = 0.0D0
          F(1:NOPT) = 0.0D0
