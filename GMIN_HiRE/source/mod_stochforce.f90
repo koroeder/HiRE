@@ -12,8 +12,6 @@ MODULE STOCH_FORCE_STEPS
    IMPLICIT NONE
    ! use stochastic force steps
    LOGICAL :: STOCHFORCET = .FALSE.
-   ! Switch toggling whether the multiplication is applied
-   LOGICAL :: STOCHFORCESTEPT = .FALSE.
    ! Array containing the multiplication factors
    REAL(KIND=REAL64), ALLOCATABLE :: FACTORS(:)
    REAL(KIND=REAL64) :: MULTIPLIER = -10.0
@@ -34,6 +32,10 @@ MODULE STOCH_FORCE_STEPS
    ! Switch whether we have a remaining random normal number
    LOGICAL :: SPARET = .FALSE.
    REAL(KIND=REAL64) :: SPARE
+   !frequency of step taking
+   INTEGER :: GRADMODFREQ = 1
+   INTEGER :: GRADMODOFFSET = 0
+   LOGICAL :: DOGRADMODSTEP = .FALSE.
    CONTAINS
 
       ! subroutine to take step

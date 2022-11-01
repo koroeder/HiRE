@@ -16,7 +16,7 @@ MODULE MCmod
       USE MOVES
       USE GROUPROTMOD
       USE BP_MOVES_MOD
-      USE STOCH_FORCE_STEPS, ONLY: STOCHFORCET, STOCHFORCESTEPT, GRADMOD_STEP
+      USE STOCH_FORCE_STEPS, ONLY: STOCHFORCET, GRADMOD_STEP, DOGRADMODSTEP
       USE porfuncs
 
 
@@ -332,13 +332,10 @@ MODULE MCmod
                ENDIF
             ENDIF 
             ! kr366> Gradient modification steps
-            IF (STOCHFORCET) THEN
-               STOCHFORCESTEPT = .TRUE.
+            IF (STOCHFORCET.AND.DOGRADMODSTEP) THEN
                WRITE(MYUNIT,'(A)') " mc> Use stochastic forces (gradient modification)"
                CALL GRADMOD_STEP(COORDS(:,JP))
-               DOCARTSTEP = .FALSE.
             END IF
-
 
             !do Cartesian steps - only if no ther move is attempted!
             IF (DOCARTSTEP) CALL CARTESIAN_SPHERE(COORDS(:,JP), STEP(JP))
@@ -691,6 +688,7 @@ MODULE MCmod
 
       SUBROUTINE WHICH_MOVE(J1)
       USE COMMONS
+      USE STOCH_FORCE_STEPS, ONLY: GRADMODFREQ, GRADMODOFFSET, DOGRADMODSTEP, STOCHFORCET
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: J1
 
@@ -702,7 +700,7 @@ MODULE MCmod
       DOTWIST = .FALSE.
       DOPULL = .FALSE.
       DOCARTSTEP = .FALSE.
-
+     DOGRADMODSTEP = .FALSE.
       !largest move have highest priority
       IF (BPHINGET.AND.MOD(J1,BPHINGEFREQ).EQ.0) THEN
          DOHINGE = .TRUE.
@@ -737,6 +735,12 @@ MODULE MCmod
          RETURN
       ENDIF
       DOCARTSTEP = .TRUE.
+
+      ! gradient modification steps
+      IF (STOCHFORCET.AND.(MOD(J1-GRADMODOFFSET,GRADMODFREQ).EQ.0)) THEN
+         DOGRADMODSTEP=.TRUE.
+         DOCARTSTEP=.FALSE.
+      END IF
       RETURN
       END SUBROUTINE WHICH_MOVE
 
