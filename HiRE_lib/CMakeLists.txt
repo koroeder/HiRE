@@ -29,7 +29,7 @@ find_package(FORTRANCOMPILER)
 # Add all the source files
 file(GLOB HiRE_SOURCES ${GIT_ROOT}/HiRE_lib/*.F90 ${GIT_ROOT}/HiRE_lib/*.f90)
 # Remove HiRE_interface.f90
-file(GLOB HIREINTERFACE ${GIT_ROOT}/HiRE_lib/HiRE_interface.F90)
+file(GLOB HIREINTERFACE ${GIT_ROOT}/HiRE_lib/hire_interface.F90)
 
 list(REMOVE_ITEM HiRE_SOURCES ${HIREINTERFACE})
 
