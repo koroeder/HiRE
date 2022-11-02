@@ -1,16 +1,40 @@
 MODULE MD_SETUP
 
    CONTAINS
-      SUBROUTINE SETUP_POTENTIAL()
-         USE MD_COMMONS, ONLY: NATOMS, TOPNAME, SCALEDATNAME
-         USE HIRE_INTERFACE, ONLY: HIRE_INITIALISE
-         USE MD_UTILS, ONLY: ALLOC_COMMONS
+      SUBROUTINE START_TRACKING()
+         USE FILE_UTILS, ONLY: FILE_OPEN
+         USE MD_COMMONS
          IMPLICIT NONE
+         CALL FILE_OPEN("md_energy.log",EUNIT,.TRUE.)
+         CALL FILE_OPEN("md_coords.xyz",XUNIT,.TRUE.)
+         IF (DUMPPDBT) CALL FILE_OPEN("md_coords.prdb",PUNIT,.TRUE.)
+      END SUBROUTINE START_TRACKING
+
+      SUBROUTINE SETUP_POTENTIAL()
+         USE MD_COMMONS, ONLY: NATOMS, TOPNAME, SCALEDATNAME, COORDSFILE
+         USE HIRE_INTERFACE, ONLY: HIRE_INITIALISE, PASS_HIRE_MASSES
+         USE MD_UTILS, ONLY: ALLOC_COMMONS
+         USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
+         IMPLICIT NONE
+         INTEGER :: J, XUNIT
          !first initialise the HiRE interface
          CALL HIRE_INITIALISE(TOPNAME, SCALEDATNAME, NATOMS)
 
          ! allocate the relevant arrays
          CALL ALLOC_COMMONS()
+
+         ! get coordinates
+         IF (FILE_EXIST(COORDSFILE)) THEN
+            CALL FILE_OPEN(COORDSFILE,XUNIT,.FALSE.)
+            READ(XUNIT, *) (X(J), J=1,3*NATOMS)
+            CLOSE(XUNIT)
+         ELSE
+            WRITE(MYUNIT,*) " setup> Cannot locate input file for coordinates - ", COORDSFILE
+            STOP
+         END IF
+
+         ! get particle masses
+         CALL PASS_HIRE_MASSES(NATOMS,MASSES)
       END SUBROUTINE SETUP_POTENTIAL
 
       SUBROUTINE READ_SETTINGS(PARAMUNIT)
@@ -35,6 +59,7 @@ MODULE MD_SETUP
                CALL SETKEYS(KEYWORD)
             ENDIF
          END DO
+         CLOSE(PARAMUNIT)
          ! done with reading keywords
          WRITE(MYUNIT, '(A)') " read_keywords> Completed reading simdata"
       END SUBROUTINE READ_SETTINGS
@@ -75,6 +100,12 @@ MODULE MD_SETUP
          ! LETTER C      !
          !+++++++++++++++!     
          
+         ! Keyword: COORDINATES
+         ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
+         ! Description: Interval to dump coordinates
+         ELSE IF (WORD .EQ. 'COORDINATES') THEN
+            CALL READA(COORDSFILE) 
+
          !+++++++++++++++!   
          ! LETTER D      !
          !+++++++++++++++! 
@@ -179,6 +210,12 @@ MODULE MD_SETUP
          !+++++++++++++++!   
          ! LETTER T      !
          !+++++++++++++++!
+
+         ! Keyword: TEMPERATURE
+         ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
+         ! Description: Time steps to be used
+         ELSE IF (WORD .EQ. 'TEMPERATURE') THEN
+            CALL READF(TEMP)
 
          ! Keyword: TIMESTEP
          ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
