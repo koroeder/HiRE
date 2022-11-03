@@ -7,7 +7,6 @@ MODULE MD_SETUP
          IMPLICIT NONE
          CALL FILE_OPEN("md_energy.log",EUNIT,.TRUE.)
          CALL FILE_OPEN("md_coords.xyz",XUNIT,.TRUE.)
-         IF (DUMPPDBT) CALL FILE_OPEN("md_coords.prdb",PUNIT,.TRUE.)
       END SUBROUTINE START_TRACKING
 
       SUBROUTINE SETUP_POTENTIAL()
