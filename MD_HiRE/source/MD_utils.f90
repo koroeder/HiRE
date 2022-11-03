@@ -3,8 +3,6 @@ MODULE MD_COMMONS
    IMPLICIT NONE
    ! number of MD steps to be taken
    INTEGER :: MDSTEPS = 0
-   ! current MD step
-   INTEGER :: CURRSTEP = 0
    ! coordinates
    REAL(KIND = REAL64), ALLOCATABLE :: COORDS(:)
    ! accelaration
@@ -35,8 +33,6 @@ MODULE MD_COMMONS
    INTEGER :: XUNIT
    ! output unit for energies
    INTEGER :: EUNIT
-   ! output unit for pdb file
-   INTEGER :: PUNIT
    ! output frequency for coordinates
    INTEGER :: NDUMPX
    ! output frequency for energy
