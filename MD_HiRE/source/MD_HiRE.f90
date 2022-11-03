@@ -6,12 +6,16 @@
 !> @file
 !> Main program to run MD simulation with HiRE force field
 PROGRAM MD_HIRE
+   USE NUMKIND
    USE MD_COMMONS, ONLY: MYUNIT
    USE MD_SETUP, ONLY: READ_SETTINGS, SETUP_POTENTIAL
    USE MD_SIMULATION
    USE MD_FINAL
    USE MD_UTILS, ONLY: REPORT_PARAMS, MD_START, START_TRACKING
-   
+   IMPLICIT NONE
+   REAL(KIND=REAL64) :: TSTART, TEND, TSETUP
+
+   CALL CPU_TIME(TSTART)
    ! 1. Simulation setup
    ! a) check the parameter input exists
    CALL MD_START()
@@ -29,6 +33,18 @@ PROGRAM MD_HIRE
    WRITE(MYUNIT,'(A)') " mdhire> Calling velocity initialisation"
    CALL INITIALISE_VEL()
    CALL ZERO_STEP()
+   CALL CPU_TIME(TSETUP)
 
    ! 3. Run MD steps
+   CALL RUN_MD()
+   CALL CPU_TIME(TEND)
+
+   ! 4. Finish run
+   CALL FINISH_MD()
+
+   WRITE(MYUNIT,'(A)') " mdhire> Finished simulation"  
+   WRITE(MYUNIT,'(A,F10.2)') " mdhire> Total time:      ", TEND-TSTART
+   WRITE(MYUNIT,'(A,F10.2)') " mdhire> Setup time:      ", TSETUP-TSTART
+   WRITE(MYUNIT,'(A,F10.2)') " mdhire> Simulation time: ", TRUNS-TSETUP   
+   CLOSE(MYUNIT) 
 END PROGRAM MD_HIRE
