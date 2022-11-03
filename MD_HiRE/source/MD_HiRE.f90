@@ -42,7 +42,7 @@ PROGRAM MD_HIRE
    ! 4. Finish run
    CALL FINISH_MD()
 
-   WRITE(MYUNIT,'(A)') " mdhire> Finished simulation"  
+   WRITE(MYUNIT,'(A)') " "  
    WRITE(MYUNIT,'(A,F10.2)') " mdhire> Total time:      ", TEND-TSTART
    WRITE(MYUNIT,'(A,F10.2)') " mdhire> Setup time:      ", TSETUP-TSTART
    WRITE(MYUNIT,'(A,F10.2)') " mdhire> Simulation time: ", TRUNS-TSETUP   
