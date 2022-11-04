@@ -92,14 +92,14 @@ file(GLOB DUMMY_HIRE ${GIT_ROOT}/HiRE_lib/HiRE_interface.F90)
 set(ALL_DUMMIES ${DUMMY_HIRE})
 
 # Glob all the sources
-file(GLOB MD_SOURCES ${GIT_ROOT}/MD/source/*.f90
-                     ${GIT_ROOT}/MD/source/utils/*.f90)
+file(GLOB MD_SOURCES ${GIT_ROOT}/MD_HiRE/source/*.f90
+                     ${GIT_ROOT}/MD_HiRE/source/utils/*.f90)
 
-file(GLOB NOT_MD_SRC ${GIT_ROOT}/MD/source/MD_HiRE.f90  
-                     ${GIT_ROOT}/MD/source/myblas.f
-                     ${GIT_ROOT}/MD/source/mylapack.f )
+file(GLOB NOT_MD_SRC ${GIT_ROOT}/MD_HiRE/source/MD_HiRE.f90  
+                     ${GIT_ROOT}/MD_HiRE/source/myblas.f
+                     ${GIT_ROOT}/MD_HiRE/source/mylapack.f )
  
-file(GLOB MD_MAIN ${GIT_ROOT}/MD/source/MD_HiRE.f90)
+file(GLOB MD_MAIN ${GIT_ROOT}/MD_HiRE/source/MD_HiRE.f90)
 
 list(REMOVE_ITEM MD_SOURCES ${NOT_MD_SRC} 
                                   ${ALL_DUMMIES} )
@@ -118,30 +118,30 @@ endif(ANALYSIS_VER)
 
 add_definitions(-D_GIT_ROOT_='${GIT_ROOT}')
 
-#add_library(mdlib ${MD_SOURCES})
-#set_module_dir(mdlib)
-#set_module_depends(mdlib hire_base)
-#set_target_properties(mdlib PROPERTIES LINKER_LANGUAGE "Fortran") 
-
 ##########################
 # EXECUTABLES START HERE #
 ##########################
 
 add_subdirectory(${GIT_ROOT}/HiRE_lib hire_interface)
 
-#add_executable(HIREMD ${MD_MAIN} ${DUMMY_HIRE})
-#set_module_dir(HIREMD)
-#set_module_depends(HIREMD mdlib hire_base)
-#set_target_properties(HIREMD PROPERTIES LINKER_LANGUAGE "Fortran") 
-#set_target_properties(HIREMD PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
-
-#target_link_libraries(HIREMD mdlib hire_base ${MYLAPACK_LIBS})
-
+add_library(mdlib ${MD_SOURCES})
+set_module_dir(mdlib)
+set_module_depends(mdlib hire_base)
+set_target_properties(mdlib PROPERTIES LINKER_LANGUAGE "Fortran") 
 
 add_executable(HIREMD ${MD_MAIN} ${DUMMY_HIRE})
 set_module_dir(HIREMD)
-set_module_depends(HIREMD hire_base)
+set_module_depends(HIREMD mdlib hire_base)
 set_target_properties(HIREMD PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(HIREMD PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
-target_link_libraries(HIREMD hire_base ${MYLAPACK_LIBS})
+
+target_link_libraries(HIREMD mdlib hire_base ${MYLAPACK_LIBS})
+
+
+#add_executable(HIREMD ${MD_MAIN} ${DUMMY_HIRE})
+#set_module_dir(HIREMD)
+#set_module_depends(HIREMD hire_base)
+#set_target_properties(HIREMD PROPERTIES LINKER_LANGUAGE "Fortran") 
+#set_target_properties(HIREMD PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
+#target_link_libraries(HIREMD hire_base ${MYLAPACK_LIBS})
 
