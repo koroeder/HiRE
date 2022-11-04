@@ -8,7 +8,7 @@ SUBROUTINE INITIALISE_VEL()
    REAL(KIND = REAL64) :: P_COM(3)    ! linear momentum of the centre of mass
    REAL(KIND = REAL64) :: TOTALMASS   ! total mass
    REAL(KIND = REAL64) :: CURRVEL     ! place holder for current velocity
-   REAL(KIND = REAL64) :: ANGMOM(3)   ! angular momentum
+   REAL(KIND = REAL64) :: ANG_MOM(3)  ! angular momentum
    REAL(KIND = REAL64) :: MOI(3,3)    ! moment of inertia
    REAL(KIND = REAL64) :: R(3)        ! position vector
    REAL(KIND = REAL64) :: R2          ! squared length of position vector
@@ -27,7 +27,7 @@ SUBROUTINE INITIALISE_VEL()
    COM(1:3) = 0.0D0
    P_COM(1:3) = 0.0D0
    ! initialise angular momentum and moment of inertia
-   ANGMOM(1:3) = 0.0D0
+   ANG_MOM(1:3) = 0.0D0
    MOI(1:3,1:3) = 0.0D0
    ! initialise angular velocity and kinetic energy
    W(1:3) = 0.0D0
@@ -37,11 +37,11 @@ SUBROUTINE INITIALISE_VEL()
    DO I=1,NATOMS
       DO J=1,3
          ! random normal-distributed velocities with zero mean and unit standard deviation  
-         CALL RAND_NORMAL(1.0, 0.0, CURRVEL)
+         CALL RAND_NORMAL(1.0D0, 0.0D0, CURRVEL)
          VEL(3*(I-1)+J) = CURRVEL
          ! get contributions to centre of mass and initial momentum
          COM(J) = COM(J) + COORDS(3*(I-1)+J)*MASSES(I)
-         COM_MOM(J) = COM_MOM(J) + CURRVEL*MASSES(I)
+         P_COM(J) = P_COM(J) + CURRVEL*MASSES(I)
       END DO
    END DO
    COM(1:3) = COM(1:3)/TOTALMASS
@@ -63,7 +63,7 @@ SUBROUTINE INITIALISE_VEL()
          P(J) = VEL(IDX) * MASSES(I)
       END DO
       R2 = DOT_PRODUCT(R,R)
-      ANG_MOM(1:3) = ANG_MOM(1:3) + CROSSP(R, P)(1:3)
+      ANG_MOM = ANG_MOM + CROSSP(R, P)
       ! update moment of inertia
       DO J=1,3
          MOI(J,J) = MOI(J,J) + (R2 - R(J)*R(J))*MASSES(I)
