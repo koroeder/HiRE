@@ -92,24 +92,39 @@ file(GLOB DUMMY_HIRE ${GIT_ROOT}/HiRE_lib/HiRE_interface.F90)
 set(ALL_DUMMIES ${DUMMY_HIRE})
 
 # Glob all the sources
-file(GLOB MD_SOURCES ${GIT_ROOT}/MD_HiRE/source/*.f90
-                     ${GIT_ROOT}/MD_HiRE/source/utils/*.f90)
+file(GLOB MD_SOURCES *.f90
+                     *.f
+		     *.F90
+                     utils/*.f90)
 
-file(GLOB NOT_MD_SRC ${GIT_ROOT}/MD_HiRE/source/MD_HiRE.f90  
-                     ${GIT_ROOT}/MD_HiRE/source/myblas.f
-                     ${GIT_ROOT}/MD_HiRE/source/mylapack.f )
- 
-file(GLOB MD_MAIN ${GIT_ROOT}/MD_HiRE/source/MD_HiRE.f90)
+file(GLOB NOT_MD_SRC myblas.f
+                     mylapack.f)
 
 list(REMOVE_ITEM MD_SOURCES ${NOT_MD_SRC} 
-                                  ${ALL_DUMMIES} )
+                            ${ALL_DUMMIES} )
 
+# Collect all the extra source files into one place. It's just dummies at the moment.
+set(ALL_EXTRA_SOURCES ${ALL_DUMMIES})
 
+########################
+# LIBRARIES START HERE #
+########################
 
 # Find BLAS and LAPACK libraries
 find_package(MYBLAS)
 find_package(MYLAPACK)
 
+# Make an extras library for dummies, this is necessary because some of the
+# files in gminlib use modules made by extralib
+add_library(extralib ${ALL_EXTRA_SOURCES})
+set_module_dir(extralib)
+set_target_properties(extralib PROPERTIES LINKER_LANGUAGE "Fortran") 
+set_target_properties(extralib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};${DUMMY_CPP_FLAGS};__SPARSE")
+
+add_library(mdlib ${MD_SOURCES})
+set_module_dir(mdlib)
+set_module_depends(mdlib extralib)
+set_target_properties(mdlib PROPERTIES LINKER_LANGUAGE "Fortran") 
 
 option(ANALYSIS_VER "Enable printing for structural analysis" OFF)
 if(ANALYSIS_VER)
@@ -124,24 +139,11 @@ add_definitions(-D_GIT_ROOT_='${GIT_ROOT}')
 
 add_subdirectory(${GIT_ROOT}/HiRE_lib hire_interface)
 
-add_library(mdlib ${MD_SOURCES})
-set_module_dir(mdlib)
-set_module_depends(mdlib hire_base)
-set_target_properties(mdlib PROPERTIES LINKER_LANGUAGE "Fortran") 
 
-add_executable(HIREMD ${MD_MAIN} ${DUMMY_HIRE})
+
+add_executable(HIREMD MD_HiRE.f90 ${DUMMY_HIRE})
 set_module_dir(HIREMD)
 set_module_depends(HIREMD mdlib hire_base)
 set_target_properties(HIREMD PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(HIREMD PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
-
 target_link_libraries(HIREMD mdlib hire_base ${MYLAPACK_LIBS})
-
-
-#add_executable(HIREMD ${MD_MAIN} ${DUMMY_HIRE})
-#set_module_dir(HIREMD)
-#set_module_depends(HIREMD hire_base)
-#set_target_properties(HIREMD PROPERTIES LINKER_LANGUAGE "Fortran") 
-#set_target_properties(HIREMD PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
-#target_link_libraries(HIREMD hire_base ${MYLAPACK_LIBS})
-
