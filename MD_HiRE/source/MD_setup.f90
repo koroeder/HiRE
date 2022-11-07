@@ -25,7 +25,7 @@ MODULE MD_SETUP
          ! get coordinates
          IF (FILE_EXIST(COORDSFILE)) THEN
             CALL FILE_OPEN(COORDSFILE,XUNIT,.FALSE.)
-            READ(XUNIT, '(3(F15.7))') (COORDS(J), J=1,3*NATOMS)
+            READ(XUNIT, *) (COORDS(J), J=1,3*NATOMS)
             CLOSE(XUNIT)
          ELSE
             WRITE(MYUNIT,*) " setup> Cannot locate input file for coordinates - ", COORDSFILE
@@ -59,8 +59,6 @@ MODULE MD_SETUP
             ENDIF
          END DO
          CLOSE(PARAMUNIT)
-         ! done with reading keywords
-         WRITE(MYUNIT, '(A)') " read_keywords> Completed reading simdata"
       END SUBROUTINE READ_SETTINGS
 
       SUBROUTINE SETKEYS(WORD)

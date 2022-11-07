@@ -28,7 +28,6 @@ PROGRAM MD_HIRE
    CALL START_TRACKING()
 
    ! 2. Initialise velocities for simulation and get initial state
-   WRITE(MYUNIT,'(A)') ""
    WRITE(MYUNIT,'(A)') " mdhire> Calling velocity initialisation"
    CALL INITIALISE_VEL()
    CALL ZERO_STEP()

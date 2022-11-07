@@ -45,7 +45,8 @@ SUBROUTINE INITIALISE_VEL()
       END DO
    END DO
    COM(1:3) = COM(1:3)/TOTALMASS
-   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Centre of mass: ", COM(1), COM(2), COM(3)
+   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Centre of mass:             ", &
+                                COM(1), COM(2), COM(3)
    WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Momentum of centre of mass: ", &
                                 P_COM(1), P_COM(2), P_COM(3)
 
@@ -90,8 +91,8 @@ SUBROUTINE INITIALISE_VEL()
    DO J=1,3
       W(J) = DOT_PRODUCT(MOI(I,1:3),ANG_MOM(1:3))
    END DO
-   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Angular momentum: ", ANG_MOM(1:3)
-   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Angular velocity: ", W(1:3)
+   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Angular momentum:           ", ANG_MOM(1:3)
+   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Angular velocity:           ", W(1:3)
 
    ! 3. remove rotation and compute kinetic energy
    ! reset angular momentum and linear momentum
@@ -109,8 +110,8 @@ SUBROUTINE INITIALISE_VEL()
       END DO
       ANG_MOM = ANG_MOM + CROSSP(ATX,P)
    END DO
-   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Final momentum CoM: ", P_COM(1:3)
-   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Final ngular momentum: ", ANG_MOM(1:3)
+   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Final momentum CoM:         ", P_COM(1:3)
+   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Final angular momentum:     ", ANG_MOM(1:3)
 
    ! 4. rescale velocities to match temperature
    SCALE = SQRT(DBLE(3*NATOMS)*TEMP/EKIN)

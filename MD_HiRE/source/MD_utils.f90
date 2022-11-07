@@ -77,10 +77,10 @@ MODULE MD_UTILS
          WRITE(MYUNIT,'(A)') " Molecular dynamics simulation for HiRE "
          WRITE(MYUNIT,'(A)') " ______________________________________ "
          WRITE(MYUNIT,'(A)') " "
-         WRITE(MYUNIT,'(A,I10,A)') " settings> Run MD simulation for ", MDSTEPS, "steps"
-         WRITE(MYUNIT,'(A,F6.2,A)') " settings> Time step for simulation: ", DT, "fs"
+         WRITE(MYUNIT,'(A,I10,A)') " settings> Run MD simulation for ", MDSTEPS, " steps"
+         WRITE(MYUNIT,'(A,F6.2)') " settings> Time step for simulation:          ", DT
          WRITE(MYUNIT,'(A,F6.2)') " settings> Gamma value for Langevin dynamics: ", GAMMA
-         WRITE(MYUNIT,'(A,F8.2)') " settings> Temperature for MD simulation: ", TEMP
+         WRITE(MYUNIT,'(A,F8.2)') " settings> Temperature for MD simulation:     ", TEMP
          WRITE(MYUNIT,'(A)') " "
       END SUBROUTINE REPORT_PARAMS
 

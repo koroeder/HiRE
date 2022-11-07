@@ -16,7 +16,7 @@ MODULE MD_SIMULATION
                ACC(IDX) = -ACC(IDX)/MASSES(I)
             END DO
          END DO
-         WRITE(MYUNIT,'(A)') " mdhire> Initial energies - EPOT= ", EPOT, "; EKIN= ", EKIN
+         WRITE(MYUNIT,'(2(A,F12.4))') " mdhire> Initial energies - EPOT= ", EPOT, "; EKIN= ", EKIN
       END SUBROUTINE ZERO_STEP
 
       SUBROUTINE RUN_MD()
@@ -74,11 +74,11 @@ MODULE MD_SIMULATION
          END DO
          EKIN = 0.5*EKIN
          IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
-            WRITE(MYUNIT,*) " mdsteps> Completed step ", CURRSTEP
-            WRITE(MYUNIT,*) "          Total energy: ", EPOT+EKIN           
-            WRITE(MYUNIT,*) "          Kinetic energy: ", EKIN
+            WRITE(MYUNIT,*) " mdsteps> Completed step    ", CURRSTEP
+            WRITE(MYUNIT,*) "          Total energy:     ", EPOT+EKIN           
+            WRITE(MYUNIT,*) "          Kinetic energy:   ", EKIN
             WRITE(MYUNIT,*) "          Potential energy: ", EPOT
-            WRITE(MYUNIT,*) " -----------------------------------------------"
+            WRITE(MYUNIT,*) " --------------------------------------------------"
          END IF
       END SUBROUTINE TAKE_MDSTEP
 
