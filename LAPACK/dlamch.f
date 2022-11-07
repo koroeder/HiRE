@@ -574,6 +574,10 @@
 *
 ************************************************************************
 *
+* jwrm2> We need to make sure this function is not inlined. The
+* following mysterious line tells ifort to not inline it when using
+* AVX-512 extensions. Other compilers ignore it.
+!DEC$ ATTRIBUTES NOINLINE :: DLAMC3
       DOUBLE PRECISION FUNCTION DLAMC3( A, B )
 *
 *  -- LAPACK auxiliary routine (version 3.0) --
