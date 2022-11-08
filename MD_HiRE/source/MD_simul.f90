@@ -91,7 +91,9 @@ MODULE MD_SIMULATION
          CHARACTER(LEN=15) :: JSTRING
          CHARACTER(LEN=30) :: PDBNAME
          !write energies
-         WRITE(EUNIT,'(I10,3(1X,F15.7))') CURRSTEP, EPOT+EKIN, EPOT, EKIN
+         IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
+            WRITE(EUNIT,'(I10,3(1X,F15.7))') CURRSTEP, EPOT+EKIN, EPOT, EKIN
+         END IF 
          !write coordinate files
          IF (MOD(CURRSTEP,NDUMPX).EQ.0) THEN
             WRITE(XUNIT,*) " Step: ", CURRSTEP
