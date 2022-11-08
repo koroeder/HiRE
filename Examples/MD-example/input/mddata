@@ -1,0 +1,13 @@
+# file names for input files
+COORDINATES start
+SCALEDAT scale_RNA.dat
+TOPOLOGY parameters.top
+# output options
+DUMPCOORDS 25
+DUMPENERGY 25
+DUMPPDB 100
+# simulation settings
+GAMMA 0.1
+TEMPERATURE 0.616 
+TIMESTEP 0.01
+MDSTEPS 200

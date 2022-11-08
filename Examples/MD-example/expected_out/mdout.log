@@ -1,0 +1,63 @@
+ Molecular dynamics simulation for HiRE 
+ ______________________________________ 
+ 
+ settings> Run MD simulation for        200 steps
+ settings> Time step for simulation:            0.01
+ settings> Gamma value for Langevin dynamics:   0.10
+ settings> Temperature for MD simulation:         0.62
+ 
+ mdhire> Calling velocity initialisation
+ init_velocity> Centre of mass:                   39.317908      24.545150       7.840227
+ init_velocity> Momentum of centre of mass:      701.060402      32.900190    -261.296986
+ init_velocity> Angular momentum:                 115.962730    1658.783305   -4127.680535
+ init_velocity> Angular velocity:                  -0.000000      -0.000000      -0.000000
+ init_velocity> Final momentum CoM:                0.000000      -0.000000      -0.000000
+ init_velocity> Final angular momentum:          115.962730    1658.783305   -4127.680535
+ init_velocity> Kinetic energy:      131.208000
+ 
+ mdhire> Initial energies - EPOT=    8469.5370; EKIN=     131.2080
+  mdsteps> Completed step              25
+           Total energy:        8413.5297215702558     
+           Kinetic energy:      4043.5811976853593     
+           Potential energy:    4369.9485238848974     
+  --------------------------------------------------
+  mdsteps> Completed step              50
+           Total energy:        8241.2123314470082     
+           Kinetic energy:      4301.7300051802076     
+           Potential energy:    3939.4823262668010     
+  --------------------------------------------------
+  mdsteps> Completed step              75
+           Total energy:        8041.9464062432180     
+           Kinetic energy:      3442.2442298858150     
+           Potential energy:    4599.7021763574030     
+  --------------------------------------------------
+  mdsteps> Completed step             100
+           Total energy:        7849.7629082874937     
+           Kinetic energy:      3966.4836109872012     
+           Potential energy:    3883.2792973002920     
+  --------------------------------------------------
+  mdsteps> Completed step             125
+           Total energy:        7654.9201879706670     
+           Kinetic energy:      4016.1744612003449     
+           Potential energy:    3638.7457267703217     
+  --------------------------------------------------
+  mdsteps> Completed step             150
+           Total energy:        7460.8588399868840     
+           Kinetic energy:      3970.3690525744432     
+           Potential energy:    3490.4897874124413     
+  --------------------------------------------------
+  mdsteps> Completed step             175
+           Total energy:        7315.2460307485690     
+           Kinetic energy:      3025.9344351844975     
+           Potential energy:    4289.3115955640715     
+  --------------------------------------------------
+  mdsteps> Completed step             200
+           Total energy:        7131.9132016974090     
+           Kinetic energy:      3941.2855247770835     
+           Potential energy:    3190.6276769203250     
+  --------------------------------------------------
+  md_finish> MD simulation completed
+ 
+ mdhire> Total time:            0.03
+ mdhire> Setup time:            0.00
+ mdhire> Simulation time:       0.03
