@@ -5,9 +5,6 @@ cmake_policy(SET CMP0048 OLD)
 
 project(MYBLAS)
 
-set(PROJECT_VERSION "0.0")
-set(PROJECT_CONTACT "dw34@cam.ac.uk")
-
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../CMakeModules)
 
