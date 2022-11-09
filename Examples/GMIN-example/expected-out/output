@@ -1,0 +1,257 @@
+Starting serial execution
+ dprand> seed     56468437
+keywords> Random seed = 56468437
+ keyword> group rotation moves enabled
+ keyword> GROUPROTATION amplitudes will be scaled
+ grouptrot_init> Reading in atom groups for GROUPROTATION
+ keywords> Read coordinates
+main> No atomic masses allocated
+ io1>    142 HiRE beads
+Sloppy quench tolerance for RMS gradient     0.1000000000E-02
+In run   1 temperature will be fixed - see below for value
+Step size and angular threshold will be adjusted for acceptance ratio       0.5000 initial values=      0.3000      0.4000
+Configuration will be reset to quench geometry
+Sampling using Boltzmann weights
+Nocedal LBFGS minimisation
+Number of updates before reset in LBFGS=   100
+Maximum step size=        0.5000000000
+Guess for initial diagonal elements in LBFGS=  0.1000    
+Final quench tolerance for RMS gradient     0.1000000000E-04
+Energy difference criterion for minima=        0.1000000000
+Maximum number of iterations: sloppy quenches 15000 final quenches 15000
+GMIN Run:       100 steps with temperature scaled by  0.10000000E+01
+Maximum allowed energy rise during a minimisation=    0.5000000000    
+Calculating initial energy
+mc calling initial quench
+Qu          0 E=    -23.56442048     steps= 3686 RMS= 0.95047E-03 Markov E=    -23.56442048     t=        2.2
+Starting run of        100 BH steps
+Temperature will be multiplied by      1.00000000 at every step
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          1 E=    -23.56442048     steps=    0 RMS= 0.95047E-03 Markov E=    -23.56442048     t=        2.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          2 E=    -23.56442048     steps=    0 RMS= 0.95047E-03 Markov E=    -23.56442048     t=        2.2
+  GROUPROTATION> Rotating group base1CA-P_ by    2.1562040663665689     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          3 E=    -23.56440050     steps=  285 RMS= 0.93053E-03 Markov E=    -23.56442048     t=        2.4
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          4 E=    -23.56440050     steps=    0 RMS= 0.93053E-03 Markov E=    -23.56440050     t=        2.4
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          5 E=    -23.56440050     steps=    0 RMS= 0.93053E-03 Markov E=    -23.56440050     t=        2.4
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          6 E=    -23.56440050     steps=    0 RMS= 0.93053E-03 Markov E=    -23.56440050     t=        2.4
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          7 E=    -23.56440050     steps=    0 RMS= 0.93053E-03 Markov E=    -23.56440050     t=        2.4
+  GROUPROTATION> Rotating group base0CY-B1 by    10.458460595270404     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          8 E=    -23.56441727     steps=  330 RMS= 0.94430E-03 Markov E=    -23.56440050     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu          9 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         10 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         11 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         12 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         13 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         14 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         15 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         16 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         17 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         18 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         19 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         20 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         21 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         22 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         23 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         24 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         25 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         26 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION> Rotating group base0O5-P by   -8.5296744055722993     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         27 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         28 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         29 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         30 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         31 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         32 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         33 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         34 E=    -23.56441727     steps=    0 RMS= 0.94430E-03 Markov E=    -23.56441727     t=        2.6
+  GROUPROTATION> Rotating group base0CA-P_ by    8.8230862840397926     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         35 E=    -23.56435369     steps=  683 RMS= 0.85119E-03 Markov E=    -23.56441727     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         36 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         37 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         38 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         39 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         40 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         41 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         42 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         43 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         44 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         45 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         46 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         47 E=    -23.56435369     steps=    0 RMS= 0.85119E-03 Markov E=    -23.56435369     t=        3.0
+  GROUPROTATION> Rotating group base1CA-P_ by  -0.73737449338329186     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         48 E=    -23.56438053     steps=  170 RMS= 0.97682E-03 Markov E=    -23.56435369     t=        3.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         49 E=    -23.56438053     steps=    0 RMS= 0.97682E-03 Markov E=    -23.56438053     t=        3.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         50 E=    -23.56438053     steps=    0 RMS= 0.97682E-03 Markov E=    -23.56438053     t=        3.1
+GROUPROTATION> all group rotation amplitudes scaled by     1.050000
+Acceptance ratio for previous     50 steps=  1.0000  FAC=  1.0500
+Steps are now:  STEP=    0.3150  ASTEP=    0.4200 Temperature is now:    1.4000
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         51 E=    -23.56438053     steps=    0 RMS= 0.97682E-03 Markov E=    -23.56438053     t=        3.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         52 E=    -23.56438053     steps=    0 RMS= 0.97682E-03 Markov E=    -23.56438053     t=        3.1
+  GROUPROTATION> Rotating group base1CA-P_ by   -2.3805849669288373     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         53 E=    -23.56438092     steps=  290 RMS= 0.98549E-03 Markov E=    -23.56438053     t=        3.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         54 E=    -23.56438092     steps=    0 RMS= 0.98549E-03 Markov E=    -23.56438092     t=        3.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         55 E=    -23.56438092     steps=    0 RMS= 0.98549E-03 Markov E=    -23.56438092     t=        3.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         56 E=    -23.56438092     steps=    0 RMS= 0.98549E-03 Markov E=    -23.56438092     t=        3.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         57 E=    -23.56438092     steps=    0 RMS= 0.98549E-03 Markov E=    -23.56438092     t=        3.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         58 E=    -23.56438092     steps=    0 RMS= 0.98549E-03 Markov E=    -23.56438092     t=        3.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         59 E=    -23.56438092     steps=    0 RMS= 0.98549E-03 Markov E=    -23.56438092     t=        3.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         60 E=    -23.56438092     steps=    0 RMS= 0.98549E-03 Markov E=    -23.56438092     t=        3.3
+  GROUPROTATION> Rotating group base1C5-O5 by   -11.029724056250355     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         61 E=    -23.56435473     steps=  920 RMS= 0.97412E-03 Markov E=    -23.56438092     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         62 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         63 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         64 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         65 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         66 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         67 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         68 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         69 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         70 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         71 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         72 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         73 E=    -23.56435473     steps=    0 RMS= 0.97412E-03 Markov E=    -23.56435473     t=        3.8
+  GROUPROTATION> Rotating group base1CA-P_ by    6.3300245632122776     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         74 E=    -23.56441935     steps=  598 RMS= 0.84407E-03 Markov E=    -23.56435473     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         75 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         76 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         77 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         78 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         79 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         80 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         81 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         82 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         83 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         84 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         85 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         86 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         87 E=    -23.56441935     steps=    0 RMS= 0.84407E-03 Markov E=    -23.56441935     t=        4.2
+  GROUPROTATION> Rotating group base0CA-P by    3.1044739173979332     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         88 E=    -23.56441654     steps=  247 RMS= 0.79937E-03 Markov E=    -23.56441935     t=        4.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         89 E=    -23.56441654     steps=    0 RMS= 0.79937E-03 Markov E=    -23.56441654     t=        4.3
+  GROUPROTATION> Rotating group base0C5-O5 by   -6.8538437054533352     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         90 E=    -23.56441654     steps=    0 RMS= 0.79937E-03 Markov E=    -23.56441654     t=        4.3
+  GROUPROTATION> Rotating group base0O5-P by    1.0891074978617894     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         91 E=    -23.56441654     steps=    0 RMS= 0.79937E-03 Markov E=    -23.56441654     t=        4.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         92 E=    -23.56441654     steps=    0 RMS= 0.79937E-03 Markov E=    -23.56441654     t=        4.3
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         93 E=    -23.56441654     steps=    0 RMS= 0.79937E-03 Markov E=    -23.56441654     t=        4.3
+  GROUPROTATION> Rotating group base0CA-P_ by    9.3900396274926639     
+  GROUPROTATION> Rotating group base1C5-CA by    10.968744725268833     
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         94 E=    -23.56439982     steps= 1257 RMS= 0.93344E-03 Markov E=    -23.56441654     t=        5.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         95 E=    -23.56439982     steps=    0 RMS= 0.93344E-03 Markov E=    -23.56439982     t=        5.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         96 E=    -23.56439982     steps=    0 RMS= 0.93344E-03 Markov E=    -23.56439982     t=        5.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         97 E=    -23.56439982     steps=    0 RMS= 0.93344E-03 Markov E=    -23.56439982     t=        5.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         98 E=    -23.56439982     steps=    0 RMS= 0.93344E-03 Markov E=    -23.56439982     t=        5.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu         99 E=    -23.56439982     steps=    0 RMS= 0.93344E-03 Markov E=    -23.56439982     t=        5.1
+  GROUPROTATION>            0  groups skipped as they involve breaking base pairs.
+Qu        100 E=    -23.56439982     steps=    0 RMS= 0.93344E-03 Markov E=    -23.56439982     t=        5.1
+GROUPROTATION> all group rotation amplitudes scaled by     1.050000
+Acceptance ratio for previous     50 steps=  1.0000  FAC=  1.0500
+Steps are now:  STEP=    0.3308  ASTEP=    0.4410 Temperature is now:    1.4000
+Acceptance ratio for run=     1.00000 Step=     0.33075 Angular step factor=     0.44100 T=     1.40000
+Tightly converging the SAVE lowest energy minima found
+NOTE: these may NOT match the other output files - see below for a sorted list of Lowest minima
+Final Quench      1 energy=    -23.56448397     steps= 1334 RMS force=  0.9829753E-05 time=        5.86
+After re-sorting, the lowest found minima are (lowest free energy subtracted if applicable):
+Lowest Minimum      1 Energy=     -23.56448397    
+ Create chain ids
+ Done creating chain ids
+time elapsed                5.9 seconds
+Number of potential calls               9906
