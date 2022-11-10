@@ -10,7 +10,7 @@ MODULE MD_SETUP
       END SUBROUTINE START_TRACKING
 
       SUBROUTINE SETUP_POTENTIAL()
-         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, TOPNAME, SCALEDATNAME, COORDSFILE, MASSES, COORDS
+         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, TOPNAME, SCALEDATNAME, COORDSFILE, MASSES, COORDS, MININITIAL
          USE HIRE_INTERFACE, ONLY: HIRE_INITIALISE, PASS_HIRE_MASSES
          USE MD_UTILS, ONLY: ALLOC_COMMONS
          USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
@@ -27,6 +27,10 @@ MODULE MD_SETUP
             CALL FILE_OPEN(COORDSFILE,XUNIT,.FALSE.)
             READ(XUNIT, *) (COORDS(J), J=1,3*NATOMS)
             CLOSE(XUNIT)
+            ! minimise coordinates
+            IF (MININITIAL) THEN
+               CALL RUNMIN(COORDS)
+            END IF
          ELSE
             WRITE(MYUNIT,*) " setup> Cannot locate input file for coordinates - ", COORDSFILE
             STOP
@@ -64,6 +68,7 @@ MODULE MD_SETUP
       SUBROUTINE SETKEYS(WORD)
          USE INPUTMOD
          USE MD_COMMONS                  ! global variables
+         USE MINIMISATION, ONLY: INTMAX, MUPDATE, EPS
          USE FILE_UTILS, ONLY: FILE_EXIST
         
          IMPLICIT NONE
@@ -174,6 +179,15 @@ MODULE MD_SETUP
          ELSE IF (WORD .EQ. 'MDSTEPS') THEN
             CALL READI(MDSTEPS) 
 
+         ! Keyword: MININIT
+         ! Added: 10/11/2022 (kr366), last modified: 10/11/2022 (kr366)
+         ! Description: Run minimisation for initial structure
+         ELSE IF (WORD .EQ. 'MININIT') THEN
+            MININITIAL = .TRUE.
+            CALL READI(INTMAX)
+            CALL READI(MUPDATE)
+            CALL READF(EPS)
+            
          !+++++++++++++++!   
          ! LETTER N      !
          !+++++++++++++++!
