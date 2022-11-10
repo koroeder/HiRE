@@ -108,7 +108,7 @@ MODULE MD_UTILS
          INTEGER :: ITDONE
          LOGICAL :: MFLAG
 
-         CALL MINIMISE(X,ENERGY,ITDONE,MFLAG)
+         CALL MINIMISE(3*NATOMS,X,ENERGY,ITDONE,MFLAG,MYUNIT)
          IF (COLDFUSION) THEN
             WRITE(MYUNIT,'(A)') " runmin> Cold fusion occured, minimisatio failed - STOP"
             STOP
