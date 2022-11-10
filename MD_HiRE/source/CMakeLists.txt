@@ -87,7 +87,7 @@ message("CMAKE_Fortran_COMPILER = ${CMAKE_Fortran_COMPILER}")
 set(CMAKE_Fortran_MODULE_DIRECTORY ${HIREMD_BINARY_DIR}/modules)
 include_directories(${CMAKE_SOURCE_DIR})
 
-file(GLOB DUMMY_HIRE ${GIT_ROOT}/HiRE_lib/HiRE_interface.F90)
+file(GLOB DUMMY_HIRE ${GIT_ROOT}/HiRE_lib/hire_interface.F90)
 
 set(ALL_DUMMIES ${DUMMY_HIRE})
 

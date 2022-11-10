@@ -47,6 +47,8 @@ MODULE MD_COMMONS
    CHARACTER(LEN=25) :: SCALEDATNAME = "scale_RNA.dat"
    ! Name of initial coordinate file
    CHARACTER(LEN=25) :: COORDSFILE = "start"
+   ! Minimise initial structure
+   LOGICAL :: MININITIAL = .FALSE.
    SAVE
 END MODULE MD_COMMONS
 
@@ -95,6 +97,29 @@ MODULE MD_UTILS
             STOP
          END IF
       END SUBROUTINE MD_START
+
+      SUBROUTINE RUNMIN(X)
+         USE NUMKIND
+         USE MD_COMMONS, ONLY: NATOMS, MYUNIT
+         USE MINIMISATION, ONLY: MINIMISE, COLDFUSION
+         IMPLICIT NONE
+         REAL(KIND=REAL64), INTENT(INOUT) :: X(3*NATOMS)
+         REAL(KIND=REAL64) :: ENERGY
+         INTEGER :: ITDONE
+         LOGICAL :: MFLAG
+
+         CALL MINIMISE(3*NATOMS,X,ENERGY,ITDONE,MFLAG,MYUNIT)
+         IF (COLDFUSION) THEN
+            WRITE(MYUNIT,'(A)') " runmin> Cold fusion occured, minimisatio failed - STOP"
+            STOP
+         ELSE IF (.NOT.MFLAG) THEN
+            WRITE(MYUNIT,'(A)') " runmin> Minimisation did not converge - STOP"
+            STOP
+         ELSE
+            WRITE(MYUNIT,*) " runmin> Minimisation converged in ", ITDONE, " steps"
+            WRITE(MYUNIT,*) "         Energy of minimum: ", ENERGY
+         END IF
+      END SUBROUTINE RUNMIN
 
       SUBROUTINE SET_DERIVED_PARAMS()
          USE MD_COMMONS, ONLY: DT, HDT, GAMMA, GFRIC
