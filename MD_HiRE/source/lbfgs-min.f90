@@ -1,5 +1,4 @@
 MODULE MINIMISATION
-   USE MD_COMMONS, ONLY: NATOMS, MYUNIT, EPOT
    USE NUMKIND
    IMPLICIT NONE
    REAL(KIND = REAL64), ALLOCATABLE, DIMENSION(:) :: DIAG, W
@@ -18,23 +17,25 @@ MODULE MINIMISATION
    ! cold fusion hit?
    LOGICAL :: COLDFUSION=.FALSE.
    ! maximum energy increase
-   REAL(KIND = REAL64) :: MAXERISE = 0.1D-3
+   REAL(KIND = REAL64) :: MAXERISE = 0.5D0
    !Initial guess for Hessian elements
    REAL(KIND = REAL64) :: DGUESS = 0.1D0
    !Maximum decrease in energy allowed
    REAL(KIND = REAL64) :: MAXEFALL = -HUGE(1.0D0)
+   REAL(KIND = REAL64) :: MAXBFGS = 0.5D0
    REAL(KIND = REAL64) :: RMS = 0.0D0                   !Current RMS force
 
    CONTAINS
 
-      SUBROUTINE MINIMISE(X,ENERGY,ITDONE,MFLAG)
+      SUBROUTINE MINIMISE(NOPT,X,ENERGY,ITDONE,MFLAG,OUTUNIT)
          IMPLICIT NONE
-         REAL(KIND=REAL64), INTENT(INOUT) :: X(3*NATOMS)
+         INTEGER, INTENT(IN) :: NOPT
+         REAL(KIND=REAL64), INTENT(INOUT) :: X(NOPT)
          REAL(KIND=REAL64), INTENT(OUT) :: ENERGY
          INTEGER, INTENT(OUT) :: ITDONE
          LOGICAL, INTENT(OUT) :: MFLAG
-
-         CALL MINLBFGS(3*NATOMS, MUPDATE, X, MFLAG, ENERGY, ITDONE, .TRUE.) 
+         INTEGER, INTENT(IN) :: OUTUNIT
+         CALL MINLBFGS(NOPT, MUPDATE, X, MFLAG, ENERGY, ITDONE, OUTUNIT) 
          CALL DEALLOC_LBFGS()
       END SUBROUTINE MINIMISE
 
@@ -51,18 +52,18 @@ MODULE MINIMISATION
       END SUBROUTINE DEALLOC_LBFGS
 
       ! modified L-BFGS algorithm Jorge Nocedal 1990, modifications D J Wales
-      SUBROUTINE MINLBFGS(N,M,XCOORDS,MFLAG,ENERGY,ITDONE)
-         USE PORFUNCS
+      SUBROUTINE MINLBFGS(N,M,XCOORDS,MFLAG,ENERGY,ITDONE,OUTUNIT)
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          IMPLICIT NONE
          INTEGER, INTENT(IN)                  :: N
          INTEGER, INTENT(IN)                  :: M
          INTEGER, INTENT(OUT)                 :: ITDONE
-         REAL(KIND = REAL64), INTENT(INOUT)   :: XCOORDS(3*NATOMS)      
+         REAL(KIND = REAL64), INTENT(INOUT)   :: XCOORDS(N)      
          REAL(KIND = REAL64), INTENT(OUT)     :: ENERGY
          LOGICAL, INTENT(INOUT)               :: MFLAG
+         INTEGER, INTENT(IN)                  :: OUTUNIT
 
-         REAL(KIND = REAL64) :: GRAD(3*NATOMS), WTEMP(3*NATOMS), XSAVE(N), GNEW(3*NATOMS)
+         REAL(KIND = REAL64) :: GRAD(N), WTEMP(N), XSAVE(N), GNEW(N)
          REAL(KIND = REAL64) :: DUMMY, ENEW, GNORM, STP, YS, YY, SQ, YR, BETA
          REAL(KIND = REAL64) :: DOT1, DOT2, OVERLAP, SLENGTH, DDOT
          INTEGER :: J1, BOUND, CP, INMC, IYCN, ISCN, NFAIL, NDECREASE
@@ -73,44 +74,32 @@ MODULE MINIMISATION
          ITER=0
          ITDONE=0
 
-         CALL HIRE_ENERGY_GRAD(3*NATOMS, XCOORDS, ENERGY, GRAD)
+         CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENERGY, GRAD)
 
          !  Catch cold fusion  and discard.
          IF (ENERGY.LT.COLDFUSIONLIMIT) THEN
-            WRITE(MYUNIT,'(A,G20.10)') 'ENERGY=',ENERGY
-            WRITE(MYUNIT,'(A,2G20.10)') ' Cold fusion diagnosed - step discarded; energy and threshold=',ENERGY,COLDFUSIONLIMIT
+            WRITE(OUTUNIT,'(A,G20.10)') 'ENERGY=',ENERGY
+            WRITE(OUTUNIT,'(A,2G20.10)') ' Cold fusion diagnosed - step discarded; energy and threshold=',ENERGY,COLDFUSIONLIMIT
             ENERGY=1.0D6
-            EPOT=1.0D6
             RMS=1.0D0         
             COLDFUSION=.TRUE.  ! set COLDFUSION=.TRUE. so that ATEST=.FALSE. in MC
             RETURN
          ENDIF
 
-         EPOT=ENERGY
-
          IF (MOD(ITDONE,10).EQ.0) THEN
-            WRITE(MYUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
+            WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
          END IF
 
          !  Termination test. 
 10       MFLAG=.FALSE.
          IF (RMS.LE.EPS) THEN 
             MFLAG=.TRUE.
-               WRITE(MYUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
-            RETURN
-         ENDIF
-         
-         IF (ITDONE.EQ.ITMAX) THEN
-            IF (DEBUG) WRITE(MYUNIT,'(A,F20.10)') ' Diagonal inverse Hessian elements are now ',DIAG(1)
+            WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
             RETURN
          ENDIF
 
 
          IF (ITER.EQ.0) THEN
-            IF (N.LE.0.OR.M.LE.0) THEN
-               WRITE(MYUNIT,'(A)') ' IMPROPER INPUT PARAMETERS (N OR M ARE NOT POSITIVE)'
-               STOP
-            ENDIF
             POINT=0
             MFLAG=.FALSE.
             DO J1=1,N
@@ -226,7 +215,6 @@ MODULE MINIMISATION
             OVERLAP=DDOT(N,GRAD,1,WTEMP,1)/(DOT1*DOT2)
          ENDIF
          IF (OVERLAP.GT.0.0D0) THEN
-            IF (DEBUG) WRITE(MYUNIT,'(A)') 'Search direction has positive projection onto gradient - reversing step'
             DO J1=1,N
                W(ISPT+POINT*N+J1)= -W(J1)  !!! DJW, reverses step
                WTEMP(J1)= -W(J1)/DUMMY  !!! DJW, reverses step
@@ -256,14 +244,13 @@ MODULE MINIMISATION
 
          NDECREASE=0
 
-20       CALL HIRE_ENERGY_GRAD(3*NATOMS, XCOORDS, ENERGY, GRAD)
+20       CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENERGY, GRAD)
 
          !  Catch cold fusion and discard.
          IF (ENEW.LT.COLDFUSIONLIMIT) THEN
-            WRITE(MYUNIT,'(A,2G20.10)') ' Cold fusion diagnosed - step discarded; energy and threshold=',ENEW,COLDFUSIONLIMIT
+            WRITE(OUTUNIT,'(A,2G20.10)') ' Cold fusion diagnosed - step discarded; energy and threshold=',ENEW,COLDFUSIONLIMIT
             ENERGY=1.0D6
             ENEW=1.0D6
-            POTEL=1.0D6
             RMS=1.0D0
             COLDFUSION=.TRUE.  ! set COLDFUSION=.TRUE. so that ATEST=.FALSE. in MC
             RETURN
@@ -273,54 +260,45 @@ MODULE MINIMISATION
             ITER=ITER+1
             ITDONE=ITDONE+1
             ENERGY=ENEW
-            DO J1=1,3*NATOMS
+            DO J1=1,N
                GRAD(J1)=GNEW(J1)
             ENDDO
-            IF (DEBUG) THEN
-               WRITE(MYUNIT,'(A,G20.10,G20.10,A,I6,A,F13.10)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE, &
-                                                               ' LBFGS steps, step:',STP*SLENGTH
-            ENDIF
-
          !  May want to prevent the PE from falling too much if we are trying to visit all the
          !  PE bins. Halve the step size until the energy change is in range.
          ELSEIF (ENEW-ENERGY.LE.MAXEFALL) THEN
             IF (NDECREASE.GT.15) THEN
                NFAIL=NFAIL+1
-               WRITE(MYUNIT,'(A,G20.10)') ' in mylbfgs LBFGS step cannot find an energy in the required range, NFAIL=',NFAIL           
+               WRITE(OUTUNIT,'(A,G20.10)') ' in mylbfgs LBFGS step cannot find an energy in the required range, NFAIL=',NFAIL           
                ! Resetting to XSAVE should be the same as subtracting the step.
-               IF(DEBUG) write(*,*) "mymylbfgs> Resetting to saved coords after failed step"
                XCOORDS(1:N)=XSAVE(1:N)
                GRAD(1:N)=GNEW(1:N) ! GRAD contains the gradient at the lowest energy point
                ITER=0   !  try resetting
                IF (NFAIL.GT.20) THEN
-                  WRITE(MYUNIT,'(A)') ' Too many failures - giving up '
+                  WRITE(OUTUNIT,'(A)') ' Too many failures - giving up '
                   RETURN
                ENDIF
                GOTO 30
             ENDIF
             ! Resetting to XSAVE and adding half the step should be the same as subtracting 
             ! half the step.
-            IF(DEBUG) WRITE(*,*) "mymylbfgs> Resetting to saved coords after failed step"
             XCOORDS(1:N)=XSAVE(1:N)
             DO J1=1,N
                XCOORDS(J1)=XCOORDS(J1)+0.5*STP*W(ISPT+POINT*N+J1)
             ENDDO
             STP=STP/2.0D0
             NDECREASE=NDECREASE+1
-            IF (DEBUG) WRITE(MYUNIT,'(A,F19.10,A,F16.10,A,F15.8)') &
-                            ' energy increased too much from ',ENERGY,' to ',ENEW,' decreasing step to ',STP*SLENGTH
             GOTO 20
          ELSE
             ! Energy increased - try again with a smaller step size
             IF (NDECREASE.GT.10) THEN ! DJW
                NFAIL=NFAIL+1
-               WRITE(MYUNIT,'(A,G20.10)') ' in mylbfgs LBFGS step cannot find a lower energy, NFAIL=',NFAIL
+               WRITE(OUTUNIT,'(A,G20.10)') ' in mylbfgs LBFGS step cannot find a lower energy, NFAIL=',NFAIL
                ! Resetting to XSAVE should be the same as subtracting the step. 
                XCOORDS(1:N)=XSAVE(1:N)
                GRAD(1:N)=GNEW(1:N) ! GRAD contains the gradient at the lowest energy point
                ITER=0   !  try resetting
                IF (NFAIL.GT.5) THEN         
-                  WRITE(MYUNIT,'(A)') ' Too many failures - giving up '
+                  WRITE(OUTUNIT,'(A)') ' Too many failures - giving up '
                   RETURN
                ENDIF
                GOTO 30
@@ -333,8 +311,6 @@ MODULE MINIMISATION
             ENDDO
             STP=STP/1.0D1
             NDECREASE=NDECREASE+1
-            IF (DEBUG) WRITE(MYUNIT,'(A,G20.10,A,G20.10,A,G20.10)') &
-                            ' energy increased from ',ENERGY,' to ',ENEW,' decreasing step to ',STP*SLENGTH
             GOTO 20
          ENDIF
 
@@ -349,7 +325,6 @@ MODULE MINIMISATION
 
          POINT=POINT+1
          IF (POINT.EQ.M) POINT=0
-         IF (CENT) CALL CENTRE2(XCOORDS)
 
          GOTO 10
          RETURN
