@@ -89,7 +89,7 @@ SUBROUTINE INITIALISE_VEL()
    END IF
    ! compute the angular velocity
    DO J=1,3
-      W(J) = DOT_PRODUCT(MOI(I,1:3),ANG_MOM(1:3))
+      W(J) = DOT_PRODUCT(MOI(J,1:3),ANG_MOM(1:3))
    END DO
    WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Angular momentum:           ", ANG_MOM(1:3)
    WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Angular velocity:           ", W(1:3)

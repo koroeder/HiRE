@@ -51,6 +51,7 @@ MODULE MINIMISATION
          IF (ALLOCATED(W)) DEALLOCATE(W)
       END SUBROUTINE DEALLOC_LBFGS
 
+
       ! modified L-BFGS algorithm Jorge Nocedal 1990, modifications D J Wales
       SUBROUTINE MINLBFGS(N,M,XCOORDS,MFLAG,ENERGY,ITDONE,OUTUNIT)
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
@@ -74,8 +75,14 @@ MODULE MINIMISATION
          ITER=0
          ITDONE=0
 
-         CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENERGY, GRAD)
+         WRITE(*,*) "before hire call"
+         WRITE(*,*) "print NOPT: ", N
+         WRITE(*,*) "print X: ", XCOORDS(1:3)
 
+         CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENERGY, GRAD)
+         RMS=MAX(DSQRT(SUM(GRAD(1:N)**2)/(N)), 1.0D-100)
+         WRITE(*,*) "print energy: ", ENERGY
+         WRITE(*,*) "after hire call"
          !  Catch cold fusion  and discard.
          IF (ENERGY.LT.COLDFUSIONLIMIT) THEN
             WRITE(OUTUNIT,'(A,G20.10)') 'ENERGY=',ENERGY
@@ -244,7 +251,8 @@ MODULE MINIMISATION
 
          NDECREASE=0
 
-20       CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENERGY, GRAD)
+20       CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENEW, GNEW)
+         RMS=MAX(DSQRT(SUM(GRAD(1:N)**2)/(N)), 1.0D-100)
 
          !  Catch cold fusion and discard.
          IF (ENEW.LT.COLDFUSIONLIMIT) THEN
