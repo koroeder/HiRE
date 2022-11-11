@@ -5,6 +5,7 @@
 !> Bonds: E = RK * (R - REQ)**2 with R the current distance
 MODULE MOD_BONDS
    USE PREC_HIRE
+   IMPLICIT NONE
    !> Number of bonds
    INTEGER :: NBONDS   
    !> Number of unique bond types 
