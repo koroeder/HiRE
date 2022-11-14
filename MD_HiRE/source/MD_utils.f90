@@ -110,8 +110,6 @@ MODULE MD_UTILS
          LOGICAL :: MFLAG
          
          ENERGY=0.0D0
-         CALL HIRE_ENERGY_GRAD(3*NATOMS,X,ENERGY,DUMMY)
-         WRITE(MYUNIT,'(A)') " runmin> Run initial optimisation, pre-minimisation energy is: ", ENERGY
 
          CALL MINIMISE(3*NATOMS,X,ENERGY,ITDONE,MFLAG,MYUNIT)
          IF (COLDFUSION) THEN
@@ -124,6 +122,7 @@ MODULE MD_UTILS
             WRITE(MYUNIT,*) " runmin> Minimisation converged in ", ITDONE, " steps"
             WRITE(MYUNIT,*) "         Energy of minimum: ", ENERGY
          END IF
+         WRITE(MYUNIT,*) ""
       END SUBROUTINE RUNMIN
 
       SUBROUTINE SET_DERIVED_PARAMS()

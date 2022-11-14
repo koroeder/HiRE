@@ -20,11 +20,11 @@ PROGRAM MD_HIRE
    CALL MD_START()
    ! b) Read in all the simulation settings
    CALL READ_SETTINGS()
-   ! c) Initialise potential and get coordinates, mass and names from HiRE
-   CALL SETUP_POTENTIAL()
    ! c) Report the settings for the simulation to the output file
    CALL REPORT_PARAMS()
-   ! d) Open tracking files
+   ! d) Initialise potential and get coordinates, mass and names from HiRE
+   CALL SETUP_POTENTIAL()
+   ! e) Open tracking files
    CALL START_TRACKING()
 
    ! 2. Initialise velocities for simulation and get initial state

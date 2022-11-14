@@ -80,24 +80,22 @@ MODULE MINIMISATION
 
          !  Catch cold fusion  and discard.
          IF (ENERGY.LT.COLDFUSIONLIMIT) THEN
-            WRITE(OUTUNIT,'(A,G20.10)') 'ENERGY=',ENERGY
-            WRITE(OUTUNIT,'(A,2G20.10)') ' Cold fusion diagnosed - step discarded; energy and threshold=',ENERGY,COLDFUSIONLIMIT
+            WRITE(OUTUNIT,'(A,2G20.10)') ' mininit> Cold fusion diagnosed - step discarded; energy and threshold=',ENERGY,COLDFUSIONLIMIT
             ENERGY=1.0D6
             RMS=1.0D0         
             COLDFUSION=.TRUE.  ! set COLDFUSION=.TRUE. so that ATEST=.FALSE. in MC
             RETURN
          ENDIF
 
-         IF (MOD(ITDONE,1).EQ.0) THEN
-            WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
-         END IF
+         WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A)') ' mininit> Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
+         
 
          !  Termination test.
 10       CALL FLUSH(OUTUNIT)     
          MFLAG=.FALSE.
          IF (RMS.LE.EPS) THEN 
             MFLAG=.TRUE.
-            WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
+            WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A)') ' mininit> Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
             RETURN
          ENDIF
 
@@ -266,8 +264,10 @@ MODULE MINIMISATION
             DO J1=1,N
                GRAD(J1)=GNEW(J1)
             ENDDO
-            WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A,F13.10)') 'Energy and RMS force=',ENERGY,RMS,' after ',ITDONE, &
+            IF (MOD(ITDONE,500).EQ.0) THEN
+               WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A,F13.10)') ' mininit> Energy and RMS force=',ENERGY,RMS,' after ',ITDONE, &
             &             ' LBFGS steps, step:',STP*SLENGTH            
+            END IF
          !  May want to prevent the PE from falling too much if we are trying to visit all the
          !  PE bins. Halve the step size until the energy change is in range.
          ELSEIF (ENEW-ENERGY.LE.MAXEFALL) THEN
@@ -292,8 +292,8 @@ MODULE MINIMISATION
             ENDDO
             STP=STP/2.0D0
             NDECREASE=NDECREASE+1
-            WRITE(OUTUNIT,'(A,F19.10,A,F16.10,A,F15.8)') &
-     &                      'energy increased too much from ',ENERGY,' to ',ENEW,' decreasing step to ',STP*SLENGTH
+!            WRITE(OUTUNIT,'(A,F19.10,A,F16.10,A,F15.8)') &
+!     &                      'energy increased too much from ',ENERGY,' to ',ENEW,' decreasing step to ',STP*SLENGTH
             GOTO 20
          ELSE
             ! Energy increased - try again with a smaller step size
