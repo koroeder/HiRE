@@ -68,7 +68,7 @@ MODULE MD_SETUP
       SUBROUTINE SETKEYS(WORD)
          USE INPUTMOD
          USE MD_COMMONS                  ! global variables
-         USE MINIMISATION, ONLY: INTMAX, MUPDATE, EPS
+         USE MINIMISATION, ONLY: ITMAX, MUPDATE, EPS
          USE FILE_UTILS, ONLY: FILE_EXIST
         
          IMPLICIT NONE
@@ -184,7 +184,7 @@ MODULE MD_SETUP
          ! Description: Run minimisation for initial structure
          ELSE IF (WORD .EQ. 'MININIT') THEN
             MININITIAL = .TRUE.
-            CALL READI(INTMAX)
+            CALL READI(ITMAX)
             CALL READI(MUPDATE)
             CALL READF(EPS)
             
