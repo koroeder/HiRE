@@ -3,7 +3,7 @@
 
 !> Module containing all routines and variables to calculate the phosphate-base interaction contributions to E and F\n
 !> 
-MODULE MOD_BONDS
+MODULE MOD_PHOSBASE
    USE PREC_HIRE
    !> Put module variables here              
 
@@ -20,4 +20,4 @@ MODULE MOD_BONDS
       END SUBROUTINE ENERGY_PHOSBASE
 
 
-END MODULE MOD_BONDS
+END MODULE MOD_PHOSBASE
