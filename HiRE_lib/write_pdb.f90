@@ -88,7 +88,7 @@ MODULE PDB_OUT
             CHARACTER(LEN=26), PARAMETER :: U = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
             
             ! obtain chain id
-            WRITE(*,*) "Create chain ids"
+!            WRITE(*,*) "Create chain ids"
             NDUMMY = 1
             DO I = 1,NPARTICLES
                 IF (I.EQ.1) THEN
@@ -100,7 +100,7 @@ MODULE PDB_OUT
                     FRAGID(I) = U(NDUMMY:NDUMMY)
                 ENDIF
             ENDDO
-            WRITE(*,*) "Done creating chain ids"
+!            WRITE(*,*) "Done creating chain ids"
 
             ! obtain residue index for all particles
             NDUMMY = 1
