@@ -5,9 +5,11 @@ TOPOLOGY parameters.top
 # output options
 DUMPCOORDS 25
 DUMPENERGY 25
-DUMPPDB 100
+DUMPPDB 250
 # simulation settings
 GAMMA 0.1
 TEMPERATURE 0.616 
 TIMESTEP 0.01
-MDSTEPS 200
+MDSTEPS 2000
+# initial minimisation
+MININIT 5000 100 1.0D-3
