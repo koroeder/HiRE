@@ -9,7 +9,7 @@ MODULE MINIMISATION
    ! history size
    INTEGER :: MUPDATE=4
    ! maximum number of iterations
-   INTEGER :: INTMAX=10000
+   INTEGER :: ITMAX=10000
    ! convergence limit
    REAL(KIND = REAL64) :: EPS=1.0D-5
    ! cold fusion limit
@@ -19,7 +19,7 @@ MODULE MINIMISATION
    ! maximum energy increase
    REAL(KIND = REAL64) :: MAXERISE = 0.5D0
    !Initial guess for Hessian elements
-   REAL(KIND = REAL64) :: DGUESS = 0.1D0
+   REAL(KIND = REAL64) :: DGUESS = 0.01D0
    !Maximum decrease in energy allowed
    REAL(KIND = REAL64) :: MAXEFALL = -HUGE(1.0D0)
    REAL(KIND = REAL64) :: MAXBFGS = 0.5D0
@@ -54,7 +54,7 @@ MODULE MINIMISATION
 
       ! modified L-BFGS algorithm Jorge Nocedal 1990, modifications D J Wales
       SUBROUTINE MINLBFGS(N,M,XCOORDS,MFLAG,ENERGY,ITDONE,OUTUNIT)
-         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
+         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD, HIRE_DECOMPE
          IMPLICIT NONE
          INTEGER, INTENT(IN)                  :: N
          INTEGER, INTENT(IN)                  :: M
@@ -75,14 +75,10 @@ MODULE MINIMISATION
          ITER=0
          ITDONE=0
 
-         WRITE(*,*) "before hire call"
-         WRITE(*,*) "print NOPT: ", N
-         WRITE(*,*) "print X: ", XCOORDS(1:3)
-
          CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENERGY, GRAD)
-         RMS=MAX(DSQRT(SUM(GRAD(1:N)**2)/(N)), 1.0D-100)
-         WRITE(*,*) "print energy: ", ENERGY
-         WRITE(*,*) "after hire call"
+         CALL HIRE_DECOMPE(OUTUNIT)
+         RMS = RMSF(N,GRAD)
+
          !  Catch cold fusion  and discard.
          IF (ENERGY.LT.COLDFUSIONLIMIT) THEN
             WRITE(OUTUNIT,'(A,G20.10)') 'ENERGY=',ENERGY
@@ -93,26 +89,29 @@ MODULE MINIMISATION
             RETURN
          ENDIF
 
-         IF (MOD(ITDONE,10).EQ.0) THEN
+         IF (MOD(ITDONE,1).EQ.0) THEN
             WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
          END IF
 
-         !  Termination test. 
-10       MFLAG=.FALSE.
+         !  Termination test.
+10       CALL FLUSH(OUTUNIT)     
+         MFLAG=.FALSE.
          IF (RMS.LE.EPS) THEN 
             MFLAG=.TRUE.
             WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A)') ' Energy and RMS force=',ENERGY,RMS,' after ',ITDONE,' LBFGS steps'
             RETURN
          ENDIF
 
+         IF (ITDONE.EQ.ITMAX) THEN
+            RETURN
+         ENDIF            
+         STOP !kr366 termination for debugging
 
          IF (ITER.EQ.0) THEN
             POINT=0
             MFLAG=.FALSE.
-            DO J1=1,N
-               DIAG(J1)=DGUESS
-            ENDDO
-
+            DIAG(1:N)=DGUESS
+            
             !     THE WORK VECTOR W IS DIVIDED AS FOLLOWS:
             !     ---------------------------------------
             !     THE FIRST N LOCATIONS ARE USED TO STORE THE GRADIENT AND
@@ -137,11 +136,11 @@ MODULE MINIMISATION
                W(ISPT+J1)=DUMMY
                W(J1)=DUMMY
             ENDDO
-            GNORM=DSQRT(DDOT(N,GRAD,1,GRAD,1))
-            
+            GNORM=DSQRT(DDOT(N,GRAD,1,GRAD,1))   !sqrt?
+            WRITE(*,*) "First step: ", GNORM, 1/GNORM
             ! Make the first guess for the step length cautious.
             STP=MIN(1.0D0/GNORM,GNORM)
-
+            WRITE(*,*) "STP: ", STP
          ELSE 
             BOUND=ITER
             IF (ITER.GT.M) BOUND=M
@@ -199,6 +198,7 @@ MODULE MINIMISATION
          !
          !  Store the new search direction
          !
+         WRITE(*,*) "STP: ", STP
          IF (ITER.GT.0) THEN
             DO J1=1,N
                W(ISPT+POINT*N+J1)= W(J1)
@@ -252,8 +252,11 @@ MODULE MINIMISATION
          NDECREASE=0
 
 20       CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENEW, GNEW)
-         RMS=MAX(DSQRT(SUM(GRAD(1:N)**2)/(N)), 1.0D-100)
-
+         RMS = RMSF(N,GRAD)
+         WRITE(*,*) "ENEW: ", ENEW, " RMS: ", RMS
+         WRITE(*,*) "MAXBFGS: ", MAXBFGS, "SLENGTH: ", SLENGTH
+         WRITE(*,*) "MAXERISE, MAXEFALL, ENEW, ENERGY, ENEW-ENERGY"
+         WRITE(*,*) MAXERISE, MAXEFALL, ENEW, ENERGY, ENEW-ENERGY
          !  Catch cold fusion and discard.
          IF (ENEW.LT.COLDFUSIONLIMIT) THEN
             WRITE(OUTUNIT,'(A,2G20.10)') ' Cold fusion diagnosed - step discarded; energy and threshold=',ENEW,COLDFUSIONLIMIT
@@ -271,6 +274,8 @@ MODULE MINIMISATION
             DO J1=1,N
                GRAD(J1)=GNEW(J1)
             ENDDO
+            WRITE(OUTUNIT,'(A,G20.10,G20.10,A,I6,A,F13.10)') 'Energy and RMS force=',ENERGY,RMS,' after ',ITDONE, &
+            &             ' LBFGS steps, step:',STP*SLENGTH            
          !  May want to prevent the PE from falling too much if we are trying to visit all the
          !  PE bins. Halve the step size until the energy change is in range.
          ELSEIF (ENEW-ENERGY.LE.MAXEFALL) THEN
@@ -282,7 +287,7 @@ MODULE MINIMISATION
                GRAD(1:N)=GNEW(1:N) ! GRAD contains the gradient at the lowest energy point
                ITER=0   !  try resetting
                IF (NFAIL.GT.20) THEN
-                  WRITE(OUTUNIT,'(A)') ' Too many failures - giving up '
+                  WRITE(OUTUNIT,'(A)') ' Too many failures (large falls in E) - giving up '
                   RETURN
                ENDIF
                GOTO 30
@@ -295,6 +300,8 @@ MODULE MINIMISATION
             ENDDO
             STP=STP/2.0D0
             NDECREASE=NDECREASE+1
+            WRITE(OUTUNIT,'(A,F19.10,A,F16.10,A,F15.8)') &
+     &                      'energy increased too much from ',ENERGY,' to ',ENEW,' decreasing step to ',STP*SLENGTH
             GOTO 20
          ELSE
             ! Energy increased - try again with a smaller step size
@@ -306,7 +313,7 @@ MODULE MINIMISATION
                GRAD(1:N)=GNEW(1:N) ! GRAD contains the gradient at the lowest energy point
                ITER=0   !  try resetting
                IF (NFAIL.GT.5) THEN         
-                  WRITE(OUTUNIT,'(A)') ' Too many failures - giving up '
+                  WRITE(OUTUNIT,'(A)') ' Too many failures (energy increased) - giving up '
                   RETURN
                ENDIF
                GOTO 30
@@ -319,6 +326,8 @@ MODULE MINIMISATION
             ENDDO
             STP=STP/1.0D1
             NDECREASE=NDECREASE+1
+            WRITE(OUTUNIT,'(A,G20.10,A,G20.10,A,G20.10,A,G20.10)') &
+     &     'energy increased from ',ENERGY,' to ',ENEW,' by ',ENEW-ENERGY,' decreasing step to ',STP*SLENGTH 
             GOTO 20
          ENDIF
 
@@ -337,5 +346,16 @@ MODULE MINIMISATION
          GOTO 10
          RETURN
       END SUBROUTINE MINLBFGS
+
+      REAL(KIND=REAL64) FUNCTION RMSF(N,GRAD)
+         INTEGER, INTENT(IN) :: N
+         REAL(KIND=REAL64), INTENT(IN) :: GRAD(N)
+         INTEGER :: I
+         RMSF = 0.0D0
+         DO I=1,N
+            RMSF = RMSF + GRAD(I)**2
+         END DO
+         RMSF = DSQRT(RMSF/N)
+      END FUNCTION RMSF
 
 END MODULE MINIMISATION
