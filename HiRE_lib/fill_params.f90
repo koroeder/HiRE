@@ -21,7 +21,7 @@ MODULE FILL_PARAMS
       !> @see FILL_RNA_HB_PARAMS
       !> @see FILL_RNA_HB_PARAMS
       SUBROUTINE FILL_HIRE_PARAMS()
-         USE VAR_DEFS, ONLY: NRES, RESFINAL, RESNAMES
+         USE VAR_DEFS, ONLY: NRES, RESFINAL, RESNAMES, RESTYPES
          USE UTILS_IO, ONLY: GETUNIT
          USE NAparams, ONLY: WC, WCCanonic, noWC, TIT, noWCq, SCORE_RNA, &
                            BLIST, BTYPE, BPROT, BP_CURR
@@ -50,12 +50,16 @@ MODULE FILL_PARAMS
          DO I=1,NRES
             IF (RESNAMES(I)(1:1).EQ."G") THEN
                BTYPE(I) = 1
+               RESTYPES(I) = 0
             ELSEIF (RESNAMES(I)(1:1).EQ."C") THEN 
                BTYPE(I) = 2
+               RESTYPES(I) = 0
             ELSEIF (RESNAMES(I)(1:1).EQ."A") THEN 
                BTYPE(I) = 3
+               RESTYPES(I) = 0
             ELSEIF (RESNAMES(I)(1:1).EQ."U") THEN
                BTYPE(I) = 4
+               RESTYPES(I) = 0
             ENDIF
          ENDDO
          !no protonation for now
