@@ -54,7 +54,7 @@ MODULE MINIMISATION
 
       ! modified L-BFGS algorithm Jorge Nocedal 1990, modifications D J Wales
       SUBROUTINE MINLBFGS(N,M,XCOORDS,MFLAG,ENERGY,ITDONE,OUTUNIT)
-         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD, HIRE_DECOMPE
+         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          IMPLICIT NONE
          INTEGER, INTENT(IN)                  :: N
          INTEGER, INTENT(IN)                  :: M
@@ -80,7 +80,8 @@ MODULE MINIMISATION
 
          !  Catch cold fusion  and discard.
          IF (ENERGY.LT.COLDFUSIONLIMIT) THEN
-            WRITE(OUTUNIT,'(A,2G20.10)') ' mininit> Cold fusion diagnosed - step discarded; energy and threshold=',ENERGY,COLDFUSIONLIMIT
+            WRITE(OUTUNIT,'(A,2G20.10)') ' mininit> Cold fusion diagnosed - step discarded; energy and threshold=',&
+                                         ENERGY, COLDFUSIONLIMIT
             ENERGY=1.0D6
             RMS=1.0D0         
             COLDFUSION=.TRUE.  ! set COLDFUSION=.TRUE. so that ATEST=.FALSE. in MC
@@ -91,7 +92,8 @@ MODULE MINIMISATION
          
 
          !  Termination test.
-10       CALL FLUSH(OUTUNIT)     
+10       CONTINUE
+         ! CALL FLUSH(OUTUNIT)     
          MFLAG=.FALSE.
          IF (RMS.LE.EPS) THEN 
             MFLAG=.TRUE.

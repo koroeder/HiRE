@@ -17,6 +17,7 @@ MODULE MD_SIMULATION
             END DO
          END DO
          WRITE(MYUNIT,'(2(A,F12.4))') " mdhire> Initial energies - EPOT= ", EPOT, "; EKIN= ", EKIN
+         WRITE(MYUNIT, '(A)') " "
       END SUBROUTINE ZERO_STEP
 
       SUBROUTINE RUN_MD()
@@ -38,10 +39,9 @@ MODULE MD_SIMULATION
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: CURRSTEP
-         REAL(KIND = REAL64), PARAMETER :: PI = 3.141592653589793D0
          REAL(KIND = REAL64) :: NR1, NR2
          REAL(KIND = REAL64) :: NOISE(NATOMS)
-         INTEGER :: I, J, K, IDX
+         INTEGER :: I, J, IDX
          ! set noise to be used
          DO I=1,NATOMS
             NOISE(I) = DSQRT(TEMP*GAMMA*DT/MASSES(I))
@@ -75,10 +75,10 @@ MODULE MD_SIMULATION
          EKIN = 0.5*EKIN
          IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
             WRITE(MYUNIT,*) " mdsteps> Completed step    ", CURRSTEP
-            WRITE(MYUNIT,*) "          Total energy:     ", EPOT+EKIN           
-            WRITE(MYUNIT,*) "          Kinetic energy:   ", EKIN
-            WRITE(MYUNIT,*) "          Potential energy: ", EPOT
-            WRITE(MYUNIT,*) " --------------------------------------------------"
+            WRITE(MYUNIT,'(A,F12.4)') "          Total energy:     ", EPOT+EKIN           
+            WRITE(MYUNIT,'(A,F12.4)') "          Kinetic energy:   ", EKIN
+            WRITE(MYUNIT,'(A,F12.4)') "          Potential energy: ", EPOT
+            WRITE(MYUNIT,'(A,F12.4)') " --------------------------------------------------"
          END IF
       END SUBROUTINE TAKE_MDSTEP
 

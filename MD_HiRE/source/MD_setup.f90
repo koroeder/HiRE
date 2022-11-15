@@ -41,7 +41,6 @@ MODULE MD_SETUP
       END SUBROUTINE SETUP_POTENTIAL
 
       SUBROUTINE READ_SETTINGS()
-         USE MD_COMMONS, ONLY: MYUNIT
          USE FILE_UTILS, ONLY: FILE_OPEN
          USE INPUTMOD, ONLY: INPUTKW
          IMPLICIT NONE
@@ -69,10 +68,9 @@ MODULE MD_SETUP
          USE INPUTMOD
          USE MD_COMMONS                  ! global variables
          USE MINIMISATION, ONLY: ITMAX, MUPDATE, EPS
-         USE FILE_UTILS, ONLY: FILE_EXIST
+         ! USE FILE_UTILS, ONLY: FILE_EXIST
         
          IMPLICIT NONE
-         INTEGER :: J1
          CHARACTER(25), INTENT(IN) :: WORD
         
          ! Keyword IF clause - first is comments, last is unrecognised command,
@@ -268,7 +266,7 @@ MODULE MD_SETUP
             CALL REPORT('Unrecognized command '//WORD,.TRUE.)
             STOP
          ENDIF
-         CALL FLUSH(MYUNIT)  
+         ! CALL FLUSH(MYUNIT)  
             
       END SUBROUTINE SETKEYS
 
