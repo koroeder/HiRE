@@ -227,7 +227,8 @@
          IF (NITEMS.GT.4) THEN
             CALL READF(LOWERMOD)
             CALL READF(RAISEMOD)
-            WRITE(MYUNIT,'(A,F10.2,A,F8.2,A)') " keywords> Multiplier modifications of ", LOWERMOD, " and ",RAISEMOD, " to adjust RMS per step"
+            WRITE(MYUNIT,'(A,F10.2,A,F8.2,A)') " keywords> Multiplier modifications of ", LOWERMOD, " and ",RAISEMOD, &
+                                               " to adjust RMS per step"
          END IF
 
       ELSE IF (WORD.EQ.'GRADMODRANDOM') THEN

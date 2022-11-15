@@ -21,7 +21,8 @@
       INTEGER :: MAXIT = 500 , MAXIT2 = 500                !maximum iteration for the sloppy and tight quenching
       INTEGER :: MUPDATE = 4                               !number of stored previous steps in LBFGS minimiser
       INTEGER :: NPCALL = 0                                !number of potential calls
-      INTEGER :: CHECKDID = 1                              !ID for CHECKD keyword (0 is potential, 1 is gradient, 2 is Hessian, 3 is a single quench)
+      INTEGER :: CHECKDID = 1                              !ID for CHECKD keyword 
+                                                           !(0 is potential, 1 is gradient, 2 is Hessian, 3 is a single quench)
       INTEGER :: DUMPINT = 1000                            !interval for dumping 'GMIN.dump'
       INTEGER :: NSEED = 0                                 !random number seed?
       INTEGER :: QUENCHFRQ = 1                             !frequency of quenching (should be done every step?)
@@ -222,7 +223,7 @@
      INTEGER :: NNUCL                                          ! number of nucleotides
      INTEGER :: NLOOSE = 3                                     ! number of loose nucleotides needed for a loose tail
      INTEGER :: BPHINGEFREQ = 100                              ! frequency of hinge moves
-     INTEGER :: NBPHARMOVE = 4                                 ! number of nucleotides from either and that can be chosen for the added spring
+     INTEGER :: NBPHARMOVE = 4                                 ! number of nucleotides from either end that can be chosen
      REAL(KIND = REAL64) :: BPTHRESH = 2.3D0                   ! energy threshold for base pairing
      REAL(KIND = REAL64) :: BPDIST = 1.4D0                     ! equilibrium distance for added spring
      REAL(KIND = REAL64) :: BPSTRENGTH = 2.5D1                 ! force constant for added spring
