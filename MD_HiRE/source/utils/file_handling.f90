@@ -112,7 +112,7 @@ MODULE FILE_UTILS
          IMPLICIT NONE
          CHARACTER(LEN=*), INTENT(IN)  :: DIRNAME
          INTEGER :: STAT
-         CALL SYSTEM("test -d "//DIRNAME, STAT)
+         CALL EXECUTE_COMMAND_LINE("test -d "//DIRNAME,EXITSTAT=STAT)
          IF (STAT.EQ.0) THEN
             DIR_EXIST = .TRUE.
          ELSE
@@ -134,18 +134,18 @@ MODULE FILE_UTILS
          INQUIRE(FILE=FILENAME, EXIST=FILE_EXIST)
       END FUNCTION FILE_EXIST 
       
-      !> Prints current directory for Debugging
-      !>
-      !> @param[in] OUTUNIT - Unit used for output to be written
-      !>
-      !> @return Prints current directory in file attached to unit provided
-      SUBROUTINE PRINT_CURRDIR(OUTUNIT)
-         IMPLICIT NONE
-         INTEGER, INTENT(IN) :: OUTUNIT
-         CHARACTER(LEN=255) :: CWD
-         
-         CALL GETCWD(CWD)
-         WRITE(OUTUNIT,'(2A)') " current directory: ", TRIM(ADJUSTL(CWD))   
-      END SUBROUTINE PRINT_CURRDIR 
+!      !> Prints current directory for Debugging
+!      !>
+!      !> @param[in] OUTUNIT - Unit used for output to be written
+!      !>
+!      !> @return Prints current directory in file attached to unit provided1
+!      SUBROUTINE PRINT_CURRDIR(OUTUNIT)
+!         IMPLICIT NONE
+!         INTEGER, INTENT(IN) :: OUTUNIT
+!         CHARACTER(LEN=255) :: CWD
+!         
+!         CALL GETCWD(CWD)
+!         WRITE(OUTUNIT,'(2A)') " current directory: ", TRIM(ADJUSTL(CWD))   
+!      END SUBROUTINE PRINT_CURRDIR 
       
 END MODULE FILE_UTILS

@@ -128,7 +128,7 @@ MODULE UTILS_VEC
       function rot_aa2mx(p) result(m)
          implicit none
          real(kind = real64), intent(in) :: p(3)
-         real(kind = real64) q(4), m(3,3)
+         real(kind = real64) m(3,3)
 
          m=rot_q2mx(rot_aa2q(p))
       end function

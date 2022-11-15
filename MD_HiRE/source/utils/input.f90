@@ -66,7 +66,7 @@ MODULE INPUTmod
          INTEGER, INTENT(IN)       :: IR       !file unit
          LOGICAL, INTENT(IN)       :: UPT      !logical to capatilise KEYWORD 
 
-         INTEGER :: NENTRIES, LENGTH, I
+         INTEGER :: NENTRIES
          
 10       READ(IR,'(A)',END=20,ERR=25) LINE
          NITEMS = 0
@@ -107,7 +107,7 @@ MODULE INPUTmod
          LOGICAL, INTENT(OUT)      :: ENDT     !end of file?
          INTEGER, INTENT(IN)       :: IR       !file unit
 
-         INTEGER :: NENTRIES, LENGTH, I
+         INTEGER :: NENTRIES
          
 10       READ(IR,'(A)',END=20,ERR=25) LINE
          NITEMS = 0
