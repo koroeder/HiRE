@@ -11,7 +11,7 @@ MODULE MOD_HBONDS
    !> titration cutoff for hydrogen bonds
    REAL(KIND = REAL64) :: CTIT
    !> Power for cosine term 
-   REAL(KIND = REAL64) :: P
+   INTEGER :: P
    !> Gaussian width for length of HB
    REAL(KIND = REAL64) :: Y
    !> Gaussian width for point-plane distance
@@ -26,7 +26,7 @@ MODULE MOD_HBONDS
          USE NAPARAMS, ONLY: SCORE_RNA
          EPSHB = SCORE_RNA(23)     
          CTIT = SCORE_RNA(24)
-         P = SCORE_RNA(25)
+         P = INT(SCORE_RNA(25))
          Y = score_RNA(26)
          GAUSSW = SCORE_RNA(27)
          INTSCALE = SCORE_RNA(28)
@@ -55,7 +55,7 @@ MODULE MOD_HBONDS
       SUBROUTINE RNA_BB(BI, BJ, NOPT, X, F, THIS_EHB, HBEXIST)
          USE NAPARAMS, ONLY: BTYPE, BP_CURR
          USE RNA_HB_PARAMS, ONLY: planarityDistEq
-         USE VAR_DEFS, ONLY: RESSTART, RESFINAL
+         USE VAR_DEFS, ONLY: RESFINAL
          USE HB_DEFS, ONLY: SAVE_HB, HBDAT
       
          INTEGER, INTENT(IN) :: BI, BJ        ! indices of base I and J
@@ -218,7 +218,6 @@ MODULE MOD_HBONDS
          USE NAPARAMS, ONLY: BPROT, BOCC, RCUT2_HB_MCMC_OUT
          USE RNA_HB_PARAMS
          USE VEC_UTILS
-         USE HB_DEFS, ONLY :SAVE_HB
          IMPLICIT NONE
          
          INTEGER, INTENT(IN) :: BI, BJ                 ! indices of base I (->A) and J (->B)
@@ -330,6 +329,7 @@ MODULE MOD_HBONDS
             ANGB = COSB*CALPB + SINB*SALPB
             RALPA(1:3) = CALPA*UA0(1:3) + SALPA*MA0(1:3)
             RALPB(1:3) = CALPB*UB0(1:3) + SALPB*MB0(1:3)
+            ! warning: P must be an integer otherwise, we cannot get the power for negative ANGA or ANGB
             VANGL = (ANGA*ANGB)**P
             
             !Overall energy for this set of params
