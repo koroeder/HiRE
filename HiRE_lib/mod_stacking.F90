@@ -115,11 +115,11 @@ MODULE MOD_BASESTACKING
       !> @param[in] STACKUNIT - output unit for debugging
     SUBROUTINE RNA_STACKV(NOPT,I,J,TI,TJ,F,X,ESTK,STACKUNIT)
       USE VEC_UTILS
-      USE NAPARAMS, ONLY: BTYPE
       INTEGER, INTENT(IN) :: NOPT                   !Number of degrees of freedom
       INTEGER, INTENT(IN) :: I, J                   !indices of final particle in residue
       INTEGER, INTENT(IN) :: TI,TJ
       INTEGER, INTENT(IN) :: STACKUNIT              !output unit, only assigned to file if FOR_ANALYSIS is used as compile flag
+
       REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    !input coordinates
       REAL(KIND = REAL64), INTENT(INOUT) :: F(NOPT)   !force
       REAL(KIND = REAL64), INTENT(OUT) :: ESTK
@@ -129,7 +129,7 @@ MODULE MOD_BASESTACKING
       REAL(KIND = REAL64) :: AxB0(3), CxD0(3), VA, VC
       REAL(KIND = REAL64) :: R(3), R0(3), R1, R2, DotP, dot1, dot2
       REAL(KIND = REAL64) :: dot1w, dot2w, dot1wd, dot2wd, dotw, dotwd
-      REAL(KIND = REAL64) :: Dvr(3), Dvrij(3), Da(3), Fx, Fy, Fz
+      REAL(KIND = REAL64) :: Dvr(3), Dvrij(3), Da(3)
       REAL(KIND = REAL64) :: SK, EQ, WID     
       REAL(KIND = REAL64), PARAMETER :: EPS = 1.0D-6
 
@@ -233,7 +233,6 @@ MODULE MOD_BASESTACKING
       !> @param[out] F - gradient from stacking interactions
       SUBROUTINE RNA_STACKV2(NOPT,I,J,TI,TJ,F,X,ESTK)
          USE VEC_UTILS
-         USE NAPARAMS, ONLY: BTYPE
          INTEGER, INTENT(IN) :: NOPT                   !Number of degrees of freedom
          INTEGER, INTENT(IN) :: I, J                   !indices of final particle in residue
          INTEGER, INTENT(IN) :: TI,TJ
@@ -247,10 +246,10 @@ MODULE MOD_BASESTACKING
          REAL(KIND = REAL64) :: R(3), R0(3), R1, R2, DotP
          REAL(KIND = REAL64) :: ct01, ct02, st01, st02, CosT, CosT01, CosT02
          REAL(KIND = REAL64) :: Estkrs, Dva1, Dva2, Dvrg(3), DvraT(3), Dsp
-         REAL(KIND = REAL64) :: adb, adc, add, bdc, bdd, cdd, a2, b2, c2, d2, dxabcd, drcxd
+         REAL(KIND = REAL64) :: adb, adc, add, bdc, bdd, cdd, a2, b2, c2, d2, dxabcd
          REAL(KIND = REAL64) :: rxd(3), rxc(3)
          REAL(KIND = REAL64) :: DIs(3), DIm1s(3), DIm2s(3), DJs(3), DJm1s(3), DJm2s(3), DJv(3), DJm1v(3), DJm2v(3)
-         REAL(KIND = REAL64) :: Dvr(3), Dvrij(3), Da(3), Fx, Fy, Fz
+         REAL(KIND = REAL64) :: Dvr(3)
          REAL(KIND = REAL64) :: SK, EQ, WID, Th, GM     
          REAL(KIND = REAL64), PARAMETER :: EPS = 1.0D-6
 
@@ -306,9 +305,9 @@ MODULE MOD_BASESTACKING
          Dva1 = GM*(ct01 - st01*CosT/sqrt(1-CosT*CosT))*exp(-GM*(1-CosT01))   ! derivative of vertical exponential offset  
          Dva2 = GM*(ct02 - st02*CosT/sqrt(1-CosT*CosT))*exp(-GM*(1-CosT02))   ! derivative of vertical exponential offset 
       
-         Dvrg = -Estk * 2*r2**1/wid * R/R1                                                 ! derivative of gaussian over distance over R
-         DvraT = (Dva1 + Dva2)*Estkrs*(cxd0 - CosT*R0)/R1                                  ! derivative of vertical exponential offset over R
-         Dvr = (Dvrg + DvraT)/3                                                            ! total derivative over R
+         Dvrg = -Estk * 2*r2**1/wid * R/R1                                    ! derivative of gaussian over distance over R
+         DvraT = (Dva1 + Dva2)*Estkrs*(cxd0 - CosT*R0)/R1                     ! derivative of vertical exponential offset over R
+         Dvr = (Dvrg + DvraT)/3                                               ! total derivative over R
 
          ! dot and cross products for derivatives
          adb = dot_product(A,B)

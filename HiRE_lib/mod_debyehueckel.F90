@@ -22,7 +22,9 @@ MODULE MOD_DEBYEHUECKEL
       !> Calculate the energy and force contribution from the Debye-Hueckel terms
       SUBROUTINE ENERGY_DH(NOPT, X, F, EDH)
          USE VAR_DEFS, ONLY: CHATM, NRES, RESSTART, RESFINAL
+#if FOR_ANALYSIS        
          USE UTILS_IO, ONLY: GETUNIT
+#endif         
          IMPLICIT NONE
      
          INTEGER, INTENT(IN) :: NOPT                   !should be 3*NATOMS

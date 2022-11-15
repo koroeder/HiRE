@@ -3,9 +3,6 @@
 
 !> Module to access the HiRE library, this is the interface that should be accessed from third-party programmers 
 MODULE HIRE_INTERFACE
-#ifdef __HIRE
-   USE PREC_HIRE
-#endif
    IMPLICIT NONE
    !> Custom real, doube precision 64-bit kind
    INTEGER, PARAMETER  :: R64 = SELECTED_REAL_KIND(15, 307)
@@ -51,9 +48,11 @@ MODULE HIRE_INTERFACE
       !> Subroutine to interface call to the calculation of the energy and gradient.\n
       !> The coordinates are not stored internally, so any new call is independent of previous ones.\n
       !>
-      !> @attention The force is set to 1.0D10 and the gradient to 0.0D0. If these values are returned something went wrong with the energy and gradient calculations!
+      !> @attention The force is set to 1.0D10 and the gradient to 0.0D0. 
+      !> If these values are returned something went wrong with the energy and gradient calculations!
       !>
-      !> @param[in] NOPT - number of degress of freedom (required to get the array sizes correct, should be 3*NATOMS as returned from HIRE_INITIALISE)
+      !> @param[in] NOPT - number of degress of freedom (required to get the array sizes correct, 
+      !> should be 3*NATOMS as returned from HIRE_INITIALISE)
       !> @param[in] X - input coordinates
       !> @param[out] E - total HiRE energy for this set of coordinates
       !> @param[out] GRAD - gradient array (size is NOPT)
@@ -85,7 +84,8 @@ MODULE HIRE_INTERFACE
       !>
       !> @param[in] NOPT - number of degrees of freedom
       !> @param[in] COORDS - input coordinates
-      !> @param[in] DELTA - step-size taken for interpolation, the four points are COORDS + 2*DELTA, COORDS + DELTA, COORDS - DELTA and COORDS - 2*DELTA.
+      !> @param[in] DELTA - step-size taken for interpolation, the four points are 
+      !> COORDS + 2*DELTA, COORDS + DELTA, COORDS - DELTA and COORDS - 2*DELTA.
       !> @param[out] HESSIAN - estimate for Hessian matrix (size is NOPT by NOPT)
       !>
       !> @see HIRE_ENERGY_GRAD
@@ -126,7 +126,8 @@ MODULE HIRE_INTERFACE
       !> @brief
       !>
       !> Routines calls current energies and prints them to a provided output unit.\n
-      !> The energy printed are the values from the last call to CALCFORCE. Especially, if Hessians are calculated care needs to be taken, that the correct values are reported here.
+      !> The energy printed are the values from the last call to CALCFORCE. Especially, 
+      !> if Hessians are calculated care needs to be taken, that the correct values are reported here.
       !>
       !> @param[in] OUTUNIT - output unit
       !>

@@ -41,7 +41,7 @@ module SAXS_scoring
   ! Computation Schemes
   logical :: in_solution_curve = .true. ! .true for In Solution curve, .false. for In Vacuo
   logical :: explicit_sol_contribution = .false. !.true.: explicit removal of solvent contr., .false.: implicit via corrected FF
-  logical :: refine_hydration_layer = .false. ! .true. for adding an extra hydration layer with enhanced electron density, .false. otherwise
+  logical :: refine_hydration_layer = .false. ! .true. for adding an extra hydration layer with enhanced electron density
   logical :: linear_intensity = .false.
 
   ! FA / CG parameters
@@ -215,10 +215,8 @@ module SAXS_scoring
       character*5, dimension(1:num_atoms) :: ATOMIC_TYPE
       character*5, dimension(:), allocatable :: AtomNames_TOT
       real(kind = real64), dimension(0:max_q_point-1) :: logI, I1, I0
-      real(kind = real64) :: max_val
       real(kind = real64), dimension(1:3*num_atoms) :: F_saxs
       real(kind = real64) :: r(3), F_grain(3), r2, qr, qphys, cscale, Esaxs, E_den, E_num, cscale_num, cscale_den, F_pre
-      integer :: i, j
       real(kind = real64), dimension(:), allocatable :: pos_SOL, pos_TOT ! TOT = SYSTEM + SOL
       real(kind = real64), dimension(:,:), allocatable :: DistanceMatrix_TOT, F_CG_TOT
       integer :: grain_i, grain_j, q, num_TOT, num_SOL
@@ -621,7 +619,7 @@ module SAXS_scoring
               end do q_loop_2
               uncorrected_dat_file = 'dat/ff' // trim(Grains(grain_i)) // '.awk.dat'
               print *, 'Running : ', 'cp ' // trim(corrected_dat_file) // ' ' // trim(uncorrected_dat_file)
-              call system('cp ' // trim(corrected_dat_file) // ' ' // trim(uncorrected_dat_file) )
+              call execute_command_line('cp ' // trim(corrected_dat_file) // ' ' // trim(uncorrected_dat_file) )
             end if is_not_outer_shell
           else ! Is not solvent
             open(unit=unit2, file=uncorrected_dat_file, status='old')
@@ -706,7 +704,7 @@ module SAXS_scoring
       real(kind = real64), dimension(1:6) :: MinMaxCoordsArray
       integer, dimension(1:6) :: latticeArray
 
-      integer :: contact_num, outunit
+      integer :: contact_num
 
       ! Fill the cutoff array with the value of each grain
       call fill_cutoff_array(AtomNames, CutoffArrayInternal_pow2, CutoffArrayExternal_pow2)
@@ -764,7 +762,7 @@ module SAXS_scoring
 
       implicit none
       real(kind = real64),intent(in) :: padding_length ! In nm
-      integer :: atom_i
+      !integer :: atom_i
       real(kind = real64),dimension(1:6),intent(out) ::  MinMaxCoordsArray
       real(kind = real64)  XCoords(3*num_atoms)
       integer :: i

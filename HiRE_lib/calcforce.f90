@@ -127,7 +127,8 @@ MODULE CALCFORCES
       !> Get hydrogen-bonding information
       !> @brief
       !>
-      !> If hydrogen bonding has been initialised, this calls the hydrogen-bonding energies through the nonbonded energy contribution.
+      !> If hydrogen bonding has been initialised, this calls the hydrogen-bonding energies 
+      !> through the nonbonded energy contribution.
       !> A file with the hydrogen bonding information is returned.
       !>
       !> @param[in] NOPT - number of variables

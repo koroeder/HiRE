@@ -41,7 +41,7 @@ MODULE MOD_ANGLES
       SUBROUTINE ASSIGN_THETATYPE()
          USE VAR_DEFS, ONLY: IAC
          IMPLICIT NONE
-         INTEGER :: JN, I3, J3, K3T, L3T, IT0, IT1, IT2
+         INTEGER :: JN, I3, J3, K3T, IT0, IT1, IT2
          
          DO JN=1,NANGLES
             I3 = IT(JN)/3 + 1
@@ -112,7 +112,6 @@ MODULE MOD_ANGLES
          REAL(KIND = REAL64) :: CT0, CT1, CT2, ANT, DA, DF, EAW, DFW
          REAL(KIND = REAL64), PARAMETER :: PT999 = 0.999d0
          INTEGER :: JN, I, J, K, IC
-         INTEGER :: P1, P2, P3
 
          !initialise force and energy
          F(1:NOPT) = 0.0d0

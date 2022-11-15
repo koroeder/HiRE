@@ -14,7 +14,8 @@ MODULE FILL_PARAMS
       !> @brief
       !>
       !> This routine assigns the NA relevant from the scale.dat input.\n
-      !> We then allocate the associated arrays and assign the nucleobase type informations based on the residue information from the topology.\n
+      !> We then allocate the associated arrays and assign the nucleobase type informations 
+      !> based on the residue information from the topology.\n
       !> Then the parameters are populated for RNA and DNA.
       !>
       !> @see ALLOC_NAPARAMS

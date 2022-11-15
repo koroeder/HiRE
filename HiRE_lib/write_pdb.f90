@@ -76,8 +76,8 @@ MODULE PDB_OUT
       
         !> Writes pdb file using the system data loaded in HiRE
         SUBROUTINE WRITEPDB(COORDS,PDB_UNIT,CHAINIDT)
-            USE VAR_DEFS, ONLY: NPARTICLES, NCHAINS, RESFINAL, &
-                                FRAG_PAR_PTR, IAC, IGRAPH, RESNAMES
+            USE VAR_DEFS, ONLY: NPARTICLES, RESFINAL, &
+                                FRAG_PAR_PTR, IGRAPH, RESNAMES
             REAL(KIND=REAL64), INTENT(IN) :: COORDS(3*NPARTICLES)
             INTEGER, INTENT(IN) :: PDB_UNIT
             LOGICAL, INTENT(IN) :: CHAINIDT

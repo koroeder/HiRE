@@ -128,7 +128,7 @@ MODULE MOD_RESTRAINTS
          REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force from bonds
          REAL(KIND = REAL64), INTENT(OUT) :: EREST
    
-         REAL(KIND = REAL64) :: DIFF(3), V, K, ECON, DF(3)
+         REAL(KIND = REAL64) :: DIFF(3), V, K, DF(3)
          INTEGER :: IDX, I
          
          EREST = 0.0D0

@@ -17,6 +17,8 @@ MODULE MOD_PHOSBASE
          REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force from phosphate base interaction
          REAL(KIND = REAL64), INTENT(OUT) :: EPB
 
+         EPB = 0.0D0
+         F(1:NOPT) = 0.0D0
       END SUBROUTINE ENERGY_PHOSBASE
 
 

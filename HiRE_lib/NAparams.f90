@@ -397,7 +397,7 @@ MODULE DNA_HB_PARAMS
             dREF(1:3,2,4) = (/ 4.92, 5.78, 5.89/)        ! WWc, HWt, HWc
             alpam(1:3,2,4) = (/ 2.84, 0.91, 0.93/)
             alpbm(1:3,2,4) = (/ 2.36, 1.82, 2.46/)
-            s(1:3,2,4,1,1) = (/ 2.2*wcCanonic, 2*noWc, 2*noWc/)     !Br2  1,1 -> q1=0, q2=0      !OKKIO : cambiato a mano 14.4 -> 16!!!
+            s(1:3,2,4,1,1) = (/ 2.2*wcCanonic, 2*noWc, 2*noWc/)   !Br2  1,1 -> q1=0, q2=0   !OKKIO : cambiato a mano 14.4 -> 16!
             s(1:3,2,4,1,2) = (/ z, z, z/)                     !Br2  1,2 -> q1=0, q2=1
             s(1:3,2,4,2,1) = (/ z, 2*noWcq, 2*noWcq/)          !Br2  2,1 -> q1=1, q2=0
             s(1:3,2,4,2,2) = (/ z, z, z/)                     !Br2  2,2 -> q1=1, q2=1
