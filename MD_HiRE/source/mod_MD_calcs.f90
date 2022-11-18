@@ -15,8 +15,27 @@ MODULE MD_CALCS
       END FUNCTION E_KINETIC
 
       ! subroutine to get com and linear momentum
-      SUBROUTINE DETERMINE_LINMOM(VEL)
+      SUBROUTINE DETERMINE_LINMOM(X,VEL,COM,PCOM)
+         USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES
+         IMPLICIT NONE
+         REAL(KIND=REAL64), INTENT(IN) :: X(NOPT)
+         REAL(KIND=REAL64), INTENT(IN) :: VEL(NOPT) 
+         REAL(KIND=REAL64), INTENT(OUT) :: COM(3)
+         REAL(KIND=REAL64), INTENT(OUT) :: PCOM(3)
+         INTEGER :: I, J, IDX
+         REAL(KIND=REAL64) :: TOTALMASS
 
+         COM(1:3) = 0.0D0
+         PCOM(1:3) = 0.0D0
+         DO I=1,NATOM
+            DO J=1,3
+               IDX = 3*(I-1) + J
+               COM(J) = COM(J) + COORDS(IDX)*MASSES(J)
+               P_COM(J) = P_COM(J) + VEL(IDX)*MASSES(J)              
+            END DO
+         END DO
+         TOTALMASS = SUM(MASSES)/3
+         COM = COM/TOTALMASS
       END SUBROUTINE DETERMINE_LINMOM
 
       SUBROUTINE REMOVE_LINMOM(X,VEL,CENTRET)
@@ -27,23 +46,6 @@ MODULE MD_CALCS
          REAL(KIND=REAL64)
 
       END SUBROUTINE REMOVE_LINMOM
-   ! 1. get random distributed velocities and determine net translation
-   DO I=1,NATOMS
-      DO J=1,3
-         ! random normal-distributed velocities with zero mean and unit standard deviation  
-         CALL RAND_NORMAL(1.0D0, 0.0D0, CURRVEL)
-         VEL(3*(I-1)+J) = CURRVEL
-         ! get contributions to centre of mass and initial momentum
-         COM(J) = COM(J) + COORDS(3*(I-1)+J)*MASSES(I)
-         P_COM(J) = P_COM(J) + CURRVEL*MASSES(I)
-      END DO
-   END DO
-   COM(1:3) = COM(1:3)/TOTALMASS
-   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Centre of mass:             ", &
-                                COM(1), COM(2), COM(3)
-   WRITE(MYUNIT,'(A,3(F15.6))') " init_velocity> Momentum of centre of mass: ", &
-                                P_COM(1), P_COM(2), P_COM(3)
-
    ! 2. remove net translation and get rotation
    DO I=1,NATOMS
       R(1:3) = 0.0D0
