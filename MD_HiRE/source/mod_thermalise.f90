@@ -51,4 +51,28 @@ MODULE MOD_VEL
          ! 2. rescale with scale = sqrt(target temp/current temp)
          !    vel = vel*scale
       END SUBROUTINE THERMALISE
+
+
+      SUBROUTINE THERMALISE_RESCALE_VEL(VEL,TEMP)
+         USE MD_COMMONS, ONLY: NATOMS, MASSES
+         IMPLICIT NONE
+         REAL(KIND=REAL64), INTENT(INOUT) :: VEL(3*NATOMS)
+         REAL(KIND=REAL64), INTENT(IN) :: TEMP
+         REAL(KIND=REAL64) :: EKIN, CURRTEMP, ATMASS, SCALE
+         INTEGER :: DOF, IDX
+
+         EKIN= 0.0D0
+         DOF = 3*NATOMS - 6
+         DO I=1,NATOMS
+            ATMASS = MASSES(I)
+            DO J=1,3
+               IDX = 3*(I-1)+J
+               EKIN = EKIN + VEL(IDX)*VEL(IDX)/ATMASS
+            END DO
+         END DO
+         
+         CURRTEMP = EKIN/DBLE(DOF)
+         SCALE = DSQRT(TEMP/CURRTEMP)
+         VEL(1:3*NATOMS) = VEL(1:3*NATOMS) * SCALE
+      END SUBROUTINE THERMALISE_RESCALE_VEL
 END MODULE MOD_VEL
