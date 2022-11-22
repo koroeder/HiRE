@@ -38,6 +38,9 @@ MODULE CALCFORCES
    !> vector containing the energy contributions
    TYPE(POT_ENE) :: EVEC
 
+   !> Individual energy scaling - can be used for H-REX simulation focusing for example on non-bonding terms
+   REAL(KIND=REAL64) :: SCALING(7) = 1.0D0
+
    CONTAINS
   
       !> Subroutine calculating the total energy and gradient
@@ -75,31 +78,32 @@ MODULE CALCFORCES
          CALL RESET_POT_ENE(EVEC)
          !1. Bonded terms in potential
          CALL ENERGY_BONDS(NOPT, X, THIS_F, THIS_E)
-         ETOT = ETOT + THIS_E
-         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)
-         EVEC%EBOND = THIS_E
+         ETOT = ETOT + THIS_E*SCALING(1)
+         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(1)
+         EVEC%EBOND = THIS_E*SCALING(1)
          !2. Bond angle terms
          CALL ENERGY_ANGLES(NOPT, X, THIS_F, THIS_E)
-         ETOT = ETOT + THIS_E
-         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)
-         EVEC%EANGLES = THIS_E 
+         ETOT = ETOT + THIS_E*SCALING(2)
+         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(2)
+         EVEC%EANGLES = THIS_E*SCALING(2) 
          !3. Torsional energy
          CALL ENERGY_DIHS(NOPT, X, THIS_F, THIS_E)    
-         ETOT = ETOT + THIS_E
-         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)
-         EVEC%ETORS = THIS_E
+         ETOT = ETOT + THIS_E*SCALING(3)
+         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(3)
+         EVEC%ETORS = THIS_E*SCALING(3)
          !4. Debye-Hueckel term
          CALL ENERGY_DH(NOPT, X, THIS_F, THIS_E)
-         ETOT = ETOT + THIS_E
-         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)
-         EVEC%EDH = THIS_E       
+         ETOT = ETOT + THIS_E*SCALING(4)
+         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(4)
+         EVEC%EDH = THIS_E*SCALING(4)      
          !5.Non-bonded interactions
          CALL  E_NONBONDED(NOPT, X, THIS_F, EHHB, ESTAK, EVDW) 
-         ETOT = ETOT + EHHB + ESTAK + EVDW
-         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)
-         EVEC%EHBOND = EHHB
-         EVEC%ESTAK = ESTAK  
-         EVEC%EVDW = EVDW    
+         ETOT = ETOT + EHHB*SCALING(5) + ESTAK*SCALING(6) + EVDW*SCALING(7)
+         ! not ideal but I guess the average is the best with the current setup, probably should make the scaling identical for all three
+         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*(SCALING(5)+SCALING(6)+SCALING(7))/3.0
+         EVEC%EHBOND = EHHB*SCALING(5)
+         EVEC%ESTAK = ESTAK*SCALING(6) 
+         EVEC%EVDW = EVDW*SCALING(7)   
          !6. SAXS energy and force
          F_SAXS(1:NOPT) = 0.0D0
          CALL RNA_SAXS_FORCE(NOPT, X, ESAXS, F_SAXS)
