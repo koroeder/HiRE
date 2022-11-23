@@ -42,37 +42,24 @@ MODULE MD_SIMULATION
          REAL(KIND = REAL64) :: NR1, NR2
          REAL(KIND = REAL64) :: NOISE(NATOMS)
          INTEGER :: I, J, IDX
-         ! set noise to be used
-         DO I=1,NATOMS
-            NOISE(I) = DSQRT(TEMP*GAMMA*DT/MASSES(I))
-         END DO
 
-         DO I=1,NATOMS
-            DO J=1,3
-               IDX = 3*(I-1) + J
-               ! half-step velocity update
-               CALL RAND_NORMAL(1.0D0, 0.0D0, NR1)
-               VEL(IDX) = GFRIC*VEL(IDX) + ACC(IDX)*HDT + NR1*NOISE(I)
-               !update full-step coordinates
-               COORDS(IDX) = COORDS(IDX) + VEL(IDX)*DT
-            END DO
-         END DO
-         ! get new potential energy and gradient
-         CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, ACC)
-         EKIN=0.0D0
-         DO I=1,NATOMS
-            DO J=1,3
-               IDX = 3*(I-1) + J
-               ! update acceleration
-               ACC(IDX) = -ACC(IDX)/MASSES(I)
-               ! update full step velocity
-               CALL RAND_NORMAL(1.0D0, 0.0D0, NR2)
-               VEL(IDX) = GFRIC*VEL(IDX) + ACC(IDX)*HDT + NR2*NOISE(I)
-               ! get kinetic energy
-               EKIN = EKIN + MASSES(I)*VEL(IDX)*VEL(IDX)
-            END DO
-         END DO
-         EKIN = 0.5*EKIN
+         ! Velocity verlet?
+         IF (MDMETHOD.EQ.'VV') THEN
+            IF (MOD(J,NRESCALE).EQ.0) THEN
+               CALL SCALEVEL(TEMP,VEL)
+            END IF
+            CALL VELOCITY_VERLET(X, VEL, ACC, EPOT)
+         ! Langevin?
+         ELSE IF (MDMETHOD.EQ.'LD') THEN
+            IF (MOD(J,NRESCALE).EQ.0) THEN                  
+               CALL SCALEVEL_LANGEVIN(TEMP,VEL)
+            END IF
+            CALL LANGEVIN_STEP(TEMP,X, VEL, ACC, EPOT)
+         ELSE  
+            WRITE(MYUNIT,*) " thermalise> No valid MD steps detected"
+            STOP                
+         END IF
+
          IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
             WRITE(MYUNIT,*) " mdsteps> Completed step    ", CURRSTEP
             WRITE(MYUNIT,'(A,F12.4)') "          Total energy:     ", EPOT+EKIN           
