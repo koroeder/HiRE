@@ -1,18 +1,34 @@
-MODULE MOD_VEL
+MODULE MOD_THERMALISE
    USE NUMKIND
    USE MD_COMMONS, ONLY: NATOMS, MASSES, MYUNIT
    IMPLICIT NONE
+   !> Number of thermalisation steps
    INTEGER :: NTHERMALISE
+   !> Number of MD steps to equilibrate per thermalisation step
    INTEGER :: NEQUIL
-   REAL(KIND = REAL64), ALLOCATABLE :: TEMPS(:)
+   !> Frequency of recentering and removing linear momentum, if 0, will not be used
+   INTEGER :: NCENTRE
+   !> Frequency of removing ang velocity, if 0, will not be used
+   INTEGER :: NRMANG
+   !> Frequency of rescaling
+   INTEGER :: NRESCALE
+   !> Switch whether velocities need to be initialised
+   LOGICAL :: VELT = .TRUE.
    CONTAINS
       
-      SUBROUTINE THERMALISE(TINIT, TFINAL, VELT)
-         
+      SUBROUTINE THERMALISE(TINIT, TFINAL, X, VEL, ACC, EPOT)
+
+         REAL(KIND = REAL64), INTENT(IN) :: TINIT
+         REAL(KIND = REAL64), INTENT(IN) :: TFINAL
+         REAL(KIND = REAL64), INTENT(INOUT) :: X(NOPT)
+         REAL(KIND = REAL64), INTENT(INOUT) :: VEL(NOPT)
+         REAL(KIND = REAL64), INTENT(INOUT) :: ACC(NOPT)
+         REAL(KIND = REAL64), INTENT(OUT) :: EPOT                  
+         REAL(KIND = REAL64), ALLOCATABLE :: TEMPS(NTHERMALISE)
+         REAL(KIND = REAL64) :: DTEMP, EPOT
          ! Get the temperatures to be used in thermalisation
-         ! We set the initial temperature to close to zero
+         ! If the initial T is zero, we set it to be very small, but non-zero
          ! We then use equally spaced intervals
-         ALLOCATE(TEMPS(NTHERMALISE))
          TEMPS(1) = TINIT
          TEMPS(NTHERMALISE) = TFINAL
          DTEMP = (TFINAL-TINIT)/DBLE(NTHERMALISE-1)
@@ -25,6 +41,7 @@ MODULE MOD_VEL
                TINIT = 1.0D-6
             END IF
             CALL INITIALISE_VEL(TINIT)
+            VELT = .FALSE.
          END IF
 
          DO I=1,NTHERMALISE
@@ -32,17 +49,27 @@ MODULE MOD_VEL
             CALL THERMALISE_RESCALE_VEL(VEL,TEMP)
 
             DO J=1,NEQUIL
-               ! add if clauses to check whether we want to remove these
-               CALL REMOVE_LINMOM(X, VEL, .TRUE.)
-               CALL REMOVE_ANGVEL(X, VEL)
+               IF (NCENTRE.GT.0) THEN
+                  IF (MOD(J,NCENTRE).EQ.0) THEN
+                     CALL REMOVE_LINMOM(X, VEL, .TRUE.)
+                  END IF
+               END IF
+               IF (NRMANG.GT.0) THEN
+                  IF (MOD(J,NRMANG).EQ.0) THEN
+                     CALL REMOVE_ANGVEL(X, VEL)
+                  END IF
+               END IF
                ! Velocity verlet?
                IF (MDMETHOD.EQ.'VV') THEN
-                  ! add clause to check when we rescale
-                  CALL SCALEVEL(TEMP,VEL)
+                  IF (MOD(J,NRESCALE).EQ.0) THEN
+                     CALL SCALEVEL(TEMP,VEL)
+                  END IF
                   CALL VELOCITY_VERLET(X, VEL, ACC, EPOT)
+               ! Langevin?
                ELSE IF (MDMETHOD.EQ.'LD') THEN
-                  ! add clause to check when we rescale
-                  CALL SCALEVEL_LANGEVIN(TEMP,VEL)
+                  IF (MOD(J,NRESCALE).EQ.0) THEN                  
+                     CALL SCALEVEL_LANGEVIN(TEMP,VEL)
+                  END IF
                   CALL LANGEVIN_STEP(TEMP,X, VEL, ACC, EPOT)
                ELSE  
                   WRITE(MYUNIT,*) " thermalise> No valid MD steps detected"
@@ -51,22 +78,6 @@ MODULE MOD_VEL
             END DO
 
          END DO
-         
-         !from thermalize routine
-
-         ! 1. remove angular momentum and rotations
-         ! 2. cycle over thermalisation steps
-         !   a) rescale velocity
-         !   b) cycle of equilibration steps
-         !      i) potentially remove total lin mom and ang mom
-         !      ii) potentially rescale velocities
-         !      iii) velocity Verlet step
-         !   c) report statistics for this
-
-         ! rescaling velocity 2 (a)
-         ! 1. get current temperature (kinetic energy divided by #dof)
-         ! 2. rescale with scale = sqrt(target temp/current temp)
-         !    vel = vel*scale
       END SUBROUTINE THERMALISE
 
 
@@ -92,4 +103,4 @@ MODULE MOD_VEL
          SCALE = DSQRT(TEMP/CURRTEMP)
          VEL(1:3*NATOMS) = VEL(1:3*NATOMS) * SCALE
       END SUBROUTINE THERMALISE_RESCALE_VEL
-END MODULE MOD_VEL
+END MODULE MOD_THERMALISE
