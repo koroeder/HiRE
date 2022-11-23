@@ -2,10 +2,9 @@ MODULE MD_CALCS
    USE NUMKIND
    CONTAINS
       ! function to get kinetic energy
-      REAL(KIND=REAL64) FUNCTION E_KINETIC(VEL,TEMP) RESULT(EKIN)
+      REAL(KIND=REAL64) FUNCTION E_KINETIC(VEL) RESULT(EKIN)
          USE MD_COMMONS, ONLY: NOPT, MASSES
          REAL(KIND=REAL64), INTENT(IN) :: VEL(NOPT)
-         REAL(KIND=REAL64), INTENT(IN) :: TEMP
          INTEGER :: I
          EKIN = 0.0D0
          DO I=1,NOPT
@@ -13,6 +12,25 @@ MODULE MD_CALCS
          END DO
          EKIN = 0.5*EKIN
       END FUNCTION E_KINETIC
+
+      ! subroutine to get accelaration form gradient
+      SUBROUTINE GET_ACC(GRAD,ACC)
+         USE MD_COMMONS, ONLY: NATOMS, MASSES
+         IMPLICIT NONE
+         REAL(KIND=REAL64), INTENT(IN) :: GRAD(3*NATOMS)
+         REAL(KIND=REAL64), INTENT(OUT) :: ACC(3*NATOMS)
+         INTEGER :: I, J, IDX
+
+         ACC(1:3*NATOMS) = 0.0D0
+         DO I=1,NATOMS
+            DO J=1,3
+               IDX = 3*(I-1) + J
+               ! the HiRE interface changes the sign of GRAD for global optimisation and minimisers
+               ! we need to revert that change here for the acceleration
+               ACC(IDX) = -GRAD(IDX)/MASSES(I)
+            END DO
+         END DO
+      END SUBROUTINE GET_ACC
 
       ! subroutine to get com and linear momentum
       SUBROUTINE DETERMINE_LINMOM(X,VEL,COM,PCOM)
