@@ -2,39 +2,56 @@ MODULE MOD_VEL
    USE NUMKIND
    USE MD_COMMONS, ONLY: NATOMS, MASSES, MYUNIT
    IMPLICIT NONE
-
+   INTEGER :: NTHERMALISE
+   INTEGER :: NEQUIL
+   REAL(KIND = REAL64), ALLOCATABLE :: TEMPS(:)
    CONTAINS
       
-      SUBROUTINE CREATE_RND_VEL(TEMP, COORDS, VEL, COM, P_COM)
-         USE RAND_ROUTINES, ONLY: RAND_NORMAL
-         IMPLICIT NONE
-         REAL(KIND=REAL64), INTENT(IN) :: TEMP             ! temperature
-         REAL(KIND=REAL64), INTENT(IN) :: COORDS(3*NATOMS) ! coordinates
-         REAL(KIND=REAL64), INTENT(OUT) :: VEL(3*NATOMS)   ! velocity
-         REAL(KIND=REAL64), INTENT(OUT) :: COM(3)          ! centre of mass
-         REAL(KIND=REAL64), INTENT(OUT) :: P_COM(3)        ! momentum of centre of mass
-         INTEGER :: I, J
-         REAL(KIND=REAL64), PARAMETER :: STDEV = 1.0D0
-         REAL(KIND=REAL64), PARAMETER :: MEAN = 0.0D0
-         REAL(KIND=REAL64) :: ATMASS, CURRVEL, TOTALMASS
+      SUBROUTINE THERMALISE(TINIT, TFINAL, VELT)
          
-         TOTALMASS = SUM(MASSES)
-         COM(1:3) = 0.0D0
-         P_COM(1:3) = 0.0D0
-         DO I=1,NATOMS
-            ATMASS = MASSES(I)
-            DO J=1,3
-               CALL RAND_NORMAL(STDEV,MEAN,CURRVEL)
-               VEL(3*(I-1)+J) = CURRVEL
-               COM(J) = COM(J) + COORDS(3*(I-1)+J)*ATMASS
-               P_COM(J) = P_COM(J) + CURRVEL*ATMASS
-            ENDDO
+         ! Get the temperatures to be used in thermalisation
+         ! We set the initial temperature to close to zero
+         ! We then use equally spaced intervals
+         ALLOCATE(TEMPS(NTHERMALISE))
+         TEMPS(1) = TINIT
+         TEMPS(NTHERMALISE) = TFINAL
+         DTEMP = (TFINAL-TINIT)/DBLE(NTHERMALISE-1)
+         DO I = 2,NTHERMALISE-1
+            TEMPS(I) = TINIT + I*DTEMP
          END DO
-      END SUBROUTINE CREATE_RND_VEL
 
+         IF (.NOT.VELT) THEN
+            IF (TINIT.LT.1.0D-10) THEN
+               TINIT = 1.0D-6
+            END IF
+            CALL INITIALISE_VEL(TINIT)
+         END IF
 
-      SUBROUTINE THERMALISE()
+         DO I=1,NTHERMALISE
+            TEMP = TEMPS(I)
+            CALL THERMALISE_RESCALE_VEL(VEL,TEMP)
 
+            DO J=1,NEQUIL
+               ! add if clauses to check whether we want to remove these
+               CALL REMOVE_LINMOM(X, VEL, .TRUE.)
+               CALL REMOVE_ANGVEL(X, VEL)
+               ! Velocity verlet?
+               IF (MDMETHOD.EQ.'VV') THEN
+                  ! add clause to check when we rescale
+                  CALL SCALEVEL(TEMP,VEL)
+                  CALL VELOCITY_VERLET(X, VEL, ACC, EPOT)
+               ELSE IF (MDMETHOD.EQ.'LD') THEN
+                  ! add clause to check when we rescale
+                  CALL SCALEVEL_LANGEVIN(TEMP,VEL)
+                  CALL LANGEVIN_STEP(TEMP,X, VEL, ACC, EPOT)
+               ELSE  
+                  WRITE(MYUNIT,*) " thermalise> No valid MD steps detected"
+                  STOP                
+               END IF
+            END DO
+
+         END DO
+         
          !from thermalize routine
 
          ! 1. remove angular momentum and rotations
