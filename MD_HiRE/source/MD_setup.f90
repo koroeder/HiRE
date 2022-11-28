@@ -10,7 +10,7 @@ MODULE MD_SETUP
       END SUBROUTINE START_TRACKING
 
       SUBROUTINE SETUP_POTENTIAL()
-         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, TOPNAME, SCALEDATNAME, COORDSFILE, MASSES, COORDS, MININITIAL
+         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, NOPT, TOPNAME, SCALEDATNAME, COORDSFILE, MASSES, COORDS, MININITIAL
          USE HIRE_INTERFACE, ONLY: HIRE_INITIALISE, PASS_HIRE_MASSES
          USE MD_UTILS, ONLY: ALLOC_COMMONS, RUNMIN
          USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
@@ -18,6 +18,8 @@ MODULE MD_SETUP
          INTEGER :: J, XUNIT
          !first initialise the HiRE interface
          CALL HIRE_INITIALISE(TOPNAME, SCALEDATNAME, NATOMS)
+
+         NOPT = 3*NATOMS
 
          ! allocate the relevant arrays
          CALL ALLOC_COMMONS()
@@ -67,6 +69,7 @@ MODULE MD_SETUP
       SUBROUTINE SETKEYS(WORD)
          USE INPUTMOD
          USE MD_COMMONS                  ! global variables
+         USE MOD_THERMALISE, ONLY: NTHERMALISE, NEQUIL, NCENTRE, NRMANG, NRESCALE
          USE MINIMISATION, ONLY: ITMAX, MUPDATE, EPS
          ! USE FILE_UTILS, ONLY: FILE_EXIST
         
@@ -171,6 +174,12 @@ MODULE MD_SETUP
          ! LETTER M      !
          !+++++++++++++++!
 
+         ! Keyword: MDMODE
+         ! Added: 28/11/2022 (kr366), last modified: 28/11/2022 (kr366)
+         ! Description: MD method to be used: VV for Velocity Verlet or LD for Langevin Dynamics
+         ELSE IF (WORD .EQ. 'MDMODE') THEN
+            CALL READA(MDMETHOD)
+
          ! Keyword: MDSTEPS
          ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
          ! Description: Number of MD steps to be taken
@@ -222,9 +231,39 @@ MODULE MD_SETUP
 
          ! Keyword: TEMPERATURE
          ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
-         ! Description: Time steps to be used
+         ! Description: Temperature to be used
          ELSE IF (WORD .EQ. 'TEMPERATURE') THEN
             CALL READF(TEMP)
+
+         ! Keyword: THERMALISATION
+         ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
+         ! Description: Time steps to be used
+         ELSE IF (WORD .EQ. 'THERMALISATION') THEN
+            THERMINIT = .TRUE.
+
+            CALL READF(TFINAL)
+            CALL READI(NTHERMALISE)
+            CALL READI(NEQUIL)
+            IF (NITEMS.GT.3) THEN
+               CALL READF(TINIT)
+               IF (NITEMS.GT.4) THEN
+                  CALL READF(TFINAL)
+               ELSE
+                  ! set TFINAL to be negative, we then set it to TEMP later
+                  TFINAL = -1.0D0
+               END IF
+            ELSE
+               TINIT = 0.0D0
+            END IF
+            
+
+         ! Keyword: THERMALISE_OPTIONS
+         ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
+         ! Description: Time steps to be used
+         ELSE IF (WORD .EQ. 'THERMALISE_OPTIONS') THEN
+            CALL READI(NCENTRE)
+            CALL READI(NRMANG)
+            CALL READI(NRESCALE)          
 
          ! Keyword: TIMESTEP
          ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
