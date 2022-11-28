@@ -75,6 +75,9 @@ MODULE INTEGRATORS
         REAL(KIND = REAL64) :: NOISE(NATOMS)
         INTEGER :: I, J, IDX
 
+        ! for random number generation: normal distribution with mean=0, std=1
+        ! see Allen and Tildesley, "Computer Simulation of Liquids" (2nd ed.), p. 384 
+
         DO I=1,NATOMS
             NOISE(I) = DSQRT(TEMP*GAMMA*DT/MASSES(I))
         END DO
@@ -113,7 +116,8 @@ MODULE INTEGRATORS
         REAL(KIND=REAL64) :: EKIN, CURRTEMP, SCALE
       
         EKIN = E_KINETIC(VEL)
-        CURRTEMP = 2.0D0*EKIN/DOF
+        ! dof for velocity are 3N, see Allen and Tildesley, "Computer Simulation of Liquids" (2nd ed.), p. 131 
+        CURRTEMP = 2.0D0*EKIN/NOPT
         SCALE = DSQRT(TEMP/CURRTEMP)
         VEL(1:NOPT) = VEL(1:NOPT)*SCALE
      END SUBROUTINE SCALEVEL
