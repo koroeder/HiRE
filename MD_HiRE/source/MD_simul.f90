@@ -1,23 +1,34 @@
 MODULE MD_SIMULATION
    CONTAINS
       SUBROUTINE ZERO_STEP()
-         USE MD_COMMONS, ONLY: NATOMS, MYUNIT, COORDS, EPOT, EKIN, ACC, MASSES
+         USE MD_COMMONS, ONLY: NATOMS, MYUNIT, COORDS, EPOT, EKIN, ACC, VEL, TEMP
          USE MD_UTILS, ONLY: SET_DERIVED_PARAMS
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
+         USE MD_CALCS, ONLY: GET_ACC
+         USE MOD_THERMALISE, ONLY: THERMALISE
          IMPLICIT NONE
          INTEGER :: I, J, IDX
          ! set half step and friction params
          CALL SET_DERIVED_PARAMS()
          ! get initial energies
-         CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, ACC)
-         DO I=1,NATOMS
-            DO J=1,3
-               IDX = 3*(I-1) + J
-               ACC(IDX) = -ACC(IDX)/MASSES(I)
-            END DO
-         END DO
+         CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, GRAD)
+         ! get acceleration
+         CALL GET_ACC(GRAD,ACC)
          WRITE(MYUNIT,'(2(A,F12.4))') " mdhire> Initial energies - EPOT= ", EPOT, "; EKIN= ", EKIN
          WRITE(MYUNIT, '(A)') " "
+         IF (THERMINIT) THEN
+            IF (TFINAL.LT.0.0D0) THEN
+               TFINAL = TEMP
+            END IF
+            WRITE(MYUNIT,*) " mdhire> Thermalisation from ", TINIT, " to ", TFINAL   
+            CALL THERMALISE(TINIT, TFINAL, COORDS, VEL, ACC, EPOT)
+            IF (TEMP.NE.TFINAL) THEN
+               WRITE(MYUNIT,*) " mdhire> WARNING: Final T of thermalisation is not the same as simulation T."
+            END IF
+         ELSE
+            WRITE(MYUNIT,'(A)') " mdhire> Calling velocity initialisation"     
+            CALL INITIALISE_VEL()
+         END IF
       END SUBROUTINE ZERO_STEP
 
       SUBROUTINE RUN_MD()
@@ -45,16 +56,15 @@ MODULE MD_SIMULATION
 
          ! Velocity verlet?
          IF (MDMETHOD.EQ.'VV') THEN
-            IF (MOD(J,NRESCALE).EQ.0) THEN
-               CALL SCALEVEL(TEMP,VEL)
-            END IF
-            CALL VELOCITY_VERLET(X, VEL, ACC, EPOT)
+            CALL VELOCITY_VERLET(COORDS, VEL, ACC, EPOT)
+            CALL SCALEVEL(TEMP,VEL)
          ! Langevin?
          ELSE IF (MDMETHOD.EQ.'LD') THEN
-            IF (MOD(J,NRESCALE).EQ.0) THEN                  
-               CALL SCALEVEL_LANGEVIN(TEMP,VEL)
-            END IF
-            CALL LANGEVIN_STEP(TEMP,X, VEL, ACC, EPOT)
+
+            CALL LANGEVIN_STEP(TEMP, COORDS, VEL, ACC, EPOT)
+            !IF (MOD(J,NRESCALE).EQ.0) THEN                  
+            !   CALL SCALEVEL_LANGEVIN(TEMP,VEL)
+            !END IF
          ELSE  
             WRITE(MYUNIT,*) " thermalise> No valid MD steps detected"
             STOP                
