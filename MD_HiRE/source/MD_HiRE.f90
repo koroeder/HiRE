@@ -7,12 +7,12 @@
 !> Main program to run MD simulation with HiRE force field
 PROGRAM MD_HIRE
    USE NUMKIND
-   USE MD_COMMONS, ONLY: MYUNIT
+   USE MD_COMMONS, ONLY: MYUNIT, THERMINIT
    USE MD_SETUP, ONLY: READ_SETTINGS, SETUP_POTENTIAL, START_TRACKING
    USE MD_SIMULATION
    USE MD_UTILS, ONLY: REPORT_PARAMS, MD_START
    IMPLICIT NONE
-   REAL(KIND=REAL64) :: TSTART, TEND, TSETUP, TRUNS
+   REAL(KIND=REAL64) :: TSTART, TEND, TSETUP, TEQ, TRUNS
 
    CALL CPU_TIME(TSTART)
    ! 1. Simulation setup
@@ -26,12 +26,11 @@ PROGRAM MD_HIRE
    CALL SETUP_POTENTIAL()
    ! e) Open tracking files
    CALL START_TRACKING()
-
-   ! 2. Initialise velocities for simulation and get initial state
-   WRITE(MYUNIT,'(A)') " mdhire> Calling velocity initialisation"
-   CALL INITIALISE_VEL()
-   CALL ZERO_STEP()
    CALL CPU_TIME(TSETUP)
+   
+   ! 2. Initialise velocities for simulation and get initial state
+   CALL ZERO_STEP()
+   CALL CPU_TIME(TEQ)
 
    ! 3. Run MD steps
    CALL RUN_MD()
@@ -45,6 +44,7 @@ PROGRAM MD_HIRE
    WRITE(MYUNIT,'(A)') " "  
    WRITE(MYUNIT,'(A,F10.2)') " mdhire> Total time:      ", TEND-TSTART
    WRITE(MYUNIT,'(A,F10.2)') " mdhire> Setup time:      ", TSETUP-TSTART
-   WRITE(MYUNIT,'(A,F10.2)') " mdhire> Simulation time: ", TRUNS-TSETUP   
+   WRITE(MYUNIT,'(A,F10.2)') " mdhire> Thermalisation : ", TEQ-TSETUP 
+   WRITE(MYUNIT,'(A,F10.2)') " mdhire> Simulation time: ", TRUNS-TEQ  
    CLOSE(MYUNIT) 
 END PROGRAM MD_HIRE
