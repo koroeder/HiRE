@@ -3,12 +3,15 @@ MODULE MD_CALCS
    CONTAINS
       ! function to get kinetic energy
       REAL(KIND=REAL64) FUNCTION E_KINETIC(VEL) RESULT(EKIN)
-         USE MD_COMMONS, ONLY: NOPT, MASSES
+         USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES
          REAL(KIND=REAL64), INTENT(IN) :: VEL(NOPT)
-         INTEGER :: I
+         INTEGER :: I, J, IDX
          EKIN = 0.0D0
-         DO I=1,NOPT
-            EKIN = EKIN + VEL(I)*VEL(I)/MASSES(I)
+         DO I=1,NATOMS
+            DO J=1,3
+               IDX = 3*(I-1) + J
+               EKIN = EKIN + VEL(IDX)*VEL(IDX)/MASSES(I)
+            END DO
          END DO
          EKIN = 0.5*EKIN
       END FUNCTION E_KINETIC
