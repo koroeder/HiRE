@@ -3,21 +3,22 @@ MODULE MOD_THERMALISE
    USE MD_COMMONS, ONLY: NATOMS, MASSES, MYUNIT
    IMPLICIT NONE
    !> Number of thermalisation steps
-   INTEGER :: NTHERMALISE
+   INTEGER :: NTHERMALISE = 25
    !> Number of MD steps to equilibrate per thermalisation step
-   INTEGER :: NEQUIL
+   INTEGER :: NEQUIL = 1000
    !> Frequency of recentering and removing linear momentum, if 0, will not be used
-   INTEGER :: NCENTRE
+   INTEGER :: NCENTRE = 1
    !> Frequency of removing ang velocity, if 0, will not be used
-   INTEGER :: NRMANG
+   INTEGER :: NRMANG = 0
    !> Frequency of rescaling
-   INTEGER :: NRESCALE
+   INTEGER :: NRESCALE = 1
    !> Switch whether velocities need to be initialised
    LOGICAL :: VELT = .TRUE.
    CONTAINS
       
       SUBROUTINE THERMALISE(TINIT, TFINAL, X, VEL, ACC, EPOT)
-
+         USE MOD_CALCS
+         USE INTEGRATORS 
          REAL(KIND = REAL64), INTENT(IN) :: TINIT
          REAL(KIND = REAL64), INTENT(IN) :: TFINAL
          REAL(KIND = REAL64), INTENT(INOUT) :: X(NOPT)
@@ -25,7 +26,7 @@ MODULE MOD_THERMALISE
          REAL(KIND = REAL64), INTENT(INOUT) :: ACC(NOPT)
          REAL(KIND = REAL64), INTENT(OUT) :: EPOT                  
          REAL(KIND = REAL64), ALLOCATABLE :: TEMPS(NTHERMALISE)
-         REAL(KIND = REAL64) :: DTEMP, EPOT
+         REAL(KIND = REAL64) :: DTEMP
          ! Get the temperatures to be used in thermalisation
          ! If the initial T is zero, we set it to be very small, but non-zero
          ! We then use equally spaced intervals
@@ -82,24 +83,15 @@ MODULE MOD_THERMALISE
 
 
       SUBROUTINE THERMALISE_RESCALE_VEL(VEL,TEMP)
-         USE MD_COMMONS, ONLY: NATOMS, MASSES
+         USE MD_COMMONS, ONLY: NATOMS, NOPT
+         USE MD_CALCS, ONLY: E_KINETIC
          IMPLICIT NONE
-         REAL(KIND=REAL64), INTENT(INOUT) :: VEL(3*NATOMS)
+         REAL(KIND=REAL64), INTENT(INOUT) :: VEL(NOPT)
          REAL(KIND=REAL64), INTENT(IN) :: TEMP
-         REAL(KIND=REAL64) :: EKIN, CURRTEMP, ATMASS, SCALE
-         INTEGER :: DOF, IDX
+         REAL(KIND=REAL64) :: EKIN, CURRTEMP, SCALE
 
-         EKIN= 0.0D0
-         DOF = 3*NATOMS - 6
-         DO I=1,NATOMS
-            ATMASS = MASSES(I)
-            DO J=1,3
-               IDX = 3*(I-1)+J
-               EKIN = EKIN + VEL(IDX)*VEL(IDX)/ATMASS
-            END DO
-         END DO
-         
-         CURRTEMP = EKIN/DBLE(DOF)
+         EKIN = E_KINETIC(VEL)
+         CURRTEMP = EKIN/DBLE(NOPT)
          SCALE = DSQRT(TEMP/CURRTEMP)
          VEL(1:3*NATOMS) = VEL(1:3*NATOMS) * SCALE
       END SUBROUTINE THERMALISE_RESCALE_VEL
