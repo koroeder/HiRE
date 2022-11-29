@@ -17,6 +17,8 @@ MODULE MD_COMMONS
    REAL(KIND = REAL64) :: GAMMA = 1.0D-1 
    ! friction parameter
    REAL(KIND = REAL64) :: GFRIC
+   ! Langevin scaling parameter, currently not used
+   REAL(KIND = REAL64) :: LANGEVINSCALE = 0.1
    ! time step
    REAL(KIND = REAL64) :: DT = 1.0D-2
    ! half a time step
