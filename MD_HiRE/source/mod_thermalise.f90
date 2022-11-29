@@ -17,16 +17,18 @@ MODULE MOD_THERMALISE
    CONTAINS
       
       SUBROUTINE THERMALISE(TINIT, TFINAL, X, VEL, ACC, EPOT)
-         USE MOD_CALCS
-         USE INTEGRATORS 
+         USE MD_COMMONS, ONLY: NOPT, MDMETHOD
+         USE MD_CALCS
+         USE MOD_INTEGRATORS, ONLY: LANGEVIN_STEP, VELOCITY_VERLET, SCALEVEL, SCALEVEL_LANGEVIN
          REAL(KIND = REAL64), INTENT(IN) :: TINIT
          REAL(KIND = REAL64), INTENT(IN) :: TFINAL
          REAL(KIND = REAL64), INTENT(INOUT) :: X(NOPT)
          REAL(KIND = REAL64), INTENT(INOUT) :: VEL(NOPT)
          REAL(KIND = REAL64), INTENT(INOUT) :: ACC(NOPT)
          REAL(KIND = REAL64), INTENT(OUT) :: EPOT                  
-         REAL(KIND = REAL64), ALLOCATABLE :: TEMPS(NTHERMALISE)
-         REAL(KIND = REAL64) :: DTEMP
+         REAL(KIND = REAL64) :: TEMPS(NTHERMALISE)
+         REAL(KIND = REAL64) :: DTEMP, TEMP, TSMALL
+         INTEGER :: I, J
          ! Get the temperatures to be used in thermalisation
          ! If the initial T is zero, we set it to be very small, but non-zero
          ! We then use equally spaced intervals
@@ -39,9 +41,9 @@ MODULE MOD_THERMALISE
 
          IF (.NOT.VELT) THEN
             IF (TINIT.LT.1.0D-10) THEN
-               TINIT = 1.0D-6
+               TSMALL = 1.0D-6
             END IF
-            CALL INITIALISE_VEL(TINIT)
+            CALL INITIALISE_VEL(TSMALL)
             VELT = .FALSE.
          END IF
 
@@ -68,9 +70,9 @@ MODULE MOD_THERMALISE
                   CALL VELOCITY_VERLET(X, VEL, ACC, EPOT)
                ! Langevin?
                ELSE IF (MDMETHOD.EQ.'LD') THEN
-                  IF (MOD(J,NRESCALE).EQ.0) THEN                  
-                     CALL SCALEVEL_LANGEVIN(TEMP,VEL)
-                  END IF
+                  !IF (MOD(J,NRESCALE).EQ.0) THEN                  
+                  !   CALL SCALEVEL_LANGEVIN(TEMP,VEL)
+                  !END IF
                   CALL LANGEVIN_STEP(TEMP,X, VEL, ACC, EPOT)
                ELSE  
                   WRITE(MYUNIT,*) " thermalise> No valid MD steps detected"
