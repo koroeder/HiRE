@@ -1,9 +1,10 @@
 MODULE MD_CALCS
    USE NUMKIND
+   USE UTILS_VEC
    CONTAINS
       ! function to get kinetic energy
       REAL(KIND=REAL64) FUNCTION E_KINETIC(VEL) RESULT(EKIN)
-         USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES
+         USE MD_COMMONS, ONLY: MYUNIT, NOPT, NATOMS, MASSES
          REAL(KIND=REAL64), INTENT(IN) :: VEL(NOPT)
          INTEGER :: I, J, IDX
          EKIN = 0.0D0
@@ -37,7 +38,7 @@ MODULE MD_CALCS
 
       ! subroutine to get com and linear momentum
       SUBROUTINE DETERMINE_LINMOM(X,VEL,COM,PCOM)
-         USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES
+         USE MD_COMMONS, ONLY: MYUNIT, NOPT, NATOMS, MASSES
          IMPLICIT NONE
          REAL(KIND=REAL64), INTENT(IN) :: X(NOPT)
          REAL(KIND=REAL64), INTENT(IN) :: VEL(NOPT) 
@@ -48,11 +49,11 @@ MODULE MD_CALCS
 
          COM(1:3) = 0.0D0
          PCOM(1:3) = 0.0D0
-         DO I=1,NATOM
+         DO I=1,NATOMS
             DO J=1,3
                IDX = 3*(I-1) + J
-               COM(J) = COM(J) + COORDS(IDX)*MASSES(J)
-               P_COM(J) = P_COM(J) + VEL(IDX)*MASSES(J)              
+               COM(J) = COM(J) + X(IDX)*MASSES(J)
+               PCOM(J) = PCOM(J) + VEL(IDX)*MASSES(J)              
             END DO
          END DO
          TOTALMASS = SUM(MASSES)/3
@@ -84,7 +85,7 @@ MODULE MD_CALCS
 
 
       SUBROUTINE GET_ANGMOM(X,VEL,ANGMOM,W)
-         USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES
+         USE MD_COMMONS, ONLY: MYUNIT, NOPT, NATOMS, MASSES
          REAL(KIND=REAL64), INTENT(IN) :: X(NOPT)
          REAL(KIND=REAL64), INTENT(IN) :: VEL(NOPT) 
          REAL(KIND = REAL64), INTENT(OUT) :: ANGMOM(3)   ! angular momentum
@@ -96,7 +97,7 @@ MODULE MD_CALCS
          INTEGER :: I, J, K, IDX
 
          ! initialise angular momentum and moment of inertia
-         ANG_MOM(1:3) = 0.0D0
+         ANGMOM(1:3) = 0.0D0
          MOI(1:3,1:3) = 0.0D0
          ! initialise angular velocity
          W(1:3) = 0.0D0
@@ -109,7 +110,7 @@ MODULE MD_CALCS
                P(J) = VEL(IDX) * MASSES(I)
             END DO
             R2 = DOT_PRODUCT(R,R)
-            ANG_MOM = ANG_MOM + CROSSP(R, P)
+            ANGMOM = ANGMOM + CROSSP(R, P)
             DO J=1,3
                MOI(J,J) = MOI(J,J) + (R2 - R(J)*R(J))*MASSES(I)
                DO K=J,3
@@ -133,9 +134,9 @@ MODULE MD_CALCS
          END IF
          ! compute the angular velocity
          DO J=1,3
-            W(J) = DOT_PRODUCT(MOI(J,1:3),ANG_MOM(1:3))
+            W(J) = DOT_PRODUCT(MOI(J,1:3),ANGMOM(1:3))
          END DO
-         WRITE(MYUNIT,'(A,3(F15.6))') " get_angmom> Angular momentum:           ", ANG_MOM(1:3)
+         WRITE(MYUNIT,'(A,3(F15.6))') " get_angmom> Angular momentum:           ", ANGMOM(1:3)
          WRITE(MYUNIT,'(A,3(F15.6))') " get_angmom> Angular velocity:           ", W(1:3)      
       END SUBROUTINE GET_ANGMOM
 
