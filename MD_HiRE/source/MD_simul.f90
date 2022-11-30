@@ -30,7 +30,7 @@ MODULE MD_SIMULATION
             END IF
          ELSE
             WRITE(MYUNIT,'(A)') " mdhire> Calling velocity initialisation"     
-            CALL INITIALISE_VEL()
+            CALL INITIALISE_VEL(TEMP)
          END IF
       END SUBROUTINE ZERO_STEP
 
@@ -60,12 +60,12 @@ MODULE MD_SIMULATION
 
          ! Velocity verlet?
          IF (MDMETHOD.EQ.'VV') THEN
-            CALL VELOCITY_VERLET(COORDS, VEL, ACC, EPOT)
+            CALL VELOCITY_VERLET(COORDS, VEL, ACC, EPOT, EKIN)
             CALL SCALEVEL(TEMP,VEL)
          ! Langevin?
          ELSE IF (MDMETHOD.EQ.'LD') THEN
 
-            CALL LANGEVIN_STEP(TEMP, COORDS, VEL, ACC, EPOT)
+            CALL LANGEVIN_STEP(TEMP, COORDS, VEL, ACC, EPOT, EKIN)
             !IF (MOD(J,NRESCALE).EQ.0) THEN                  
             !   CALL SCALEVEL_LANGEVIN(TEMP,VEL)
             !END IF
@@ -75,10 +75,10 @@ MODULE MD_SIMULATION
          END IF
 
          IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
-            WRITE(MYUNIT,*) " mdsteps> Completed step    ", CURRSTEP
-            WRITE(MYUNIT,'(A,F12.4)') "          Total energy:     ", EPOT+EKIN           
-            WRITE(MYUNIT,'(A,F12.4)') "          Kinetic energy:   ", EKIN
-            WRITE(MYUNIT,'(A,F12.4)') "          Potential energy: ", EPOT
+            WRITE(MYUNIT,*) " mdsteps> Completed step ", CURRSTEP
+            WRITE(MYUNIT,'(A,F12.4)') "           Total energy:     ", EPOT+EKIN           
+            WRITE(MYUNIT,'(A,F12.4)') "           Kinetic energy:   ", EKIN
+            WRITE(MYUNIT,'(A,F12.4)') "           Potential energy: ", EPOT
             WRITE(MYUNIT,'(A,F12.4)') " --------------------------------------------------"
          END IF
       END SUBROUTINE TAKE_MDSTEP
