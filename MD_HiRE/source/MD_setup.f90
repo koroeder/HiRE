@@ -69,7 +69,7 @@ MODULE MD_SETUP
       SUBROUTINE SETKEYS(WORD)
          USE INPUTMOD
          USE MD_COMMONS                  ! global variables
-         USE MOD_THERMALISE, ONLY: NTHERMALISE, NEQUIL, NCENTRE, NRMANG, NRESCALE
+         USE MOD_THERMALISE, ONLY: NTHERMALISE, NEQUIL, NCENTRE, NRMANG, NRESCALE, NEQDUMPE
          USE MINIMISATION, ONLY: ITMAX, MUPDATE, EPS
          ! USE FILE_UTILS, ONLY: FILE_EXIST
         
@@ -240,8 +240,6 @@ MODULE MD_SETUP
          ! Description: Time steps to be used
          ELSE IF (WORD .EQ. 'THERMALISATION') THEN
             THERMINIT = .TRUE.
-
-            CALL READF(TFINAL)
             CALL READI(NTHERMALISE)
             CALL READI(NEQUIL)
             IF (NITEMS.GT.3) THEN
@@ -254,6 +252,7 @@ MODULE MD_SETUP
                END IF
             ELSE
                TINIT = 0.0D0
+               TFINAL = -1.0D0
             END IF
             
 
@@ -263,7 +262,8 @@ MODULE MD_SETUP
          ELSE IF (WORD .EQ. 'THERMALISE_OPTIONS') THEN
             CALL READI(NCENTRE)
             CALL READI(NRMANG)
-            CALL READI(NRESCALE)          
+            CALL READI(NRESCALE)  
+            CALL READI(NEQDUMPE)        
 
          ! Keyword: TIMESTEP
          ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
