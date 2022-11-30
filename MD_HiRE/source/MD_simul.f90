@@ -2,47 +2,69 @@ MODULE MD_SIMULATION
    CONTAINS
       SUBROUTINE ZERO_STEP()
          USE MD_COMMONS, ONLY: NATOMS, MYUNIT, COORDS, EPOT, EKIN, ACC, VEL, TEMP, &
-                               NOPT, MDMETHOD, TFINAL, TINIT, THERMINIT
+                               NOPT, MDMETHOD, TFINAL, TINIT, THERMINIT, RESTARTSIMT, &
+                               RESTARTINPF, RESTARTSTEP
          USE MD_UTILS, ONLY: SET_DERIVED_PARAMS
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
-         USE MD_CALCS, ONLY: GET_ACC
+         USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
          USE MOD_THERMALISE, ONLY: THERMALISE
+         USE MOD_RESTART, ONLY: READ_RST_FILE
          USE NUMKIND
          IMPLICIT NONE
          REAL(KIND = REAL64) :: GRAD(NOPT)
+         REAL(KIND = REAL64) :: TNEW
          INTEGER :: I, J, IDX
          ! set half step and friction params
          CALL SET_DERIVED_PARAMS()
+         IF (RESTARTSIMT) THEN
+            CALL READ_RST_FILE(RESTARTINPF, RESTARTSTEP, TNEW, COORDS, VEL)
+            IF (TNEW.NE.TEMP) THEN
+               WRITE(MYUNIT,*) " mdhire> WARNING - Temperature in restart file of ", TNEW, " does not match simulation T of ", TEMP
+            END IF
+            EKIN = E_KINETIC(VEL)
+         END IF
          ! get initial energies
          CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, GRAD)
          ! get acceleration
          CALL GET_ACC(GRAD,ACC)
+
+         IF (.NOT.RESTARTSIMT) THEN
+            IF (THERMINIT) THEN
+               IF (TFINAL.LT.0.0D0) THEN
+                  TFINAL = TEMP
+               END IF
+               WRITE(MYUNIT,*) " mdhire> Thermalisation from ", TINIT, " to ", TFINAL   
+               CALL THERMALISE(TINIT, TFINAL, COORDS, VEL, ACC, EPOT)
+               IF (TEMP.NE.TFINAL) THEN
+                  WRITE(MYUNIT,*) " mdhire> WARNING: Final T of thermalisation is not the same as simulation T."
+               END IF
+            ELSE
+               WRITE(MYUNIT,'(A)') " mdhire> Calling velocity initialisation"     
+               CALL INITIALISE_VEL(TEMP)
+            END IF
+         END IF
          WRITE(MYUNIT,'(2(A,F12.4))') " mdhire> Initial energies - EPOT= ", EPOT, "; EKIN= ", EKIN
          WRITE(MYUNIT, '(A)') " "
-         IF (THERMINIT) THEN
-            IF (TFINAL.LT.0.0D0) THEN
-               TFINAL = TEMP
-            END IF
-            WRITE(MYUNIT,*) " mdhire> Thermalisation from ", TINIT, " to ", TFINAL   
-            CALL THERMALISE(TINIT, TFINAL, COORDS, VEL, ACC, EPOT)
-            IF (TEMP.NE.TFINAL) THEN
-               WRITE(MYUNIT,*) " mdhire> WARNING: Final T of thermalisation is not the same as simulation T."
-            END IF
-         ELSE
-            WRITE(MYUNIT,'(A)') " mdhire> Calling velocity initialisation"     
-            CALL INITIALISE_VEL(TEMP)
-         END IF
       END SUBROUTINE ZERO_STEP
 
       SUBROUTINE RUN_MD()
-         USE MD_COMMONS, ONLY: MDSTEPS
+         USE MD_COMMONS, ONLY: MDSTEPS, RESTARTSTEP, CONTINUESIMT
          IMPLICIT NONE
          INTEGER :: J
 
-         DO J=1,MDSTEPS
-            CALL TAKE_MDSTEP(J)
-            CALL DUMPDATA(J)
-         END DO
+         IF (CONTINUESIMT) THEN
+            IF (RESTARTSTEP.LT.MDSTEPS) THEN
+               DO J=RESTARTSTEP, MDSTEPS
+                  CALL TAKE_MDSTEP(J)
+                  CALL DUMPDATA(J)
+               END DO 
+            END IF
+         ELSE
+            DO J=1,MDSTEPS
+               CALL TAKE_MDSTEP(J)
+               CALL DUMPDATA(J)
+            END DO
+         END IF
       END SUBROUTINE RUN_MD
 
       SUBROUTINE TAKE_MDSTEP(CURRSTEP)
@@ -84,8 +106,10 @@ MODULE MD_SIMULATION
       END SUBROUTINE TAKE_MDSTEP
 
       SUBROUTINE DUMPDATA(CURRSTEP)
-         USE MD_COMMONS, ONLY: NATOMS, XUNIT, EUNIT, DUMPPDBT, NDUMPE, NDUMPP, NDUMPX, COORDS, EKIN, EPOT
+         USE MD_COMMONS, ONLY: NATOMS, XUNIT, EUNIT, DUMPPDBT, NDUMPE, NDUMPP, NDUMPX, NDUMPRST, &
+                               COORDS, VEL, EKIN, EPOT
          USE HIRE_INTERFACE, ONLY: DUMP_PDB
+         USE MOD_RESTART, ONLY: WRITE_RST_FILE
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: CURRSTEP
          INTEGER :: I
@@ -110,6 +134,10 @@ MODULE MD_SIMULATION
                PDBNAME = "mdx_"//ADJUSTL(TRIM(JSTRING))//".pdb"
                CALL DUMP_PDB(3*NATOMS,COORDS,PDBNAME,.TRUE.)
             END IF
-         END IF         
+         END IF 
+         !write restart file
+         IF (MOD(CURRSTEP,NDUMPRST).EQ.0) THEN
+            CALL WRITE_RST_FILE(CURRSTEP, COORDS, VEL)
+         END IF
       END SUBROUTINE DUMPDATA
 END MODULE MD_SIMULATION

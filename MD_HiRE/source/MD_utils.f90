@@ -61,6 +61,16 @@ MODULE MD_COMMONS
    REAL(KIND = REAL64) ::  TINIT = 1.0D-6
    ! Final temperature
    REAL(KIND = REAL64) ::  TFINAL = 0.616 
+   ! Restart simulation from restart file
+   LOGICAL :: RESTARTSIMT = .FALSE.
+   ! Step number in restart file
+   INTEGER :: RESTARTSTEP = 0
+   ! Continue simulation at RESTARTSTEP?
+   LOGICAL :: CONTINUESIMT = .FALSE.
+   ! Restart input file
+   CHARACTER(LEN=25) :: RESTARTINPF = "md_restart.dat"
+   ! Frequency to dump restart file
+   INTEGER :: NDUMPRST = 1000
    SAVE
 END MODULE MD_COMMONS
 

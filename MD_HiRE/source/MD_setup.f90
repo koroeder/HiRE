@@ -10,7 +10,8 @@ MODULE MD_SETUP
       END SUBROUTINE START_TRACKING
 
       SUBROUTINE SETUP_POTENTIAL()
-         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, NOPT, TOPNAME, SCALEDATNAME, COORDSFILE, MASSES, COORDS, MININITIAL
+         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, NOPT, TOPNAME, SCALEDATNAME, COORDSFILE, &
+                               MASSES, COORDS, MININITIAL, RESTARTSIMT
          USE HIRE_INTERFACE, ONLY: HIRE_INITIALISE, PASS_HIRE_MASSES
          USE MD_UTILS, ONLY: ALLOC_COMMONS, RUNMIN
          USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
@@ -24,18 +25,20 @@ MODULE MD_SETUP
          ! allocate the relevant arrays
          CALL ALLOC_COMMONS()
 
-         ! get coordinates
-         IF (FILE_EXIST(COORDSFILE)) THEN
-            CALL FILE_OPEN(COORDSFILE,XUNIT,.FALSE.)
-            READ(XUNIT, *) (COORDS(J), J=1,3*NATOMS)
-            CLOSE(XUNIT)
-            ! minimise coordinates
-            IF (MININITIAL) THEN
-               CALL RUNMIN(COORDS)
+         IF (.NOT.RESTARTSIMT) THEN
+            ! get coordinates
+            IF (FILE_EXIST(COORDSFILE)) THEN
+               CALL FILE_OPEN(COORDSFILE,XUNIT,.FALSE.)
+               READ(XUNIT, *) (COORDS(J), J=1,3*NATOMS)
+               CLOSE(XUNIT)
+               ! minimise coordinates
+               IF (MININITIAL) THEN
+                  CALL RUNMIN(COORDS)
+               END IF
+            ELSE
+               WRITE(MYUNIT,*) " setup> Cannot locate input file for coordinates - ", COORDSFILE
+               STOP
             END IF
-         ELSE
-            WRITE(MYUNIT,*) " setup> Cannot locate input file for coordinates - ", COORDSFILE
-            STOP
          END IF
 
          ! get particle masses
@@ -75,6 +78,7 @@ MODULE MD_SETUP
         
          IMPLICIT NONE
          CHARACTER(25), INTENT(IN) :: WORD
+         CHARACTER(1) :: CONTINUEDUMMY = "F"
         
          ! Keyword IF clause - first is comments, last is unrecognised command,
          ! everything else in alphabetical order
@@ -131,6 +135,12 @@ MODULE MD_SETUP
          ELSE IF (WORD .EQ. 'DUMPPDB') THEN
             CALL READI(NDUMPP) 
             DUMPPDBT = .TRUE.
+
+         ! Keyword: DUMPRST
+         ! Added: 30/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Description: Interval to write restart file
+         ELSE IF (WORD .EQ. 'DUMPRST') THEN
+            CALL READI(NDUMPRST)            
 
          !+++++++++++++++!   
          ! LETTER E      !
@@ -215,6 +225,16 @@ MODULE MD_SETUP
          ! LETTER R      !
          !+++++++++++++++! 
 
+         ! Keyword: RESTART
+         ! Added: 30/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Description: Restart simulation from restart file
+         ELSE IF (WORD .EQ. 'RESTART') THEN
+            RESTARTSIMT = .TRUE.
+            CALL READA(RESTARTINPF)
+            CALL READA(CONTINUEDUMMY)
+            IF (CONTINUEDUMMY.EQ."T") CONTINUESIMT=.TRUE.
+            
+
          !+++++++++++++++!   
          ! LETTER S      !
          !+++++++++++++++!
@@ -236,8 +256,8 @@ MODULE MD_SETUP
             CALL READF(TEMP)
 
          ! Keyword: THERMALISATION
-         ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
-         ! Description: Time steps to be used
+         ! Added: 20/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Description: Thermalisation
          ELSE IF (WORD .EQ. 'THERMALISATION') THEN
             THERMINIT = .TRUE.
             CALL READI(NTHERMALISE)
@@ -257,8 +277,8 @@ MODULE MD_SETUP
             
 
          ! Keyword: THERMALISE_OPTIONS
-         ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
-         ! Description: Time steps to be used
+         ! Added: 20/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Description: Thermalisation settings
          ELSE IF (WORD .EQ. 'THERMALISE_OPTIONS') THEN
             CALL READI(NCENTRE)
             CALL READI(NRMANG)
@@ -273,7 +293,7 @@ MODULE MD_SETUP
 
          ! Keyword: TOPOLOGY
          ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
-         ! Description: Time steps to be used
+         ! Description: Topology to be used
          ELSE IF (WORD .EQ. 'TOPOLOGY') THEN
             CALL READA(TOPNAME)
 
