@@ -12,15 +12,15 @@ MODULE MOD_INTEGRATORS
       !> 3. \f( \mathbf{a}(t+\Delta t)\f) from potential\n
       !> 4. \f( \mathbf{V}(t+\Delta t)\,=\,\mathbf{v}(t+\frac{1}{2}\Delta t)\,+\,\frac{1}{2}\mathbf{a}(t+\Delta t)\Delta t\f) \n      
    
-      SUBROUTINE VELOCITY_VERLET(X, VEL, ACC, EPOT)
+      SUBROUTINE VELOCITY_VERLET(X, VEL, ACC, EPOT, EKIN)
          USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DT
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
-         USE MD_CALCS, ONLY: GET_ACC
+         USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
          IMPLICIT NONE
          REAL(KIND=REAL64), INTENT(INOUT) :: X(NOPT)
          REAL(KIND=REAL64), INTENT(INOUT) :: VEL(NOPT)
          REAL(KIND=REAL64), INTENT(INOUT) :: ACC(NOPT)
-         REAL(KIND=REAL64), INTENT(OUT) :: EPOT
+         REAL(KIND=REAL64), INTENT(OUT) :: EPOT, EKIN 
          REAL(KIND=REAL64) :: GRAD(NOPT)
 
          ! calculate velocity at half step
@@ -33,18 +33,20 @@ MODULE MOD_INTEGRATORS
          CALL GET_ACC(GRAD,ACC)
          ! calculate full step velocity
          VEL(1:NOPT) = VEL(1:NOPT) + ACC(1:NOPT)*HDT
+         ! get kinetic energy
+         EKIN = E_KINETIC(VEL)
       END SUBROUTINE VELOCITY_VERLET
 
       !> Velocity-verlet algorithm assuming the acceleration is only position dependent
-      SUBROUTINE VELOCITY_VERLET2(X, VEL, ACC, EPOT)
+      SUBROUTINE VELOCITY_VERLET2(X, VEL, ACC, EPOT, EKIN)
         USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DT
         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
-        USE MD_CALCS, ONLY: GET_ACC
+        USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
         IMPLICIT NONE
         REAL(KIND=REAL64), INTENT(INOUT) :: X(NOPT)
         REAL(KIND=REAL64), INTENT(INOUT) :: VEL(NOPT)
         REAL(KIND=REAL64), INTENT(INOUT) :: ACC(NOPT)
-        REAL(KIND=REAL64), INTENT(OUT) :: EPOT
+        REAL(KIND=REAL64), INTENT(OUT) :: EPOT, EKIN 
         REAL(KIND=REAL64) :: GRAD(NOPT), OLDACC(NOPT)
 
         ! calculate new coordinates
@@ -57,19 +59,21 @@ MODULE MOD_INTEGRATORS
         CALL GET_ACC(GRAD,ACC)
         ! calculate full step velocity
         VEL(1:NOPT) = VEL(1:NOPT) + (OLDACC(1:NOPT) + ACC(1:NOPT))*HDT
+         ! get kinetic energy
+        EKIN = E_KINETIC(VEL)
      END SUBROUTINE VELOCITY_VERLET2      
 
-     SUBROUTINE LANGEVIN_STEP(TEMP,X,VEL,ACC,EPOT)
+     SUBROUTINE LANGEVIN_STEP(TEMP,X,VEL,ACC,EPOT, EKIN)
         USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DT, GFRIC, GAMMA, MASSES
         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
-        USE MD_CALCS, ONLY: GET_ACC
+        USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
         USE RAND_ROUTINES, ONLY: RAND_NORMAL
         IMPLICIT NONE
         REAL(KIND=REAL64), INTENT(IN) :: TEMP      
         REAL(KIND=REAL64), INTENT(INOUT) :: X(NOPT)
         REAL(KIND=REAL64), INTENT(INOUT) :: VEL(NOPT)
         REAL(KIND=REAL64), INTENT(INOUT) :: ACC(NOPT)
-        REAL(KIND=REAL64), INTENT(OUT) :: EPOT        
+        REAL(KIND=REAL64), INTENT(OUT) :: EPOT, EKIN        
         REAL(KIND=REAL64) :: GRAD(NOPT)
         REAL(KIND = REAL64) :: NR1, NR2
         REAL(KIND = REAL64) :: NOISE(NATOMS)
@@ -104,6 +108,8 @@ MODULE MOD_INTEGRATORS
                VEL(IDX) = GFRIC*VEL(IDX) + ACC(IDX)*HDT + NR2*NOISE(I)
             END DO
          END DO
+         ! get kinetic energy
+         EKIN = E_KINETIC(VEL)
      END SUBROUTINE LANGEVIN_STEP
 
      SUBROUTINE SCALEVEL(TEMP,VEL)
