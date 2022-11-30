@@ -11,11 +11,19 @@ MODULE MD_CALCS
          DO I=1,NATOMS
             DO J=1,3
                IDX = 3*(I-1) + J
-               EKIN = EKIN + VEL(IDX)*VEL(IDX)/MASSES(I)
+               EKIN = EKIN + VEL(IDX)*VEL(IDX)*MASSES(I)
             END DO
          END DO
          EKIN = 0.5*EKIN
       END FUNCTION E_KINETIC
+
+      REAL(KIND=REAL64) FUNCTION CURRENT_T(VEL) RESULT(CURRTEMP)
+         USE MD_COMMONS, ONLY: NOPT
+         REAL(KIND=REAL64), INTENT(IN) :: VEL(NOPT)
+         REAL(KIND=REAL64) :: EKIN
+         EKIN = E_KINETIC(VEL)
+         CURRTEMP = 2.0D0*EKIN/DBLE(NOPT)         
+      END FUNCTION CURRENT_T
 
       ! subroutine to get accelaration form gradient
       SUBROUTINE GET_ACC(GRAD,ACC)
@@ -58,10 +66,10 @@ MODULE MD_CALCS
          END DO
          TOTALMASS = SUM(MASSES)/3
          COM = COM/TOTALMASS
-         WRITE(MYUNIT,'(A,3(F15.6))') " linmom> Centre of mass:             ", &
-                                      COM(1), COM(2), COM(3)
-         WRITE(MYUNIT,'(A,3(F15.6))') " linmom> Momentum of centre of mass: ", &
-                                      PCOM(1), PCOM(2), PCOM(3)
+         ! WRITE(MYUNIT,'(A,3(F15.6))') " linmom> Centre of mass:             ", &
+         !                             COM(1), COM(2), COM(3)
+         ! WRITE(MYUNIT,'(A,3(F15.6))') " linmom> Momentum of centre of mass: ", &
+         !                             PCOM(1), PCOM(2), PCOM(3)
       END SUBROUTINE DETERMINE_LINMOM
 
       SUBROUTINE REMOVE_LINMOM(X,VEL,CENTRET)
@@ -136,8 +144,8 @@ MODULE MD_CALCS
          DO J=1,3
             W(J) = DOT_PRODUCT(MOI(J,1:3),ANGMOM(1:3))
          END DO
-         WRITE(MYUNIT,'(A,3(F15.6))') " get_angmom> Angular momentum:           ", ANGMOM(1:3)
-         WRITE(MYUNIT,'(A,3(F15.6))') " get_angmom> Angular velocity:           ", W(1:3)      
+         ! WRITE(MYUNIT,'(A,3(F15.6))') " get_angmom> Angular momentum:           ", ANGMOM(1:3)
+         ! WRITE(MYUNIT,'(A,3(F15.6))') " get_angmom> Angular velocity:           ", W(1:3)      
       END SUBROUTINE GET_ANGMOM
 
       SUBROUTINE REMOVE_ANGVEL(X,VEL)
@@ -165,6 +173,6 @@ MODULE MD_CALCS
             END DO
             ANG_MOM = ANG_MOM + CROSSP(ATX,P)
          END DO
-         WRITE(MYUNIT,'(A,3(F15.6))') " rm_angvel> Final angular momentum:     ", ANG_MOM(1:3)
+         ! WRITE(MYUNIT,'(A,3(F15.6))') " rm_angvel> Final angular momentum:     ", ANG_MOM(1:3)
       END SUBROUTINE REMOVE_ANGVEL
 END MODULE MD_CALCS
