@@ -118,7 +118,7 @@ MODULE MD_UTILS
          IF (MDMETHOD.EQ."VV") THEN
             WRITE(MYUNIT,'(A)') " settings> MD simulation will use Velocity-Verlet"
          ELSE IF (MDMETHOD.EQ."LD") THEN
-            WRITE(MYUNIT,'(A)') " settings> MD simulation will use LAngevin dynamics"
+            WRITE(MYUNIT,'(A)') " settings> MD simulation will use Langevin dynamics"
             WRITE(MYUNIT,'(A,F6.2)') " settings> Gamma value for Langevin dynamics: ", GAMMA
          ELSE 
             WRITE(MYUNIT,'(2A)') " settings> MD method not recognised: ", MDMETHOD
