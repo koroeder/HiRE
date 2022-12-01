@@ -10,7 +10,8 @@ MODULE MD_SETUP
       END SUBROUTINE START_TRACKING
 
       SUBROUTINE SETUP_POTENTIAL()
-         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, TOPNAME, SCALEDATNAME, COORDSFILE, MASSES, COORDS, MININITIAL
+         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, NOPT, TOPNAME, SCALEDATNAME, COORDSFILE, &
+                               MASSES, COORDS, MININITIAL, RESTARTSIMT
          USE HIRE_INTERFACE, ONLY: HIRE_INITIALISE, PASS_HIRE_MASSES
          USE MD_UTILS, ONLY: ALLOC_COMMONS, RUNMIN
          USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
@@ -19,21 +20,25 @@ MODULE MD_SETUP
          !first initialise the HiRE interface
          CALL HIRE_INITIALISE(TOPNAME, SCALEDATNAME, NATOMS)
 
+         NOPT = 3*NATOMS
+
          ! allocate the relevant arrays
          CALL ALLOC_COMMONS()
 
-         ! get coordinates
-         IF (FILE_EXIST(COORDSFILE)) THEN
-            CALL FILE_OPEN(COORDSFILE,XUNIT,.FALSE.)
-            READ(XUNIT, *) (COORDS(J), J=1,3*NATOMS)
-            CLOSE(XUNIT)
-            ! minimise coordinates
-            IF (MININITIAL) THEN
-               CALL RUNMIN(COORDS)
+         IF (.NOT.RESTARTSIMT) THEN
+            ! get coordinates
+            IF (FILE_EXIST(COORDSFILE)) THEN
+               CALL FILE_OPEN(COORDSFILE,XUNIT,.FALSE.)
+               READ(XUNIT, *) (COORDS(J), J=1,3*NATOMS)
+               CLOSE(XUNIT)
+               ! minimise coordinates
+               IF (MININITIAL) THEN
+                  CALL RUNMIN(COORDS)
+               END IF
+            ELSE
+               WRITE(MYUNIT,*) " setup> Cannot locate input file for coordinates - ", COORDSFILE
+               STOP
             END IF
-         ELSE
-            WRITE(MYUNIT,*) " setup> Cannot locate input file for coordinates - ", COORDSFILE
-            STOP
          END IF
 
          ! get particle masses
@@ -67,11 +72,13 @@ MODULE MD_SETUP
       SUBROUTINE SETKEYS(WORD)
          USE INPUTMOD
          USE MD_COMMONS                  ! global variables
+         USE MOD_THERMALISE, ONLY: NTHERMALISE, NEQUIL, NCENTRE, NRMANG, NRESCALE, NEQDUMPE
          USE MINIMISATION, ONLY: ITMAX, MUPDATE, EPS
          ! USE FILE_UTILS, ONLY: FILE_EXIST
         
          IMPLICIT NONE
          CHARACTER(25), INTENT(IN) :: WORD
+         CHARACTER(1) :: CONTINUEDUMMY = "F"
         
          ! Keyword IF clause - first is comments, last is unrecognised command,
          ! everything else in alphabetical order
@@ -129,6 +136,12 @@ MODULE MD_SETUP
             CALL READI(NDUMPP) 
             DUMPPDBT = .TRUE.
 
+         ! Keyword: DUMPRST
+         ! Added: 30/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Description: Interval to write restart file
+         ELSE IF (WORD .EQ. 'DUMPRST') THEN
+            CALL READI(NDUMPRST)            
+
          !+++++++++++++++!   
          ! LETTER E      !
          !+++++++++++++++!
@@ -171,6 +184,12 @@ MODULE MD_SETUP
          ! LETTER M      !
          !+++++++++++++++!
 
+         ! Keyword: MDMODE
+         ! Added: 28/11/2022 (kr366), last modified: 28/11/2022 (kr366)
+         ! Description: MD method to be used: VV for Velocity Verlet or LD for Langevin Dynamics
+         ELSE IF (WORD .EQ. 'MDMODE') THEN
+            CALL READA(MDMETHOD)
+
          ! Keyword: MDSTEPS
          ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
          ! Description: Number of MD steps to be taken
@@ -206,6 +225,16 @@ MODULE MD_SETUP
          ! LETTER R      !
          !+++++++++++++++! 
 
+         ! Keyword: RESTART
+         ! Added: 30/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Description: Restart simulation from restart file
+         ELSE IF (WORD .EQ. 'RESTART') THEN
+            RESTARTSIMT = .TRUE.
+            CALL READA(RESTARTINPF)
+            CALL READA(CONTINUEDUMMY)
+            IF (CONTINUEDUMMY.EQ."T") CONTINUESIMT=.TRUE.
+            
+
          !+++++++++++++++!   
          ! LETTER S      !
          !+++++++++++++++!
@@ -222,9 +251,39 @@ MODULE MD_SETUP
 
          ! Keyword: TEMPERATURE
          ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
-         ! Description: Time steps to be used
+         ! Description: Temperature to be used
          ELSE IF (WORD .EQ. 'TEMPERATURE') THEN
             CALL READF(TEMP)
+
+         ! Keyword: THERMALISATION
+         ! Added: 20/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Description: Thermalisation
+         ELSE IF (WORD .EQ. 'THERMALISATION') THEN
+            THERMINIT = .TRUE.
+            CALL READI(NTHERMALISE)
+            CALL READI(NEQUIL)
+            IF (NITEMS.GT.3) THEN
+               CALL READF(TINIT)
+               IF (NITEMS.GT.4) THEN
+                  CALL READF(TFINAL)
+               ELSE
+                  ! set TFINAL to be negative, we then set it to TEMP later
+                  TFINAL = -1.0D0
+               END IF
+            ELSE
+               TINIT = 0.0D0
+               TFINAL = -1.0D0
+            END IF
+            
+
+         ! Keyword: THERMALISE_OPTIONS
+         ! Added: 20/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Description: Thermalisation settings
+         ELSE IF (WORD .EQ. 'THERMALISE_OPTIONS') THEN
+            CALL READI(NCENTRE)
+            CALL READI(NRMANG)
+            CALL READI(NRESCALE)  
+            CALL READI(NEQDUMPE)        
 
          ! Keyword: TIMESTEP
          ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
@@ -234,7 +293,7 @@ MODULE MD_SETUP
 
          ! Keyword: TOPOLOGY
          ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
-         ! Description: Time steps to be used
+         ! Description: Topology to be used
          ELSE IF (WORD .EQ. 'TOPOLOGY') THEN
             CALL READA(TOPNAME)
 

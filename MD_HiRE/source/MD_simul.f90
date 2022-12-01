@@ -1,90 +1,119 @@
 MODULE MD_SIMULATION
    CONTAINS
       SUBROUTINE ZERO_STEP()
-         USE MD_COMMONS, ONLY: NATOMS, MYUNIT, COORDS, EPOT, EKIN, ACC, MASSES
+         USE MD_COMMONS, ONLY: NATOMS, MYUNIT, COORDS, EPOT, EKIN, ACC, VEL, TEMP, &
+                               NOPT, MDMETHOD, TFINAL, TINIT, THERMINIT, RESTARTSIMT, &
+                               RESTARTINPF, RESTARTSTEP
          USE MD_UTILS, ONLY: SET_DERIVED_PARAMS
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
+         USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
+         USE MOD_THERMALISE, ONLY: THERMALISE
+         USE MOD_RESTART, ONLY: READ_RST_FILE
+         USE NUMKIND
          IMPLICIT NONE
+         REAL(KIND = REAL64) :: GRAD(NOPT)
+         REAL(KIND = REAL64) :: TNEW
          INTEGER :: I, J, IDX
          ! set half step and friction params
          CALL SET_DERIVED_PARAMS()
+         IF (RESTARTSIMT) THEN
+            CALL READ_RST_FILE(RESTARTINPF, RESTARTSTEP, TNEW, COORDS, VEL)
+            IF (TNEW.NE.TEMP) THEN
+               WRITE(MYUNIT,*) " mdhire> WARNING - Temperature in restart file of ", TNEW, " does not match simulation T of ", TEMP
+            END IF
+            EKIN = E_KINETIC(VEL)
+         END IF
          ! get initial energies
-         CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, ACC)
-         DO I=1,NATOMS
-            DO J=1,3
-               IDX = 3*(I-1) + J
-               ACC(IDX) = -ACC(IDX)/MASSES(I)
-            END DO
-         END DO
+         CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, GRAD)
+         ! get acceleration
+         CALL GET_ACC(GRAD,ACC)
+
+         IF (.NOT.RESTARTSIMT) THEN
+            IF (THERMINIT) THEN
+               IF (TFINAL.LT.0.0D0) THEN
+                  TFINAL = TEMP
+               END IF
+               WRITE(MYUNIT,*) " mdhire> Thermalisation from ", TINIT, " to ", TFINAL   
+               CALL THERMALISE(TINIT, TFINAL, COORDS, VEL, ACC, EPOT)
+               IF (TEMP.NE.TFINAL) THEN
+                  WRITE(MYUNIT,*) " mdhire> WARNING: Final T of thermalisation is not the same as simulation T."
+               END IF
+            ELSE
+               WRITE(MYUNIT,'(A)') " mdhire> Calling velocity initialisation"     
+               CALL INITIALISE_VEL(TEMP)
+            END IF
+         END IF
          WRITE(MYUNIT,'(2(A,F12.4))') " mdhire> Initial energies - EPOT= ", EPOT, "; EKIN= ", EKIN
          WRITE(MYUNIT, '(A)') " "
       END SUBROUTINE ZERO_STEP
 
       SUBROUTINE RUN_MD()
-         USE MD_COMMONS, ONLY: MDSTEPS
+         USE MD_COMMONS, ONLY: MDSTEPS, RESTARTSTEP, CONTINUESIMT
          IMPLICIT NONE
          INTEGER :: J
 
-         DO J=1,MDSTEPS
-            CALL TAKE_MDSTEP(J)
-            CALL DUMPDATA(J)
-         END DO
+         IF (CONTINUESIMT) THEN
+            IF (RESTARTSTEP.LT.MDSTEPS) THEN
+               DO J=RESTARTSTEP, MDSTEPS
+                  CALL TAKE_MDSTEP(J)
+                  CALL DUMPDATA(J)
+               END DO 
+            END IF
+         ELSE
+            DO J=1,MDSTEPS
+               CALL TAKE_MDSTEP(J)
+               CALL DUMPDATA(J)
+            END DO
+         END IF
       END SUBROUTINE RUN_MD
 
       SUBROUTINE TAKE_MDSTEP(CURRSTEP)
          USE NUMKIND
-         USE MD_COMMONS, ONLY: MYUNIT, NATOMS, NDUMPE, HDT, DT, GAMMA, GFRIC, &
-                               COORDS, VEL, ACC, MASSES, EKIN, EPOT, TEMP 
+         USE MD_COMMONS, ONLY: MYUNIT, NOPT, NATOMS, NDUMPE, HDT, DT, GAMMA, GFRIC, &
+                               COORDS, VEL, ACC, MASSES, EKIN, EPOT, TEMP, MDMETHOD
          USE RAND_ROUTINES, ONLY: RAND_NORMAL
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
+         USE MOD_INTEGRATORS, ONLY: VELOCITY_VERLET, SCALEVEL, LANGEVIN_STEP
+         USE MD_CALCS, ONLY: CURRENT_T
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: CURRSTEP
          REAL(KIND = REAL64) :: NR1, NR2
+         REAL(KIND = REAL64) :: CURRTEMP
          REAL(KIND = REAL64) :: NOISE(NATOMS)
          INTEGER :: I, J, IDX
-         ! set noise to be used
-         DO I=1,NATOMS
-            NOISE(I) = DSQRT(TEMP*GAMMA*DT/MASSES(I))
-         END DO
 
-         DO I=1,NATOMS
-            DO J=1,3
-               IDX = 3*(I-1) + J
-               ! half-step velocity update
-               CALL RAND_NORMAL(1.0D0, 0.0D0, NR1)
-               VEL(IDX) = GFRIC*VEL(IDX) + ACC(IDX)*HDT + NR1*NOISE(I)
-               !update full-step coordinates
-               COORDS(IDX) = COORDS(IDX) + VEL(IDX)*DT
-            END DO
-         END DO
-         ! get new potential energy and gradient
-         CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, ACC)
-         EKIN=0.0D0
-         DO I=1,NATOMS
-            DO J=1,3
-               IDX = 3*(I-1) + J
-               ! update acceleration
-               ACC(IDX) = -ACC(IDX)/MASSES(I)
-               ! update full step velocity
-               CALL RAND_NORMAL(1.0D0, 0.0D0, NR2)
-               VEL(IDX) = GFRIC*VEL(IDX) + ACC(IDX)*HDT + NR2*NOISE(I)
-               ! get kinetic energy
-               EKIN = EKIN + MASSES(I)*VEL(IDX)*VEL(IDX)
-            END DO
-         END DO
-         EKIN = 0.5*EKIN
+         ! Velocity verlet?
+         IF (MDMETHOD.EQ.'VV') THEN
+            CALL VELOCITY_VERLET(COORDS, VEL, ACC, EPOT, EKIN)
+            CALL SCALEVEL(TEMP,VEL)
+         ! Langevin?
+         ELSE IF (MDMETHOD.EQ.'LD') THEN
+
+            CALL LANGEVIN_STEP(TEMP, COORDS, VEL, ACC, EPOT, EKIN)
+            !IF (MOD(J,NRESCALE).EQ.0) THEN                  
+            !   CALL SCALEVEL_LANGEVIN(TEMP,VEL)
+            !END IF
+         ELSE  
+            WRITE(MYUNIT,*) " thermalise> No valid MD steps detected"
+            STOP                
+         END IF
+
          IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
-            WRITE(MYUNIT,*) " mdsteps> Completed step    ", CURRSTEP
-            WRITE(MYUNIT,'(A,F12.4)') "          Total energy:     ", EPOT+EKIN           
-            WRITE(MYUNIT,'(A,F12.4)') "          Kinetic energy:   ", EKIN
-            WRITE(MYUNIT,'(A,F12.4)') "          Potential energy: ", EPOT
+            CURRTEMP = CURRENT_T(VEL)
+            WRITE(MYUNIT,*) " mdsteps> Completed step ", CURRSTEP
+            WRITE(MYUNIT,'(A,F12.4)') "           Total energy:        ", EPOT+EKIN           
+            WRITE(MYUNIT,'(A,F12.4)') "           Kinetic energy:      ", EKIN
+            WRITE(MYUNIT,'(A,F12.4)') "           Potential energy:    ", EPOT
+            WRITE(MYUNIT,'(A,F12.4)') "           Current temperature: ", CURRTEMP
             WRITE(MYUNIT,'(A,F12.4)') " --------------------------------------------------"
          END IF
       END SUBROUTINE TAKE_MDSTEP
 
       SUBROUTINE DUMPDATA(CURRSTEP)
-         USE MD_COMMONS, ONLY: NATOMS, XUNIT, EUNIT, DUMPPDBT, NDUMPE, NDUMPP, NDUMPX, COORDS, EKIN, EPOT
+         USE MD_COMMONS, ONLY: NATOMS, XUNIT, EUNIT, DUMPPDBT, NDUMPE, NDUMPP, NDUMPX, NDUMPRST, &
+                               COORDS, VEL, EKIN, EPOT
          USE HIRE_INTERFACE, ONLY: DUMP_PDB
+         USE MOD_RESTART, ONLY: WRITE_RST_FILE
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: CURRSTEP
          INTEGER :: I
@@ -109,6 +138,10 @@ MODULE MD_SIMULATION
                PDBNAME = "mdx_"//ADJUSTL(TRIM(JSTRING))//".pdb"
                CALL DUMP_PDB(3*NATOMS,COORDS,PDBNAME,.TRUE.)
             END IF
-         END IF         
+         END IF 
+         !write restart file
+         IF (MOD(CURRSTEP,NDUMPRST).EQ.0) THEN
+            CALL WRITE_RST_FILE(CURRSTEP, COORDS, VEL)
+         END IF
       END SUBROUTINE DUMPDATA
 END MODULE MD_SIMULATION

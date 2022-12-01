@@ -1,6 +1,8 @@
 MODULE MD_COMMONS
    USE NUMKIND
    IMPLICIT NONE
+   ! method used in MD, can be VV - Velocity Verlet or LD - Langevin Dynamics
+   CHARACTER(LEN=2) :: MDMETHOD = 'VV'
    ! number of MD steps to be taken
    INTEGER :: MDSTEPS = 0
    ! coordinates
@@ -15,6 +17,8 @@ MODULE MD_COMMONS
    REAL(KIND = REAL64) :: GAMMA = 1.0D-1 
    ! friction parameter
    REAL(KIND = REAL64) :: GFRIC
+   ! Langevin scaling parameter, currently not used
+   REAL(KIND = REAL64) :: LANGEVINSCALE = 0.1
    ! time step
    REAL(KIND = REAL64) :: DT = 1.0D-2
    ! half a time step
@@ -27,6 +31,8 @@ MODULE MD_COMMONS
    REAL(KIND = REAL64) :: EPOT
    ! number of atoms
    INTEGER :: NATOMS = 0
+   ! number of degrees of freedom
+   INTEGER :: NOPT = 0
    ! output unit for general output
    INTEGER :: MYUNIT
    ! output unit for structures
@@ -49,6 +55,22 @@ MODULE MD_COMMONS
    CHARACTER(LEN=25) :: COORDSFILE = "start"
    ! Minimise initial structure
    LOGICAL :: MININITIAL = .FALSE.
+   ! Use thermalisation
+   LOGICAL :: THERMINIT = .FALSE.
+   ! Initial temperature
+   REAL(KIND = REAL64) ::  TINIT = 1.0D-6
+   ! Final temperature
+   REAL(KIND = REAL64) ::  TFINAL = 0.616 
+   ! Restart simulation from restart file
+   LOGICAL :: RESTARTSIMT = .FALSE.
+   ! Step number in restart file
+   INTEGER :: RESTARTSTEP = 0
+   ! Continue simulation at RESTARTSTEP?
+   LOGICAL :: CONTINUESIMT = .FALSE.
+   ! Restart input file
+   CHARACTER(LEN=25) :: RESTARTINPF = "md_restart.dat"
+   ! Frequency to dump restart file
+   INTEGER :: NDUMPRST = 1000
    SAVE
 END MODULE MD_COMMONS
 
@@ -73,6 +95,18 @@ MODULE MD_UTILS
          IF (ALLOCATED(MASSES)) DEALLOCATE(MASSES)
       END SUBROUTINE DEALLOC_COMMONS    
       
+      SUBROUTINE TERMINATE_ERR(HIREINIT, ALLOCT)
+         USE HIRE_INTERFACE, ONLY: TERMINATE_HIRE
+         USE MD_COMMONS, ONLY: MYUNIT
+         IMPLICIT NONE
+         LOGICAL, INTENT(IN) :: HIREINIT, ALLOCT
+         WRITE(MYUNIT,'(A)') " terminate_err> Terminate simulation due to error"
+         IF (HIREINIT) CALL TERMINATE_HIRE()
+         IF (ALLOCT) CALL DEALLOC_COMMONS()
+         CLOSE(MYUNIT)
+         STOP
+      END SUBROUTINE TERMINATE_ERR
+
       SUBROUTINE REPORT_PARAMS()
          USE MD_COMMONS
          IMPLICIT NONE
@@ -81,7 +115,15 @@ MODULE MD_UTILS
          WRITE(MYUNIT,'(A)') " "
          WRITE(MYUNIT,'(A,I10,A)') " settings> Run MD simulation for ", MDSTEPS, " steps"
          WRITE(MYUNIT,'(A,F6.2)') " settings> Time step for simulation:          ", DT
-         WRITE(MYUNIT,'(A,F6.2)') " settings> Gamma value for Langevin dynamics: ", GAMMA
+         IF (MDMETHOD.EQ."VV") THEN
+            WRITE(MYUNIT,'(A)') " settings> MD simulation will use Velocity-Verlet"
+         ELSE IF (MDMETHOD.EQ."LD") THEN
+            WRITE(MYUNIT,'(A)') " settings> MD simulation will use Langevin dynamics"
+            WRITE(MYUNIT,'(A,F6.2)') " settings> Gamma value for Langevin dynamics: ", GAMMA
+         ELSE 
+            WRITE(MYUNIT,'(2A)') " settings> MD method not recognised: ", MDMETHOD
+            CALL TERMINATE_ERR(.FALSE., .FALSE.)
+         END IF
          WRITE(MYUNIT,'(A,F8.2)') " settings> Temperature for MD simulation:     ", TEMP
          WRITE(MYUNIT,'(A)') " "
       END SUBROUTINE REPORT_PARAMS
@@ -113,10 +155,10 @@ MODULE MD_UTILS
          CALL MINIMISE(3*NATOMS,X,ENERGY,ITDONE,MFLAG,MYUNIT)
          IF (COLDFUSION) THEN
             WRITE(MYUNIT,'(A)') " runmin> Cold fusion occured, minimisatio failed - STOP"
-            STOP
+            CALL TERMINATE_ERR(.TRUE., .TRUE.)
          ELSE IF (.NOT.MFLAG) THEN
             WRITE(MYUNIT,'(A)') " runmin> Minimisation did not converge - STOP"
-            STOP
+            CALL TERMINATE_ERR(.TRUE., .TRUE.)
          ELSE
             WRITE(MYUNIT,*) " runmin> Minimisation converged in ", ITDONE, " steps"
             WRITE(MYUNIT,*) "         Energy of minimum: ", ENERGY
@@ -125,7 +167,7 @@ MODULE MD_UTILS
       END SUBROUTINE RUNMIN
 
       SUBROUTINE SET_DERIVED_PARAMS()
-         USE MD_COMMONS, ONLY: DT, HDT, GAMMA, GFRIC
+         USE MD_COMMONS, ONLY: DT, HDT, GAMMA, GFRIC, NATOMS, NOPT
          IMPLICIT NONE
          HDT = 0.5*DT
          GFRIC = 1.0D0 - GAMMA*HDT
