@@ -20,7 +20,7 @@ MODULE MOD_THERMALISE
       
       SUBROUTINE THERMALISE(TINIT, TFINAL, X, VEL, ACC, EPOT)
          USE FILE_UTILS, ONLY: FILE_OPEN
-         USE MD_COMMONS, ONLY: NOPT, MDMETHOD, TEMP
+         USE MD_COMMONS, ONLY: NOPT, MDMETHOD, TEMP, EKIN
          USE MD_CALCS
          USE MOD_INTEGRATORS, ONLY: LANGEVIN_STEP, VELOCITY_VERLET, SCALEVEL, SCALEVEL_LANGEVIN
          REAL(KIND = REAL64), INTENT(IN) :: TINIT
@@ -30,7 +30,7 @@ MODULE MOD_THERMALISE
          REAL(KIND = REAL64), INTENT(INOUT) :: ACC(NOPT)
          REAL(KIND = REAL64), INTENT(OUT) :: EPOT                  
          REAL(KIND = REAL64) :: TEMPS(NTHERMALISE)
-         REAL(KIND = REAL64) :: DTEMP, TSMALL, EKIN, CURRTEMP
+         REAL(KIND = REAL64) :: DTEMP, TSMALL, CURRTEMP
          INTEGER :: I, J, EQUNIT
          ! Get the temperatures to be used in thermalisation
          ! If the initial T is zero, we set it to be very small, but non-zero
