@@ -78,6 +78,7 @@ MODULE MD_CALCS
          REAL(KIND=REAL64), INTENT(INOUT) :: VEL(NOPT) 
          LOGICAL, INTENT(IN) :: CENTRET                 
          REAL(KIND=REAL64) :: COM(3), PCOM(3)
+         REAL(KIND = REAL64) :: TOTALMASS
          INTEGER :: I, J, IDX
 
          CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
@@ -102,7 +103,9 @@ MODULE MD_CALCS
          REAL(KIND = REAL64) :: R(3)        ! position vector
          REAL(KIND = REAL64) :: R2          ! squared length of position vector
          REAL(KIND = REAL64) :: P(3)        ! momentum vector 
-         INTEGER :: I, J, K, IDX
+         REAL(KIND = REAL64) :: TOTALMASS
+         REAL(KIND = REAL64) :: WORK(3)
+         INTEGER :: I, J, K, IDX, PIVOT(3), STAT
 
          ! initialise angular momentum and moment of inertia
          ANGMOM(1:3) = 0.0D0
