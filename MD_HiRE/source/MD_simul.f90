@@ -74,9 +74,11 @@ MODULE MD_SIMULATION
          USE RAND_ROUTINES, ONLY: RAND_NORMAL
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          USE MOD_INTEGRATORS, ONLY: VELOCITY_VERLET, SCALEVEL, LANGEVIN_STEP
+         USE MD_CALCS, ONLY: CURRENT_T
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: CURRSTEP
          REAL(KIND = REAL64) :: NR1, NR2
+         REAL(KIND = REAL64) :: CURRTEMP
          REAL(KIND = REAL64) :: NOISE(NATOMS)
          INTEGER :: I, J, IDX
 
@@ -97,10 +99,12 @@ MODULE MD_SIMULATION
          END IF
 
          IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
+            CURRTEMP = CURRENT_T(VEL)
             WRITE(MYUNIT,*) " mdsteps> Completed step ", CURRSTEP
-            WRITE(MYUNIT,'(A,F12.4)') "           Total energy:     ", EPOT+EKIN           
-            WRITE(MYUNIT,'(A,F12.4)') "           Kinetic energy:   ", EKIN
-            WRITE(MYUNIT,'(A,F12.4)') "           Potential energy: ", EPOT
+            WRITE(MYUNIT,'(A,F12.4)') "           Total energy:        ", EPOT+EKIN           
+            WRITE(MYUNIT,'(A,F12.4)') "           Kinetic energy:      ", EKIN
+            WRITE(MYUNIT,'(A,F12.4)') "           Potential energy:    ", EPOT
+            WRITE(MYUNIT,'(A,F12.4)') "           Current temperature: ", CURRTEMP
             WRITE(MYUNIT,'(A,F12.4)') " --------------------------------------------------"
          END IF
       END SUBROUTINE TAKE_MDSTEP
