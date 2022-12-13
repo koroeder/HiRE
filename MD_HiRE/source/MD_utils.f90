@@ -1,6 +1,10 @@
 MODULE MD_COMMONS
    USE NUMKIND
    IMPLICIT NONE
+   ! number of tasks
+   INTEGER :: NTASKS = 1
+   ! task id for MPI
+   INTEGER :: TASKID = 0
    ! method used in MD, can be VV - Velocity Verlet or LD - Langevin Dynamics
    CHARACTER(LEN=2) :: MDMETHOD = 'VV'
    ! number of MD steps to be taken
@@ -129,11 +133,18 @@ MODULE MD_UTILS
       END SUBROUTINE REPORT_PARAMS
 
       SUBROUTINE MD_START()
-         USE MD_COMMONS, ONLY: MYUNIT
+         USE MD_COMMONS, ONLY: MYUNIT, NTASKS, TASKID
          USE FILE_UTILS, ONLY: FILE_OPEN, FILE_EXIST
+         IMPLICIT NONE
+         CHARACTER(LEN=6) :: STRID
 
          IF (FILE_EXIST("mddata")) THEN
-            CALL FILE_OPEN("mdout.log",MYUNIT,.TRUE.)
+            IF (NTASTKS.EQ.1) THEN
+               CALL FILE_OPEN("mdout.log",MYUNIT,.TRUE.)
+            ELSE
+               WRITE(STRID,'(I8)') TASKID
+               CALL FILE_OPEN("mdout.log."//ADJUSTL(TRIM(STRID)),MYUNIT,.TRUE.)
+            END IF
          ELSE
             WRITE(*,'(A)') " Cannot locate input file"
             STOP
