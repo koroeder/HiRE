@@ -11,15 +11,32 @@ PROGRAM MD_HIRE
    USE MD_SETUP, ONLY: READ_SETTINGS, SETUP_POTENTIAL, START_TRACKING
    USE MD_SIMULATION
    USE MD_UTILS, ONLY: REPORT_PARAMS, MD_START
+   USE MPI_UTILS, ONLY: COMMUNICATE_SETTINGS
    IMPLICIT NONE
    REAL(KIND=REAL64) :: TSTART, TEND, TSETUP, TEQ, TRUNS
+   INTEGER :: ERROR
+#ifdef MPI
+   CALL MPI_INIT(ERROR)
+   CALL MPI_COMM_SIZE(MPI_COMM_WORLD, NTASKS, ERROR)
+   CALL MPI_COMM_RANK(MPI_COMM_WORLD, TASKID, ERROR)
+#else
+   NTASKS = 1
+   TASKID = 0
+#endif
+
 
    CALL CPU_TIME(TSTART)
    ! 1. Simulation setup
    ! a) check the parameter input exists
    CALL MD_START()
-   ! b) Read in all the simulation settings
-   CALL READ_SETTINGS()
+   ! b) Read in all the simulation settings if we are tasks 0
+   IF (TASKID.EQ.0) THEN
+      CALL READ_SETTINGS()
+   END IF
+   ! communicate the variables
+#ifdef MPI
+   CALL COMMUNICATE_SETTINGS()
+#endif
    ! c) Report the settings for the simulation to the output file
    CALL REPORT_PARAMS()
    ! d) Initialise potential and get coordinates, mass and names from HiRE
