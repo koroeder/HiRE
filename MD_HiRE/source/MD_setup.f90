@@ -235,6 +235,16 @@ MODULE MD_SETUP
             IF (CONTINUEDUMMY.EQ."T") CONTINUESIMT=.TRUE.
             
 
+         ! Keyword: REXMD
+         ! Added: 13/12/2022 (kr366), last modified: 13/12/2022 (kr366)
+         ! Description: Replica exchange simualtion, either Hamiltonian or Temperature
+         ELSE IF (WORD .EQ. 'REXMD') THEN
+            REXT= .TRUE.
+            CALL READI(NREPLICA)
+            CALL READA(REXMODE)
+            CALL READF(LOWR)
+            CALL READF(HIGHR)
+
          !+++++++++++++++!   
          ! LETTER S      !
          !+++++++++++++++!

@@ -1,6 +1,16 @@
 MODULE MD_COMMONS
    USE NUMKIND
    IMPLICIT NONE
+   ! logical for REXMD
+   LOGICAL :: REXT = .FALSE.
+   ! REX method: T- Temperature, H- Hamiltonian
+   CHARACTER(LEN=1) :: REXMODE = "H"
+   ! number of replicas
+   INTEGER :: NREPLICA = 0
+   ! Lower bound for replicas
+   REAL(KIND = REAL64) :: LOWR = 0.0
+   ! Higher bound for replicas
+   REAL(KIND = REAL64) :: HIGHR = 1.0
    ! number of tasks
    INTEGER :: NTASKS = 1
    ! task id for MPI
