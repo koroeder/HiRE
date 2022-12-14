@@ -30,9 +30,7 @@ PROGRAM MD_HIRE
    ! a) check the parameter input exists
    CALL MD_START()
    ! b) Read in all the simulation settings if we are tasks 0
-   IF (TASKID.EQ.0) THEN
-      CALL READ_SETTINGS()
-   END IF
+   CALL READ_SETTINGS()
    ! communicate the variables
 #ifdef MPI
    CALL COMMUNICATE_SETTINGS()
