@@ -110,6 +110,14 @@ set(ALL_EXTRA_SOURCES ${ALL_DUMMIES})
 # LIBRARIES START HERE #
 ########################
 
+# MPI flag 
+option(WITH_MPI "Enable MPI compilation" OFF)
+if(WITH_MPI)
+  # append -DMPI to compile definitions
+  add_definitions(-DMPI) 
+  message("building with MPI: \n  ${CMAKE_Fortran_FLAGS}")   
+endif(WITH_MPI)
+
 # Find BLAS and LAPACK libraries
 find_package(MYBLAS)
 find_package(MYLAPACK)
