@@ -48,24 +48,47 @@ MODULE MD_SIMULATION
       END SUBROUTINE ZERO_STEP
 
       SUBROUTINE RUN_MD()
-         USE MD_COMMONS, ONLY: MDSTEPS, RESTARTSTEP, CONTINUESIMT
+         USE MD_COMMONS, ONLY: MDSTEPS, RESTARTSTEP, CONTINUESIMT, REXT
+         USE EXCHANGES, ONLY: MYCURRENTID, UPDATE_CURR_ORDER
          IMPLICIT NONE
          INTEGER :: J
 
+         IF (REXT) THEN
+            MYCURRENTID = TASKID + 1
+            CALL UPDATE_CURR_ORDER()
+         END IF
          IF (CONTINUESIMT) THEN
             IF (RESTARTSTEP.LT.MDSTEPS) THEN
                DO J=RESTARTSTEP, MDSTEPS
+                  IF (REXT) CALL EXCHANGEREPS(J)
                   CALL TAKE_MDSTEP(J)
                   CALL DUMPDATA(J)
                END DO 
             END IF
          ELSE
             DO J=1,MDSTEPS
+               IF (REXT) CALL EXCHANGEREPS(J)
                CALL TAKE_MDSTEP(J)
                CALL DUMPDATA(J)
             END DO
          END IF
       END SUBROUTINE RUN_MD
+
+      SUBROUTINE EXCHANGEREPS(J)
+         USE EXCHANGES, ONLY: SELECT_EXCHANGES
+         USE MD_COMMONS, ONLY: NREXSTEPS, MDSTEPS
+         IMPLICIT NONE
+         INTEGER, INTENT(IN) :: J
+
+         ! avoid exchanges towards the end of the simulation
+         IF ((MDSTEPS-J).LT.NREXSTEPS) THEN
+            RETURN
+         ELSE 
+            IF (MOD(J,NREXSTEPS).EQ.0) THEN
+               CALL SELECT_EXCHANGES()
+            END IF
+         END IF
+      END SUBROUTINE EXCHANGEREPS
 
       SUBROUTINE TAKE_MDSTEP(CURRSTEP)
          USE NUMKIND
