@@ -15,6 +15,8 @@ MODULE MD_COMMONS
    INTEGER :: NTASKS = 1
    ! task id for MPI
    INTEGER :: TASKID = 0
+   ! interval of REX steps
+   INTGER :: NREXSTEPS = 2500
    ! method used in MD, can be VV - Velocity Verlet or LD - Langevin Dynamics
    CHARACTER(LEN=2) :: MDMETHOD = 'VV'
    ! number of MD steps to be taken
