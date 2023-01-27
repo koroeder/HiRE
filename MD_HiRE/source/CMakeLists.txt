@@ -127,7 +127,7 @@ find_package(MYLAPACK)
 add_library(extralib ${ALL_EXTRA_SOURCES})
 set_module_dir(extralib)
 set_target_properties(extralib PROPERTIES LINKER_LANGUAGE "Fortran") 
-set_target_properties(extralib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};${DUMMY_CPP_FLAGS};__SPARSE")
+set_target_properties(extralib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__SPARSE")
 
 add_library(mdlib ${MD_SOURCES})
 set_module_dir(mdlib)
@@ -149,7 +149,7 @@ add_subdirectory(${GIT_ROOT}/HiRE_lib hire_interface)
 
 
 
-add_executable(HIREMD MD_HiRE.f90 ${DUMMY_HIRE})
+add_executable(HIREMD MD_HiRE.F90 ${DUMMY_HIRE})
 set_module_dir(HIREMD)
 set_module_depends(HIREMD mdlib hire_base)
 set_target_properties(HIREMD PROPERTIES LINKER_LANGUAGE "Fortran") 
