@@ -129,7 +129,7 @@ MODULE RMSD
             DO J=1,3
                R1=0.0D0
                DO K=1,3
-                  R1 = R1 + ROTMAT(J,K)*R0(K)
+                  R1 = R1 + RMAT(J,K)*R0(K)
                ENDDO
                X(3*(I-1)+J) = R1 + REFCX(J)
             ENDDO

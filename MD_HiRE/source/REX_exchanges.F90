@@ -11,7 +11,7 @@ MODULE EXCHANGES
    !> current id for node
    INTEGER :: MYCURRENTID
    !> contains the current order of replicas (the first id has the lowest T/highest lambda and the last id the highest T/lowest lambda)
-   INTEGER :: CURRENT_ORDER(NREPLICA)
+   INTEGER, ALLOCATABLE :: CURRENT_ORDER(:)
    CONTAINS
 
       SUBROUTINE SELECT_EXCHANGES()
@@ -187,7 +187,7 @@ MODULE EXCHANGES
 
 
       SUBROUTINE UPDATE_CURR_ORDER()
-         USE MD_COMMONS, ONLY NREPLICA, TASKID
+         USE MD_COMMONS, ONLY: NREPLICA, TASKID
          IMPLICIT NONE
 #ifdef MPI
          INTEGER :: NEWPOS
@@ -208,7 +208,7 @@ MODULE EXCHANGES
             CALL MPI_SEND(MYCURRENTID,1,MPI_INTEGER,0,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
          END IF
          CALL MPI_BCAST(CURRENT_ORDER,NREPLICA,MPI_INTEGER,0,MPI_COMM_WORLD,ERR_CODE_MPI)
-#end if
+#endif
       END SUBROUTINE UPDATE_CURR_ORDER
 ! get dedicated MPI function for everything - this will make things easier
 
