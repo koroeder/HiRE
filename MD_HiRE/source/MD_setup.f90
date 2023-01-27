@@ -25,6 +25,7 @@ MODULE MD_SETUP
          ! allocate the relevant arrays
          CALL ALLOC_COMMONS()
 
+
          IF (.NOT.RESTARTSIMT) THEN
             ! get coordinates
             IF (FILE_EXIST(COORDSFILE)) THEN
@@ -241,6 +242,7 @@ MODULE MD_SETUP
          ELSE IF (WORD .EQ. 'REXMD') THEN
             REXT= .TRUE.
             CALL READI(NREPLICA)
+            CALL READI(NREXSTEPS)
             CALL READA(REXMODE)
             CALL READF(LOWR)
             CALL READF(HIGHR)
