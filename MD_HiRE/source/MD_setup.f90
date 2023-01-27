@@ -7,6 +7,7 @@ MODULE MD_SETUP
          IMPLICIT NONE
          CALL FILE_OPEN("md_energy.log",EUNIT,.TRUE.)
          CALL FILE_OPEN("md_coords.xyz",XUNIT,.TRUE.)
+         IF (RMSDT) CALL FILE_OPEN("md_rmsd.log",RUNIT,.TRUE.)
       END SUBROUTINE START_TRACKING
 
       SUBROUTINE SETUP_POTENTIAL()
@@ -246,6 +247,14 @@ MODULE MD_SETUP
             CALL READA(REXMODE)
             CALL READF(LOWR)
             CALL READF(HIGHR)
+
+         ELSE IF (WORD .EQ. 'RMSD') THEN
+            RMSDT = .TRUE.
+            CALL READI(NDUMPR)
+            IF (NITEMS.GT.2) THEN
+               CALL READA(CONTINUEDUMMY)
+               IF (CONTINUEDUMMY.EQ."T") ALIGNCONFT = .TRUE.
+            END IF
 
          !+++++++++++++++!   
          ! LETTER S      !

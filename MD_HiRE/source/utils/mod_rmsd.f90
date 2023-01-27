@@ -1,4 +1,4 @@
-MODULE RMSD
+MODULE MOD_RMSD
    USE NUMKIND
    IMPLICIT NONE
    REAL(KIND = REAL64), ALLOCATABLE :: REFX(:)
@@ -10,7 +10,7 @@ MODULE RMSD
          INTEGER, INTENT(IN) :: NATOMS
          REAL(KIND = REAL64), INTENT(IN) :: X(3*NATOMS)
 
-         IF (.NOT.ALLOCATED(REFX)) ALLOCATE(REFX(NATOMS))
+         IF (.NOT.ALLOCATED(REFX)) ALLOCATE(REFX(3*NATOMS))
          ! set reference to new coordinates
          REFX(1:3*NATOMS) = X(1:3*NATOMS)
          ! find origin and centre the coordinates
@@ -168,4 +168,4 @@ MODULE RMSD
          END DO
       END SUBROUTINE CENTRE_COORDS
 
-END MODULE RMSD
+END MODULE MOD_RMSD

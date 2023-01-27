@@ -20,8 +20,9 @@ MODULE MOD_THERMALISE
       
       SUBROUTINE THERMALISE(TINIT, TFINAL, X, VEL, ACC, EPOT)
          USE FILE_UTILS, ONLY: FILE_OPEN
-         USE MD_COMMONS, ONLY: NOPT, MDMETHOD, TEMP, EKIN
+         USE MD_COMMONS, ONLY: NOPT, MDMETHOD, TEMP, EKIN, RMSDT, ALIGNCONFT
          USE MD_CALCS
+         USE MOD_RMSD, ONLY: GET_RMSD
          USE MOD_INTEGRATORS, ONLY: LANGEVIN_STEP, VELOCITY_VERLET, SCALEVEL, SCALEVEL_LANGEVIN
          REAL(KIND = REAL64), INTENT(IN) :: TINIT
          REAL(KIND = REAL64), INTENT(IN) :: TFINAL
@@ -31,7 +32,8 @@ MODULE MOD_THERMALISE
          REAL(KIND = REAL64), INTENT(OUT) :: EPOT                  
          REAL(KIND = REAL64) :: TEMPS(NTHERMALISE)
          REAL(KIND = REAL64) :: DTEMP, TSMALL, CURRTEMP
-         INTEGER :: I, J, EQUNIT
+         REAL(KIND = REAL64) :: DIST, RMSD
+         INTEGER :: I, J, EQUNIT, RQUNIT
          ! Get the temperatures to be used in thermalisation
          ! If the initial T is zero, we set it to be very small, but non-zero
          ! We then use equally spaced intervals
@@ -57,6 +59,7 @@ MODULE MOD_THERMALISE
          END IF
 
          CALL FILE_OPEN("md_ethermalisation.log",EQUNIT,.TRUE.)
+         IF (RMSDT) CALL FILE_OPEN("md_rmsd_therm.log",RQUNIT,.TRUE.)
 
          WRITE(MYUNIT,'(A,I8,A,I8,A)') " thermalise> Thermalise simulation in ", NTHERMALISE, " steps with ", NEQUIL, " equilibration steps for each new T"
          WRITE(MYUNIT,*) " "
@@ -101,6 +104,10 @@ MODULE MOD_THERMALISE
                   WRITE(MYUNIT,'(A,F7.4)') "             Current temperature: ", CURRTEMP
                   WRITE(MYUNIT,'(A,F12.4)') " --------------------------------------------------"
                   WRITE(EQUNIT,'(2I10,2(1X,F7.4),3(1X,F15.7))') I, J, TEMP, CURRTEMP, EPOT+EKIN, EPOT, EKIN 
+                  IF (RMSDT) THEN
+                     CALL GET_RMSD(NATOMS, X, DIST, RMSD, ALIGNCONFT)
+                     WRITE(RQUNIT,'(2I10,2(1X,F12.4))') I, J, DIST, RMSD
+                  END IF
                END IF
             END DO        
          END DO

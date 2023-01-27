@@ -55,12 +55,20 @@ MODULE MD_COMMONS
     INTEGER :: XUNIT
     ! output unit for energies
     INTEGER :: EUNIT
+    ! output unit for RMSD
+    INTEGER :: RUNIT
     ! output frequency for coordinates
     INTEGER :: NDUMPX
     ! output frequency for energy
     INTEGER :: NDUMPE   
     ! output frequency for pdb files
     INTEGER :: NDUMPP
+    ! output frequency for RMSD
+    INTEGER :: NDUMPR
+    ! record rmsd?
+    LOGICAL :: RMSDT = .FALSE.
+    ! Align structures when measuring RMSD?
+    LOGICAL :: ALIGNCONFT = .FALSE.
     ! dump pdb files
     LOGICAL :: DUMPPDBT = .FALSE.
     ! Name of topology file        

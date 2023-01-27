@@ -3,12 +3,13 @@ MODULE MD_SIMULATION
       SUBROUTINE ZERO_STEP()
          USE MD_COMMONS, ONLY: NATOMS, MYUNIT, COORDS, EPOT, EKIN, ACC, VEL, TEMP, &
                                NOPT, MDMETHOD, TFINAL, TINIT, THERMINIT, RESTARTSIMT, &
-                               RESTARTINPF, RESTARTSTEP
+                               RESTARTINPF, RESTARTSTEP, RMSDT
          USE MD_UTILS, ONLY: SET_DERIVED_PARAMS
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
          USE MOD_THERMALISE, ONLY: THERMALISE
          USE MOD_RESTART, ONLY: READ_RST_FILE
+         USE MOD_RMSD, ONLY: SET_REF
          USE NUMKIND
          IMPLICIT NONE
          REAL(KIND = REAL64) :: GRAD(NOPT)
@@ -23,6 +24,12 @@ MODULE MD_SIMULATION
             END IF
             EKIN = E_KINETIC(VEL)
          END IF
+
+         ! set reference for RMSD
+         IF (RMSDT) THEN
+            CALL SET_REF(NATOMS,COORDS)
+         END IF
+
          ! get initial energies
          CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, GRAD)
          ! get acceleration
@@ -138,12 +145,15 @@ MODULE MD_SIMULATION
 
       SUBROUTINE DUMPDATA(CURRSTEP)
          USE MD_COMMONS, ONLY: NATOMS, XUNIT, EUNIT, DUMPPDBT, NDUMPE, NDUMPP, NDUMPX, NDUMPRST, &
-                               COORDS, VEL, EKIN, EPOT
+                               COORDS, VEL, EKIN, EPOT, ALIGNCONFT, RMSDT, NDUMPR, RUNIT
          USE HIRE_INTERFACE, ONLY: DUMP_PDB
          USE MOD_RESTART, ONLY: WRITE_RST_FILE
+         USE MOD_RMSD, ONLY: GET_RMSD 
+         USE NUMKIND
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: CURRSTEP
          INTEGER :: I
+         REAL(KIND = REAL64) :: DIST, RMSD
          CHARACTER(LEN=15) :: JSTRING
          CHARACTER(LEN=30) :: PDBNAME
          !write energies
@@ -157,6 +167,13 @@ MODULE MD_SIMULATION
                WRITE(XUNIT,'(3F15.7)') COORDS(3*I-2), COORDS(3*I-1), COORDS(3*I)
             END DO
             WRITE(XUNIT,*) "-----------------------------------------------"
+         END IF
+         ! get RMSD
+         IF (RMSDT) THEN
+            IF (MOD(CURRSTEP,NDUMPR).EQ.0) THEN
+               CALL GET_RMSD(NATOMS, COORDS, DIST, RMSD, ALIGNCONFT)
+               WRITE(RUNIT,'(I10,2(1X,F12.4))') CURRSTEP, DIST, RMSD
+            END IF
          END IF
          !write pdb
          IF (DUMPPDBT) THEN
