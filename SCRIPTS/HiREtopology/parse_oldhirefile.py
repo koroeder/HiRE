@@ -81,7 +81,7 @@ def parse_chargedat(fname):
 def read_section(nentries,entriesperline,unit):
     nlines = math.ceil(float(nentries)/entriesperline)   
     out = list()
-    for i in range(nlines):
+    for i in range(int(nlines)):
         line = unit.readline().replace("\n","").replace("\r","")     
         out += line.split()
     return out
@@ -90,7 +90,7 @@ def read_section(nentries,entriesperline,unit):
 def read_section_fw(nentries,entriesperline,entrywidth,unit):
     nlines = math.ceil(float(nentries)/entriesperline)
     out = list()
-    for i in range(nlines):
+    for i in range(int(nlines)):
         line = unit.readline().replace("\n","").replace("\r","")
         list_of_strings = list()
         for i in range(0, len(line), entrywidth):
