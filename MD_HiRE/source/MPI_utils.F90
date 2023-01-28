@@ -1,10 +1,40 @@
-MODULE MD_MPI
+MODULE MPI_UTILS
    USE NUMKIND
    IMPLICIT NONE
 
    INTEGER :: ERR_CODE_MPI
    INTEGER :: REMD_TAG = 12
    CONTAINS
+
+      SUBROUTINE REPORT_PARAMS_MPI()
+         USE MD_COMMONS
+         USE MD_UTILS, ONLY: TERMINATE_ERR
+         IMPLICIT NONE
+         WRITE(MYUNIT,'(A)') " Molecular dynamics simulation for HiRE "
+         WRITE(MYUNIT,'(A)') " ______________________________________ "
+         WRITE(MYUNIT,'(A)') " "
+         WRITE(MYUNIT,'(A,I10,A)') " settings> Run MD simulation for ", MDSTEPS, " steps"
+         WRITE(MYUNIT,'(A,F6.2)') " settings> Time step for simulation:          ", DT
+         IF (MDMETHOD.EQ."VV") THEN
+            WRITE(MYUNIT,'(A)') " settings> MD simulation will use Velocity-Verlet"
+         ELSE IF (MDMETHOD.EQ."LD") THEN
+            WRITE(MYUNIT,'(A)') " settings> MD simulation will use Langevin dynamics"
+            WRITE(MYUNIT,'(A,F6.2)') " settings> Gamma value for Langevin dynamics: ", GAMMA
+         ELSE 
+            WRITE(MYUNIT,'(2A)') " settings> MD method not recognised: ", MDMETHOD
+            CALL TERMINATE_ERR(.FALSE., .FALSE.)
+         END IF
+         WRITE(MYUNIT,'(A,I6,A,I6)') " settings> This is a replica-exchange simulation with ", NREPLICA, &
+                                     ". This is replica ", TASKID+1
+         IF (REXMODE.EQ.'T') THEN
+            WRITE(MYUNIT,'(A)') " settings> REX type: Temperature-REX"
+         ELSE IF (REXMODE.EQ.'H') THEN
+            WRITE(MYUNIT,'(A)') " settings> REX type: Hamiltonian-REX"
+            WRITE(MYUNIT,'(A,F8.2)') " settings> Lambda is: ", LAMBDA
+         END IF
+         WRITE(MYUNIT,'(A,F8.2)') " settings> Temperature for MD simulation:     ", TEMP
+         WRITE(MYUNIT,'(A)') " "
+      END SUBROUTINE REPORT_PARAMS_MPI
 
       SUBROUTINE START_TRACKING_MPI()
          USE FILE_UTILS, ONLY: FILE_OPEN
@@ -66,4 +96,4 @@ MODULE MD_MPI
 #endif
       END SUBROUTINE COMMUNICATE_SETTINGS
 
-END MODULE MD_MPI
+END MODULE MPI_UTILS

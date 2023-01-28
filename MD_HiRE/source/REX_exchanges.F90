@@ -16,14 +16,14 @@ MODULE EXCHANGES
 
       SUBROUTINE SELECT_EXCHANGES()
 #ifdef MPI
-         USE MD_COMMONS, ONLY:  REXMODE
+         USE MD_COMMONS, ONLY:  REXMODE, NTASKS, TASKID
          INTEGER :: NPAIRS !number of replica pairs
          INTEGER :: FIRSTREP !id of first replica
          LOGICAL :: ACTIVEREPT(NREPLICA) !which replicas are active
-         LOGICAL :: INITEXCHANGE(NREPLICA) !which replicas initiate exchanges
+         LOGICAL :: INITIATE(NREPLICA) !which replicas initiate exchanges
          LOGICAL :: ODDT
-         INTEGER :: IDREP
-         LOGICAL :: MEINITIATET, MEACTIVET
+         INTEGER :: IDREP, J
+         LOGICAL :: MEINITIATET, MEACTIVET, eXCHANGEDT
          INCLUDE 'mpif.h'
          INTEGER MPISTATUS(MPI_STATUS_SIZE)         
          INTEGER :: ERR_CODE_MPI, REMD_TAG
@@ -90,7 +90,9 @@ MODULE EXCHANGES
             IF (REXMODE.EQ.'T') THEN
                CALL PASS_DATA_FOR_EXCHANGE_T(MEINITIATET,EXCHANGEDT)
             ELSE IF (REXMODE.EQ.'H') THEN
-               CALL PASS_DATA_FOR_EXCHANGE_H(MEINITIATET,EXCHANGEDT)
+               WRITE(*,*) "H_REX not implemented"
+               STOP
+               !CALL PASS_DATA_FOR_EXCHANGE_H(MEINITIATET,EXCHANGEDT)
             END IF
          END IF
 
@@ -122,15 +124,17 @@ MODULE EXCHANGES
 
  
       SUBROUTINE PASS_DATA_FOR_EXCHANGE_T(MEINITIATET,EXCHANGEDT)
-         USE MD_COMMONS, ONLY: EPOT, TEMP, VEL
+         USE MD_COMMONS, ONLY: EPOT, TEMP, VEL, NTASKS
          LOGICAL, INTENT(IN) :: MEINITIATET
          LOGICAL, INTENT(OUT) :: EXCHANGEDT
 #ifdef MPI
          INCLUDE 'mpif.h'
          INTEGER MPISTATUS(MPI_STATUS_SIZE)
-         REAL(KIND=REAL64) :: U1, U2, T1, T2, PROB
-         INTEGER :: OTHERREP
+         REAL(KIND=REAL64) :: U1, U2, T1, T2, PROB, DUMMY
+         INTEGER :: OTHERREP, J
          INTEGER :: ERR_CODE_MPI, REMD_TAG
+         LOGICAL :: SWITCHT 
+
          ! the initiator receives the information needed for the acceptance/rejection criterion
          IF (MEINITIATET) THEN
             OTHERREP = CURRENT_ORDER(MYCURRENTID+1)
@@ -148,7 +152,7 @@ MODULE EXCHANGES
          ! P(1<->2) = min(1, exp[(1/kT1 - 1/kT2)(U1 - U2)]), where Ui is the potential energy of i
 
          IF (MEINITIATET) THEN
-            DUMMY = (1/T1 - 1/T2)(U1 - U2)
+            DUMMY = (1.0/T1 - 1.0/T2)*(U1 - U2)
             PROB = MIN(1.0,EXP(DUMMY))
             RAND = DPRAND()
             ! accept exchange
@@ -187,10 +191,10 @@ MODULE EXCHANGES
 
 
       SUBROUTINE UPDATE_CURR_ORDER()
-         USE MD_COMMONS, ONLY: NREPLICA, TASKID
+         USE MD_COMMONS, ONLY: NREPLICA, TASKID, NTASKS
          IMPLICIT NONE
 #ifdef MPI
-         INTEGER :: NEWPOS
+         INTEGER :: NEWPOS, J
          INTEGER :: NEWORDER(NREPLICA)
          INTEGER :: ERR_CODE_MPI, REMD_TAG
          INCLUDE 'mpif.h'
