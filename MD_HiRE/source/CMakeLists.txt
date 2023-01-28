@@ -110,14 +110,6 @@ set(ALL_EXTRA_SOURCES ${ALL_DUMMIES})
 # LIBRARIES START HERE #
 ########################
 
-# MPI flag 
-option(WITH_MPI "Enable MPI compilation" OFF)
-if(WITH_MPI)
-  # append -DMPI to compile definitions
-  add_definitions(-DMPI) 
-  message("building with MPI: \n  ${CMAKE_Fortran_FLAGS}")   
-endif(WITH_MPI)
-
 # Find BLAS and LAPACK libraries
 find_package(MYBLAS)
 find_package(MYLAPACK)
@@ -129,10 +121,20 @@ set_module_dir(extralib)
 set_target_properties(extralib PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(extralib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__SPARSE")
 
+
 add_library(mdlib ${MD_SOURCES})
 set_module_dir(mdlib)
 set_module_depends(mdlib extralib)
 set_target_properties(mdlib PROPERTIES LINKER_LANGUAGE "Fortran") 
+
+
+# MPI flag 
+option(WITH_MPI "Enable MPI compilation" OFF)
+if(WITH_MPI)
+  # append -DMPI to compile definitions
+  add_definitions(-DMPI) 
+  message("building with MPI: \n  ${CMAKE_Fortran_FLAGS}")   
+endif(WITH_MPI)
 
 option(ANALYSIS_VER "Enable printing for structural analysis" OFF)
 if(ANALYSIS_VER)
