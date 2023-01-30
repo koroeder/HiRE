@@ -293,14 +293,14 @@ MODULE HIRE_INTERFACE
       END SUBROUTINE SET_SCALING
 
       SUBROUTINE SET_UNIV_SCALING(SCALEVAL)
-            #ifdef __HIRE
-                     USE CALCFORCES, ONLY: SCALING
-            #endif     
-                     REAL(KIND = R64), INTENT(IN) :: SCALEVAL
+#ifdef __HIRE
+         USE CALCFORCES, ONLY: SCALING
+#endif     
+         REAL(KIND = R64), INTENT(IN) :: SCALEVAL
             
-            #ifdef __HIRE
-                     SCALING(1:7) = SCALEVAL
-            #endif         
+#ifdef __HIRE
+         SCALING(1:7) = SCALEVAL
+#endif         
       END SUBROUTINE SET_UNIV_SCALING    
 
 END MODULE HIRE_INTERFACE

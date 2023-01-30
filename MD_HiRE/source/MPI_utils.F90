@@ -40,12 +40,12 @@ MODULE MPI_UTILS
          USE FILE_UTILS, ONLY: FILE_OPEN
          USE MD_COMMONS
          IMPLICIT NONE
-         CHARACTER(LEN=3) :: IDSTR
+         CHARACTER(LEN=6) :: IDSTR
 
-         WRITE(TASKID,'(I3)') IDSTR
-         CALL FILE_OPEN("md_energy."//ADJUSTL(TRIM(IDSTR))//".log",EUNIT,.TRUE.)
-         CALL FILE_OPEN("md_coords."//ADJUSTL(TRIM(IDSTR))//".xyz",XUNIT,.TRUE.)
-         IF (RMSDT) CALL FILE_OPEN("md_rmsd."//ADJUSTL(TRIM(IDSTR))//".log",RUNIT,.TRUE.)
+         WRITE(IDSTR,'(I6)') TASKID + 1
+         CALL FILE_OPEN("md_energy."//TRIM(ADJUSTL(IDSTR))//".log",EUNIT,.TRUE.)
+         CALL FILE_OPEN("md_coords."//TRIM(ADJUSTL(IDSTR))//".xyz",XUNIT,.TRUE.)
+         IF (RMSDT) CALL FILE_OPEN("md_rmsd."//TRIM(ADJUSTL(IDSTR))//".log",RUNIT,.TRUE.)
       END SUBROUTINE START_TRACKING_MPI
 
       SUBROUTINE COMMUNICATE_SETTINGS()
@@ -77,10 +77,14 @@ MODULE MPI_UTILS
             IF (TASKID.EQ.0) THEN
                TEMP = TARRAY(1)
                DO J=2,NREPLICA
-                  CALL MPI_SEND(TARRAY(J),1,MPI_DOUBLE,J-1,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+                  WRITE(*,*) "sending information for", J-1
+                  CALL MPI_SSEND(TARRAY(J),1,MPI_DOUBLE,J-1,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+                  WRITE(*,*) "sent, err code: ", ERR_CODE_MPI
                END DO
             ELSE
+               WRITE(*,*) "receving information, waiting - ", TASKID
                CALL MPI_RECV(TEMP,1,MPI_DOUBLE,0,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
+               WRITE(*,*) "received"
             END IF
          END IF
          IF (REXMODE.EQ."H") THEN

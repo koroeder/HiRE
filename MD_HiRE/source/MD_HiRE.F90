@@ -24,6 +24,7 @@ PROGRAM MD_HIRE
    CALL MPI_INIT(ERROR)
    CALL MPI_COMM_SIZE(MPI_COMM_WORLD, NTASKS, ERROR)
    CALL MPI_COMM_RANK(MPI_COMM_WORLD, TASKID, ERROR)
+   WRITE(*,*) "core ", TASKID, "here"
 #else
    NTASKS = 1
    TASKID = 0
@@ -34,11 +35,14 @@ PROGRAM MD_HIRE
    ! 1. Simulation setup
    ! a) check the parameter input exists
    CALL MD_START()
+   WRITE(*,*) "core ", TASKID, "here2"
    ! b) Read in all the simulation settings
    CALL READ_SETTINGS()
+   WRITE(*,*) "core ", TASKID, "here3"
    ! communicate the variables
 #ifdef MPI
    CALL COMMUNICATE_SETTINGS()
+   WRITE(*,*) "core ", TASKID, "here4"
 #endif
    ! c) Report the settings for the simulation to the output file
 #ifdef MPI
