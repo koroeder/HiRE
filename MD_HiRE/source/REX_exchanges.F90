@@ -122,7 +122,37 @@ MODULE EXCHANGES
 #endif
       END SUBROUTINE SELECT_EXCHANGES
 
- 
+      SUBROUTINE PASS_DATA_FOR_EXCHANGE_H(MEINITIATET,EXCHANGEDT)
+         USE MD_COMMONS, ONLY: EPOT, TEMP, VEL, NTASKS, COORDS, LAMBDA, NATOMS
+         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD, SET_UNIV_SCALING
+         LOGICAL, INTENT(IN) :: MEINITIATET
+         LOGICAL, INTENT(OUT) :: EXCHANGEDT
+#ifdef MPI
+         INCLUDE 'mpif.h'
+         INTEGER MPISTATUS(MPI_STATUS_SIZE)
+         REAL(KIND=REAL64) :: U11, U12, U21, U22, T1, T2, L1, L2, PROB, DUMMY
+         REAL(KIND=REAL64) :: X1(3*NATOMS), X2(3*NATOMS)
+         INTEGER :: OTHERREP, J
+         INTEGER :: ERR_CODE_MPI, REMD_TAG
+         LOGICAL :: SWITCHT
+
+         ! need to get lambda (L1,L2) from both and coords (X1,X2) from both
+         ! set scaling to L1 and get energies for X1 and X2 (U11 and U12)
+         ! set scaling to L2 and get energies for X1 and X2 (U21 and U22)
+
+         ! calculate the probability and apply the acceptance/rejection criterion
+
+         ! if accepted:
+         ! exchange lambdas and update the order as for T-REX
+
+         ! if rejected:
+         ! make sure to reset scaling
+
+#endif 
+      END SUBROUTINE PASS_DATA_FOR_EXCHANGE_H
+
+         
+
       SUBROUTINE PASS_DATA_FOR_EXCHANGE_T(MEINITIATET,EXCHANGEDT)
          USE MD_COMMONS, ONLY: EPOT, TEMP, VEL, NTASKS
          LOGICAL, INTENT(IN) :: MEINITIATET
