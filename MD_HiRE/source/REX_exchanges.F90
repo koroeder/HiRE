@@ -54,9 +54,12 @@ MODULE EXCHANGES
             ELSE
                FIRSTREP = 2
             END IF
+            WRITE(*,*) "HERE0: in rex"
             DO J=FIRSTREP,2*NPAIRS+FIRSTREP-1
+               WRITE(*,*) "J: ", J
                ! which core is the Jth replica on
-               IDREP = CURRENT_ORDER(J)
+               IDREP = CURRENT_ORDER(J) + 1
+               WRITE(*,*) "IDREP: ", IDREP
                ! set this one to active
                ACTIVEREPT(IDREP) = .TRUE.
                ! check whether this is an initiator (lower replica)
@@ -71,6 +74,7 @@ MODULE EXCHANGES
                END IF
             ENDDO
          END IF
+         WRITE(*,*) "Hello from REX1: ", TASKID
          !now broad cast the data to all nodes
          CALL MPI_BCAST(ACTIVEREPT,NREPLICA,MPI_LOGICAL,0,MPI_COMM_WORLD,ERR_CODE_MPI)
          CALL MPI_BCAST(INITIATE,NREPLICA,MPI_LOGICAL,0,MPI_COMM_WORLD,ERR_CODE_MPI)
@@ -84,7 +88,7 @@ MODULE EXCHANGES
                MEINITIATET = .TRUE.
             END IF
          END IF
-
+         WRITE(*,*) "NEXT: ", TASKID
          ! we can now exclude all replicas that are not active - we will have an MPI_Barrier after this so they won't run away
          IF (MEACTIVET) THEN
             IF (REXMODE.EQ.'T') THEN
@@ -107,7 +111,7 @@ MODULE EXCHANGES
             NEXCHANGES = NEXCHANGES + NTHISTIME/2
             WRITE(*,*) " sel_exchanges> ", NTHISTIME/2, " exchanges this step, in total ", NEXCHANGES, " up to now"
          ELSE
-            CALL MPI_SEND(EXCHANGEDT,1,MPI_LOGICAL,0,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+            CALL MPI_SSEND(EXCHANGEDT,1,MPI_LOGICAL,0,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
          END IF
          ! TODO: add arguments to MPI barrier - likely need to add MPI COMM RANK calls in thsi routine and in PASS_DATA ...
          ! TODO: write subroutine to H-REX data passing
@@ -161,22 +165,29 @@ MODULE EXCHANGES
          INCLUDE 'mpif.h'
          INTEGER MPISTATUS(MPI_STATUS_SIZE)
          REAL(KIND=REAL64) :: U1, U2, T1, T2, PROB, DUMMY, RAND, DPRAND
-         INTEGER :: OTHERREP, J
+         INTEGER :: OTHERREP, J, I
          INTEGER :: ERR_CODE_MPI, REMD_TAG
          LOGICAL :: SWITCHT 
 
          ! the initiator receives the information needed for the acceptance/rejection criterion
          IF (MEINITIATET) THEN
+            WRITE(*,*) "passdata: ", TASKID
             OTHERREP = CURRENT_ORDER(MYCURRENTID+1)
+            WRITE(*,*) TASKID, OTHERREP
             U1 = EPOT
             T1 = TEMP
             CALL MPI_RECV(U2,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
             CALL MPI_RECV(T2,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
+            WRITE(*,*) "Received: ", TASKID
          ELSE
+            WRITE(*,*) "passdata2: ", TASKID
             OTHERREP = CURRENT_ORDER(MYCURRENTID-1)
-            CALL MPI_SEND(EPOT,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
-            CALL MPI_SEND(TEMP,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+            WRITE(*,*) TASKID, OTHERREP
+            CALL MPI_SSEND(EPOT,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+            CALL MPI_SSEND(TEMP,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+            WRITE(*,*) "Sent: ", TASKID
          END IF
+         STOP
 
          ! the value for the probability is given by:
          ! P(1<->2) = min(1, exp[(1/kT1 - 1/kT2)(U1 - U2)]), where Ui is the potential energy of i
@@ -185,6 +196,11 @@ MODULE EXCHANGES
             DUMMY = (1.0/T1 - 1.0/T2)*(U1 - U2)
             PROB = MIN(1.0,EXP(DUMMY))
             RAND = DPRAND()
+            WRITE(*,*) "acc/rej: ", DUMMY, PROB, RAND, TASKID
+            DO I=1,100
+               WRITE(*,*) DPRAND()
+               STOP
+            END DO
             ! accept exchange
             IF (RAND.LT.PROB) THEN
                SWITCHT = .TRUE.
@@ -193,7 +209,7 @@ MODULE EXCHANGES
                SWITCHT = .FALSE.
             END IF
             ! then pass the status to the other replica
-            CALL MPI_SEND(SWITCHT,1,MPI_LOGICAL,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+            CALL MPI_SSEND(SWITCHT,1,MPI_LOGICAL,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
          ELSE
             CALL MPI_RECV(SWITCHT,1,MPI_LOGICAL,OTHERREP,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
          END IF
@@ -202,7 +218,7 @@ MODULE EXCHANGES
          IF (SWITCHT) THEN
             EXCHANGEDT = .TRUE.
             TINIT = TEMP
-            CALL MPI_SEND(TEMP,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+            CALL MPI_SSEND(TEMP,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
             CALL MPI_RECV(TFINAL,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
             TEMP = TFINAL
             !scale the velocities
@@ -239,7 +255,7 @@ MODULE EXCHANGES
             END DO
             CURRENT_ORDER = NEWORDER
          ELSE
-            CALL MPI_SEND(MYCURRENTID,1,MPI_INTEGER,0,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
+            CALL MPI_SSEND(MYCURRENTID,1,MPI_INTEGER,0,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
          END IF
          CALL MPI_BCAST(CURRENT_ORDER,NREPLICA,MPI_INTEGER,0,MPI_COMM_WORLD,ERR_CODE_MPI)
 #endif

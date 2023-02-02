@@ -57,13 +57,22 @@ MODULE MD_SIMULATION
       SUBROUTINE RUN_MD()
          USE MD_COMMONS, ONLY: MDSTEPS, RESTARTSTEP, CONTINUESIMT, REXT, TASKID, NREPLICA
          USE EXCHANGES, ONLY: CURRENT_ORDER, MYCURRENTID, UPDATE_CURR_ORDER
+         USE NUMKIND
          IMPLICIT NONE
          INTEGER :: J
+         CHARACTER(LEN=10) :: DATECHAR, TIMECHAR, ZONECHAR
+         INTEGER :: VALUES(8), ITIME
+         REAL(KIND=REAL64) :: DPRAND
 
          IF (REXT) THEN
             IF (.NOT.ALLOCATED(CURRENT_ORDER)) ALLOCATE(CURRENT_ORDER(NREPLICA))
             MYCURRENTID = TASKID + 1
             CALL UPDATE_CURR_ORDER()
+
+            CALL DATE_AND_TIME(DATECHAR,TIMECHAR,ZONECHAR,VALUES)
+            ITIME = VALUES(6)*60 + VALUES(7)
+            CALL SDPRND(ITIME+TASKID)
+            WRITE(*,*) "Initiate random numbers - DPRAND: ", DPRAND, " - ", TASKID
          END IF
          IF (CONTINUESIMT) THEN
             IF (RESTARTSTEP.LT.MDSTEPS) THEN
@@ -74,10 +83,11 @@ MODULE MD_SIMULATION
                END DO 
             END IF
          ELSE
+            WRITE(*,*) "starting MD: ", TASKID
             DO J=1,MDSTEPS
-               IF (REXT) CALL EXCHANGEREPS(J)
                CALL TAKE_MDSTEP(J)
                CALL DUMPDATA(J)
+               IF (REXT) CALL EXCHANGEREPS(J)
             END DO
          END IF
           IF (REXT) THEN
@@ -87,7 +97,7 @@ MODULE MD_SIMULATION
 
       SUBROUTINE EXCHANGEREPS(J)
          USE EXCHANGES, ONLY: SELECT_EXCHANGES
-         USE MD_COMMONS, ONLY: NREXSTEPS, MDSTEPS
+         USE MD_COMMONS, ONLY: NREXSTEPS, MDSTEPS, TASKID
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: J
 
@@ -96,6 +106,7 @@ MODULE MD_SIMULATION
             RETURN
          ELSE 
             IF (MOD(J,NREXSTEPS).EQ.0) THEN
+               WRITE(*,*) "Try exhange: ", TASKID
                CALL SELECT_EXCHANGES()
             END IF
          END IF
@@ -140,12 +151,14 @@ MODULE MD_SIMULATION
             WRITE(MYUNIT,'(A,F12.4)') "           Potential energy:    ", EPOT
             WRITE(MYUNIT,'(A,F12.4)') "           Current temperature: ", CURRTEMP
             WRITE(MYUNIT,'(A,F12.4)') " --------------------------------------------------"
+            CALL FLUSH(MYUNIT)
          END IF
       END SUBROUTINE TAKE_MDSTEP
 
       SUBROUTINE DUMPDATA(CURRSTEP)
          USE MD_COMMONS, ONLY: NATOMS, XUNIT, EUNIT, DUMPPDBT, NDUMPE, NDUMPP, NDUMPX, NDUMPRST, &
-                               COORDS, VEL, EKIN, EPOT, ALIGNCONFT, RMSDT, NDUMPR, RUNIT
+                               COORDS, VEL, EKIN, EPOT, ALIGNCONFT, RMSDT, NDUMPR, RUNIT, &
+                               NTASKS, TASKID
          USE HIRE_INTERFACE, ONLY: DUMP_PDB
          USE MOD_RESTART, ONLY: WRITE_RST_FILE
          USE MOD_RMSD, ONLY: GET_RMSD 
@@ -156,6 +169,8 @@ MODULE MD_SIMULATION
          REAL(KIND = REAL64) :: DIST, RMSD
          CHARACTER(LEN=15) :: JSTRING
          CHARACTER(LEN=30) :: PDBNAME
+         CHARACTER(LEN=8) :: TASKSTR
+
          !write energies
          IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
             WRITE(EUNIT,'(I10,3(1X,F15.7))') CURRSTEP, EPOT+EKIN, EPOT, EKIN
@@ -179,8 +194,14 @@ MODULE MD_SIMULATION
          IF (DUMPPDBT) THEN
             IF (MOD(CURRSTEP,NDUMPP).EQ.0) THEN
                WRITE(JSTRING, '(I12.12)') CURRSTEP
-               PDBNAME = "mdx_"//ADJUSTL(TRIM(JSTRING))//".pdb"
+               IF (NTASKS.EQ.1) THEN 
+                  PDBNAME = "mdx_"//ADJUSTL(TRIM(JSTRING))//".pdb"
+               ELSE
+                  WRITE(TASKSTR,'(I6)') TASKID
+                  PDBNAME = "mdx_"//ADJUSTL(TRIM(JSTRING))//"."//TRIM(ADJUSTL(TASKSTR))//".pdb"
+               END IF
                CALL DUMP_PDB(3*NATOMS,COORDS,PDBNAME,.TRUE.)
+
             END IF
          END IF 
          !write restart file

@@ -12,7 +12,7 @@ MODULE MOD_THERMALISE
    INTEGER :: NRMANG = 0
    !> Frequency of rescaling
    INTEGER :: NRESCALE = 1
-   !> Freuqncy of writing energies to output file
+   !> Frequency of writing energies to output file
    INTEGER ::  NEQDUMPE = 10
    !> Switch whether velocities need to be initialised
    LOGICAL :: VELT = .TRUE.
@@ -20,7 +20,8 @@ MODULE MOD_THERMALISE
       
       SUBROUTINE THERMALISE(TINIT, TFINAL, X, VEL, ACC, EPOT)
          USE FILE_UTILS, ONLY: FILE_OPEN
-         USE MD_COMMONS, ONLY: NOPT, MDMETHOD, TEMP, EKIN, RMSDT, ALIGNCONFT
+         USE MD_COMMONS, ONLY: NOPT, MDMETHOD, TEMP, EKIN, RMSDT, &
+                               ALIGNCONFT, NTASKS, TASKID
          USE MD_CALCS
          USE MOD_RMSD, ONLY: GET_RMSD
          USE MOD_INTEGRATORS, ONLY: LANGEVIN_STEP, VELOCITY_VERLET, SCALEVEL, SCALEVEL_LANGEVIN
@@ -34,6 +35,8 @@ MODULE MOD_THERMALISE
          REAL(KIND = REAL64) :: DTEMP, TSMALL, CURRTEMP
          REAL(KIND = REAL64) :: DIST, RMSD
          INTEGER :: I, J, EQUNIT, RQUNIT
+         CHARACTER(LEN=6) :: TASKSTR
+
          ! Get the temperatures to be used in thermalisation
          ! If the initial T is zero, we set it to be very small, but non-zero
          ! We then use equally spaced intervals
@@ -57,10 +60,14 @@ MODULE MOD_THERMALISE
             !  CALL INITIALISE_VEL(TEMPS(1))
             VELT = .FALSE.
          END IF
-
-         CALL FILE_OPEN("md_ethermalisation.log",EQUNIT,.TRUE.)
-         IF (RMSDT) CALL FILE_OPEN("md_rmsd_therm.log",RQUNIT,.TRUE.)
-
+         IF (NTASKS.EQ.1) THEN
+            CALL FILE_OPEN("md_ethermalisation.log",EQUNIT,.TRUE.)
+            IF (RMSDT) CALL FILE_OPEN("md_rmsd_therm.log",RQUNIT,.TRUE.)
+         ELSE
+            WRITE(TASKSTR,'(I6)') TASKID
+            CALL FILE_OPEN("md_e_therm.log."//TRIM(ADJUSTL(TASKSTR)),EQUNIT,.TRUE.)
+            IF (RMSDT) CALL FILE_OPEN("md_rmsd_therm.log."//TRIM(ADJUSTL(TASKSTR)),RQUNIT,.TRUE.)
+         END IF
          WRITE(MYUNIT,'(A,I8,A,I8,A)') " thermalise> Thermalise simulation in ", NTHERMALISE, " steps with ", NEQUIL, " equilibration steps for each new T"
          WRITE(MYUNIT,*) " "
          DO I=1,NTHERMALISE
@@ -108,6 +115,9 @@ MODULE MOD_THERMALISE
                      CALL GET_RMSD(NATOMS, X, DIST, RMSD, ALIGNCONFT)
                      WRITE(RQUNIT,'(2I10,2(1X,F12.4))') I, J, DIST, RMSD
                   END IF
+                  CALL FLUSH(MYUNIT)
+                  CALL FLUSH(EQUNIT)
+                  CALL FLUSH(RQUNIT)
                END IF
             END DO        
          END DO

@@ -77,14 +77,10 @@ MODULE MPI_UTILS
             IF (TASKID.EQ.0) THEN
                TEMP = TARRAY(1)
                DO J=2,NREPLICA
-                  WRITE(*,*) "sending information for", J-1
                   CALL MPI_SSEND(TARRAY(J),1,MPI_DOUBLE,J-1,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
-                  WRITE(*,*) "sent, err code: ", ERR_CODE_MPI
                END DO
             ELSE
-               WRITE(*,*) "receving information, waiting - ", TASKID
                CALL MPI_RECV(TEMP,1,MPI_DOUBLE,0,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
-               WRITE(*,*) "received"
             END IF
          END IF
          IF (REXMODE.EQ."H") THEN

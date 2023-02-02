@@ -62,7 +62,8 @@ MODULE MD_UTILS
             IF (NTASKS.EQ.1) THEN
                CALL FILE_OPEN("mdout.log",MYUNIT,.TRUE.)
             ELSE
-               WRITE(STRID,'(I8)') TASKID
+               
+               WRITE(STRID,'(I6)') TASKID
                CALL FILE_OPEN("mdout.log."//ADJUSTL(TRIM(STRID)),MYUNIT,.TRUE.)
             END IF
          ELSE

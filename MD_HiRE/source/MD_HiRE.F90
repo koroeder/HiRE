@@ -35,14 +35,12 @@ PROGRAM MD_HIRE
    ! 1. Simulation setup
    ! a) check the parameter input exists
    CALL MD_START()
-   WRITE(*,*) "core ", TASKID, "here2"
    ! b) Read in all the simulation settings
+   WRITE(MYUNIT,'(A)') " mdhire> Starting setup"
    CALL READ_SETTINGS()
-   WRITE(*,*) "core ", TASKID, "here3"
    ! communicate the variables
 #ifdef MPI
    CALL COMMUNICATE_SETTINGS()
-   WRITE(*,*) "core ", TASKID, "here4"
 #endif
    ! c) Report the settings for the simulation to the output file
 #ifdef MPI
@@ -59,7 +57,7 @@ PROGRAM MD_HIRE
    CALL START_TRACKING()
 #endif
    CALL CPU_TIME(TSETUP)
-   
+   WRITE(MYUNIT,'(A)') " mdhire> Completed setup - starting initialisation"
    ! 2. Initialise velocities for simulation and get initial state
    CALL ZERO_STEP()
    CALL CPU_TIME(TEQ)
@@ -67,12 +65,14 @@ PROGRAM MD_HIRE
    CALL MPI_BARRIER(MPI_COMM_WORLD,ERROR)
 #endif
    ! 3. Run MD steps
+   WRITE(MYUNIT,'(A)') " mdhire> Starting MD simulation"
    CALL RUN_MD()
    CALL CPU_TIME(TRUNS)
 
 #ifdef MPI
    CALL MPI_BARRIER(MPI_COMM_WORLD,ERROR)
-#endif   
+#endif
+   WRITE(MYUNIT,'(A)') " mdhire> Completed simulation - terminating now"   
    ! 4. Finish run
    CALL MD_FINISH()
 
