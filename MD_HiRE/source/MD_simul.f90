@@ -52,10 +52,11 @@ MODULE MD_SIMULATION
          END IF
          WRITE(MYUNIT,'(2(A,F12.4))') " mdhire> Initial energies - EPOT= ", EPOT, "; EKIN= ", EKIN
          WRITE(MYUNIT, '(A)') " "
+         CALL FLUSH(MYUNIT)
       END SUBROUTINE ZERO_STEP
 
       SUBROUTINE RUN_MD()
-         USE MD_COMMONS, ONLY: MDSTEPS, RESTARTSTEP, CONTINUESIMT, REXT, TASKID, NREPLICA
+         USE MD_COMMONS, ONLY: MDSTEPS, RESTARTSTEP, CONTINUESIMT, REXT, TASKID, NREPLICA, MYUNIT
          USE EXCHANGES, ONLY: CURRENT_ORDER, MYCURRENTID, UPDATE_CURR_ORDER
          USE NUMKIND
          IMPLICIT NONE
@@ -63,8 +64,9 @@ MODULE MD_SIMULATION
          CHARACTER(LEN=10) :: DATECHAR, TIMECHAR, ZONECHAR
          INTEGER :: VALUES(8), ITIME
          REAL(KIND=REAL64) :: DPRAND
-
+ 
          IF (REXT) THEN
+            WRITE(MYUNIT, '(A)') " mdrun> Initialising for REX simulation"
             IF (.NOT.ALLOCATED(CURRENT_ORDER)) ALLOCATE(CURRENT_ORDER(NREPLICA))
             MYCURRENTID = TASKID + 1
             CALL UPDATE_CURR_ORDER()
@@ -72,8 +74,8 @@ MODULE MD_SIMULATION
             CALL DATE_AND_TIME(DATECHAR,TIMECHAR,ZONECHAR,VALUES)
             ITIME = VALUES(6)*60 + VALUES(7)
             CALL SDPRND(ITIME+TASKID)
-            WRITE(*,*) "Initiate random numbers - DPRAND: ", DPRAND, " - ", TASKID
          END IF
+         CALL FLUSH(MYUNIT)
          IF (CONTINUESIMT) THEN
             IF (RESTARTSTEP.LT.MDSTEPS) THEN
                DO J=RESTARTSTEP, MDSTEPS
@@ -83,7 +85,6 @@ MODULE MD_SIMULATION
                END DO 
             END IF
          ELSE
-            WRITE(*,*) "starting MD: ", TASKID
             DO J=1,MDSTEPS
                CALL TAKE_MDSTEP(J)
                CALL DUMPDATA(J)
@@ -97,7 +98,7 @@ MODULE MD_SIMULATION
 
       SUBROUTINE EXCHANGEREPS(J)
          USE EXCHANGES, ONLY: SELECT_EXCHANGES
-         USE MD_COMMONS, ONLY: NREXSTEPS, MDSTEPS, TASKID
+         USE MD_COMMONS, ONLY: NREXSTEPS, MDSTEPS, TASKID, MYUNIT
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: J
 
@@ -106,7 +107,8 @@ MODULE MD_SIMULATION
             RETURN
          ELSE 
             IF (MOD(J,NREXSTEPS).EQ.0) THEN
-               WRITE(*,*) "Try exhange: ", TASKID
+               WRITE(MYUNIT,'(A)') " "
+               WRITE(MYUNIT,'(A)') " rexmd> Attempting replica exchanges"
                CALL SELECT_EXCHANGES()
             END IF
          END IF
