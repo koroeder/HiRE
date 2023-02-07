@@ -1,0 +1,24 @@
+# replica-exchange settings
+REXMD 4 1000 T 0.10 0.13
+# the above line uses 4 replicas equally spaced from 0.10 to 0.13 
+# for "T"emperature REX MD, exchanges are attempted every 1000 steps
+
+# file names for input files
+COORDINATES start
+SCALEDAT scale_RNA.dat
+TOPOLOGY parameters.top
+# output options
+DUMPCOORDS 25
+DUMPENERGY 25
+DUMPPDB 250
+RMSD 25 F
+# simulation settings
+MDMODE VV 
+TEMPERATURE 0.616 
+TIMESTEP 0.01
+MDSTEPS 5000
+# initial minimisation
+MININIT 5000 100 1.0D-3
+# thermalisation
+THERMALISATION 25 2000
+THERMALISE_OPTIONS 5 0 1 50
