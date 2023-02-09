@@ -7,6 +7,7 @@ MODULE MD_SETUP
          IMPLICIT NONE
          CALL FILE_OPEN("md_energy.log",EUNIT,.TRUE.)
          CALL FILE_OPEN("md_coords.xyz",XUNIT,.TRUE.)
+         IF (RMSDT) CALL FILE_OPEN("md_rmsd.log",RUNIT,.TRUE.)
       END SUBROUTINE START_TRACKING
 
       SUBROUTINE SETUP_POTENTIAL()
@@ -24,6 +25,7 @@ MODULE MD_SETUP
 
          ! allocate the relevant arrays
          CALL ALLOC_COMMONS()
+
 
          IF (.NOT.RESTARTSIMT) THEN
             ! get coordinates
@@ -234,6 +236,25 @@ MODULE MD_SETUP
             CALL READA(CONTINUEDUMMY)
             IF (CONTINUEDUMMY.EQ."T") CONTINUESIMT=.TRUE.
             
+
+         ! Keyword: REXMD
+         ! Added: 13/12/2022 (kr366), last modified: 13/12/2022 (kr366)
+         ! Description: Replica exchange simualtion, either Hamiltonian or Temperature
+         ELSE IF (WORD .EQ. 'REXMD') THEN
+            REXT= .TRUE.
+            CALL READI(NREPLICA)
+            CALL READI(NREXSTEPS)
+            CALL READA(REXMODE)
+            CALL READF(LOWR)
+            CALL READF(HIGHR)
+
+         ELSE IF (WORD .EQ. 'RMSD') THEN
+            RMSDT = .TRUE.
+            CALL READI(NDUMPR)
+            IF (NITEMS.GT.2) THEN
+               CALL READA(CONTINUEDUMMY)
+               IF (CONTINUEDUMMY.EQ."T") ALIGNCONFT = .TRUE.
+            END IF
 
          !+++++++++++++++!   
          ! LETTER S      !

@@ -1,79 +1,3 @@
-MODULE MD_COMMONS
-   USE NUMKIND
-   IMPLICIT NONE
-   ! method used in MD, can be VV - Velocity Verlet or LD - Langevin Dynamics
-   CHARACTER(LEN=2) :: MDMETHOD = 'VV'
-   ! number of MD steps to be taken
-   INTEGER :: MDSTEPS = 0
-   ! coordinates
-   REAL(KIND = REAL64), ALLOCATABLE :: COORDS(:)
-   ! accelaration
-   REAL(KIND = REAL64), ALLOCATABLE :: ACC(:)
-   ! velocity
-   REAL(KIND = REAL64), ALLOCATABLE :: VEL(:)
-   ! atomic masses
-   REAL(KIND = REAL64), ALLOCATABLE :: MASSES(:)    
-   ! gamma
-   REAL(KIND = REAL64) :: GAMMA = 1.0D-1 
-   ! friction parameter
-   REAL(KIND = REAL64) :: GFRIC
-   ! Langevin scaling parameter, currently not used
-   REAL(KIND = REAL64) :: LANGEVINSCALE = 0.1
-   ! time step
-   REAL(KIND = REAL64) :: DT = 1.0D-2
-   ! half a time step
-   REAL(KIND = REAL64) :: HDT
-   ! temperature
-   REAL(KIND = REAL64) :: TEMP = 300.0  
-   ! kinetic energy
-   REAL(KIND = REAL64) :: EKIN
-   ! potential energy  
-   REAL(KIND = REAL64) :: EPOT
-   ! number of atoms
-   INTEGER :: NATOMS = 0
-   ! number of degrees of freedom
-   INTEGER :: NOPT = 0
-   ! output unit for general output
-   INTEGER :: MYUNIT
-   ! output unit for structures
-   INTEGER :: XUNIT
-   ! output unit for energies
-   INTEGER :: EUNIT
-   ! output frequency for coordinates
-   INTEGER :: NDUMPX
-   ! output frequency for energy
-   INTEGER :: NDUMPE   
-   ! output frequency for pdb files
-   INTEGER :: NDUMPP
-   ! dump pdb files
-   LOGICAL :: DUMPPDBT = .FALSE.
-   ! Name of topology file        
-   CHARACTER(LEN=25) :: TOPNAME = "parameters.top"
-   ! Name of scale.dat file
-   CHARACTER(LEN=25) :: SCALEDATNAME = "scale_RNA.dat"
-   ! Name of initial coordinate file
-   CHARACTER(LEN=25) :: COORDSFILE = "start"
-   ! Minimise initial structure
-   LOGICAL :: MININITIAL = .FALSE.
-   ! Use thermalisation
-   LOGICAL :: THERMINIT = .FALSE.
-   ! Initial temperature
-   REAL(KIND = REAL64) ::  TINIT = 1.0D-6
-   ! Final temperature
-   REAL(KIND = REAL64) ::  TFINAL = 0.616 
-   ! Restart simulation from restart file
-   LOGICAL :: RESTARTSIMT = .FALSE.
-   ! Step number in restart file
-   INTEGER :: RESTARTSTEP = 0
-   ! Continue simulation at RESTARTSTEP?
-   LOGICAL :: CONTINUESIMT = .FALSE.
-   ! Restart input file
-   CHARACTER(LEN=25) :: RESTARTINPF = "md_restart.dat"
-   ! Frequency to dump restart file
-   INTEGER :: NDUMPRST = 1000
-   SAVE
-END MODULE MD_COMMONS
-
 MODULE MD_UTILS
    CONTAINS
       SUBROUTINE ALLOC_COMMONS()
@@ -129,11 +53,19 @@ MODULE MD_UTILS
       END SUBROUTINE REPORT_PARAMS
 
       SUBROUTINE MD_START()
-         USE MD_COMMONS, ONLY: MYUNIT
+         USE MD_COMMONS, ONLY: MYUNIT, NTASKS, TASKID
          USE FILE_UTILS, ONLY: FILE_OPEN, FILE_EXIST
+         IMPLICIT NONE
+         CHARACTER(LEN=6) :: STRID
 
          IF (FILE_EXIST("mddata")) THEN
-            CALL FILE_OPEN("mdout.log",MYUNIT,.TRUE.)
+            IF (NTASKS.EQ.1) THEN
+               CALL FILE_OPEN("mdout.log",MYUNIT,.TRUE.)
+            ELSE
+               
+               WRITE(STRID,'(I6)') TASKID
+               CALL FILE_OPEN("mdout.log."//ADJUSTL(TRIM(STRID)),MYUNIT,.TRUE.)
+            END IF
          ELSE
             WRITE(*,'(A)') " Cannot locate input file"
             STOP
