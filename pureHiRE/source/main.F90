@@ -33,7 +33,13 @@ PROGRAM HIRE_CALC
    CLOSE(XUNIT)
    WRITE(STDOUT,'(A)') "Read coordinates"
    ! Calculate energy and gradient
-   CALL HIRE_ENERGY_GRAD(3*NATOMS, X, E, GRAD)
+#ifdef FOR_PROFILING 
+   DO I=1,500
+#endif
+      CALL HIRE_ENERGY_GRAD(3*NATOMS, X, E, GRAD)
+#ifdef FOR_PROFILING
+   END DO
+#endif
    WRITE(STDOUT,'(A,F15.6)') "Energy:   ", E
    RMS=MAX(SQRT(SUM(GRAD(1:3*NATOMS)**2)/(3*NATOMS)), 1.0D-100 )
    WRITE(STDOUT,'(A,G15.6)') "RMS force: ", RMS

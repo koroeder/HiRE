@@ -102,13 +102,21 @@ if(ANALYSIS_VER)
         add_definitions(-DFOR_ANALYSIS)
 endif(ANALYSIS_VER)
 
+option(PROF_VER "Enable profiling" OFF)
+if(PROF_VER)
+	add_definitions(-DFOR_PROFILING)
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+        SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
+endif(PROF_VER)
+
 add_definitions(-D_GIT_ROOT_='${GIT_ROOT}')
 
 ##########################
 # EXECUTABLES START HERE #
 ##########################
 
-add_executable(HIRE main.f90)
+add_executable(HIRE main.F90)
 set_target_properties(HIRE PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(HIRE PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
 set_module_depends(HIRE hirelib)
