@@ -22,6 +22,7 @@ MODULE MOD_DEBYEHUECKEL
       !> Calculate the energy and force contribution from the Debye-Hueckel terms
       SUBROUTINE ENERGY_DH(NOPT, X, F, EDH)
          USE VAR_DEFS, ONLY: CHATM, NRES, RESSTART, RESFINAL
+         USE NAPARAMS, ONLY: DHCUT
 #if FOR_ANALYSIS        
          USE UTILS_IO, ONLY: GETUNIT
 #endif         
@@ -32,8 +33,8 @@ MODULE MOD_DEBYEHUECKEL
          REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force from bonds
          REAL(KIND = REAL64), INTENT(OUT) :: EDH
 
-         INTEGER :: I, J, K, L
-         REAL(KIND = REAL64) :: RIJ(3), R, CHRGI, CHRGJ, EDHPAIR, DFPAIR, NB, DX(3)
+         INTEGER :: I, J, K, L, K1, L1
+         REAL(KIND = REAL64) :: RIJ(3), R, CHRGI, CHRGJ, EDHPAIR, DFPAIR, NB, DX(3), A(3), DA2
 
 #if FOR_ANALYSIS
          INTEGER :: DHUNIT
@@ -50,16 +51,25 @@ MODULE MOD_DEBYEHUECKEL
          !TODO: this loop needs to be over the residues and then we iterate inside over the particles!
          DO K=1,NRES-1
             DO L=K+1,NRES
+               K1 = RESFINAL(K)
+               L1 = RESSTART(L)
+               A(1:3) = X(3*K1-2:3*K1) - X(3*L1-2:3*L1)
+               DA2 = DOT_PRODUCT(A,A)
+               !QUERY: This really should be a variable, not a magic number!
+               !Check residues are close enough for interactions
+               IF (DA2 .GT. DHCUT) THEN
+                  CYCLE
+               ENDIF
                DO I = RESSTART(K),RESFINAL(K)
                   DO J = RESSTART(L),RESFINAL(L)
-                     RIJ(1:3) = X(I*3-2:I*3) - X(3*J-2:3*J)
-                     R = DSQRT(DOT_PRODUCT(RIJ,RIJ))
                      CHRGI = CHATM(I)
                      CHRGJ = CHATM(J)
-                     EDHPAIR = 0.0D0
-                     DFPAIR = 0.0D0
                      ! if charges are non-zero, calculate Debye-Hueckel contribution
                      IF (ABS(CHRGI*CHRGJ).GT.1.0D-6) THEN
+                        RIJ(1:3) = X(I*3-2:I*3) - X(3*J-2:3*J)
+                        R = DSQRT(DOT_PRODUCT(RIJ,RIJ))
+                        EDHPAIR = 0.0D0
+                        DFPAIR = 0.0D0
                         CALL DH_PAIR(R, EDHPAIR, DFPAIR, CHRGI, CHRGJ)
                         NB = GET_NBCOEF(I,J) 
                         EDH = EDH + EDHPAIR * NB               
@@ -68,7 +78,8 @@ MODULE MOD_DEBYEHUECKEL
                         WRITE(DHUNIT,'(4I6,2F7.3,4F15.7)') K, L, I, J, CHRGI, CHRGJ, R, NB, EDHPAIR, EDHPAIR*NB
 #endif
                         F((I*3-2):I*3) = F((I*3-2):I*3) - DX(1:3)
-                        F((J*3-2):J*3) = F((J*3-2):J*3) + DX(1:3) 
+                        F((J*3-2):J*3) = F((J*3-2):J*3) + DX(1:3)
+
                      ENDIF
                   END DO
                END DO

@@ -34,7 +34,7 @@ MODULE MOD_NONBONDED
          USE MOD_EXCLV, ONLY: ENERGY_EXCLV
          USE MOD_BASESTACKING, ONLY: RNA_STACKV2
          USE NAPARAMS, ONLY: BOCC, BTYPE, BLIST, &
-                              RCUT2_CACA_SCSC_IN, RCUT2_CACA_SCSC_OUT
+                              RCUT2_CACA_SCSC_IN, RCUT2_CACA_SCSC_OUT, NBCUT
          USE VAR_DEFS, ONLY: NRES, RESSTART, RESFINAL, RESTYPES, IAC
          IMPLICIT NONE
       
@@ -83,7 +83,7 @@ MODULE MOD_NONBONDED
                DA2 = DOT_PRODUCT(A,A)
                !QUERY: This really should be a variable, not a magic number!
                !Check residues are close enough for interactions
-               IF (DA2 .GT. 400) THEN
+               IF (DA2 .GT. NBCUT) THEN
                   CYCLE
                ENDIF
                !Now calculate interactions between residues
