@@ -76,10 +76,11 @@ MODULE MD_UTILS
          USE NUMKIND
          USE MD_COMMONS, ONLY: NATOMS, MYUNIT
          USE MINIMISATION, ONLY: MINIMISE, COLDFUSION
+         USE FILE_UTILS, ONLY: FILE_OPEN
          IMPLICIT NONE
          REAL(KIND=REAL64), INTENT(INOUT) :: X(3*NATOMS)
          REAL(KIND=REAL64) :: ENERGY
-         INTEGER :: ITDONE
+         INTEGER :: ITDONE, XUNIT, I
          LOGICAL :: MFLAG
          
          ENERGY=0.0D0
@@ -90,6 +91,11 @@ MODULE MD_UTILS
             CALL TERMINATE_ERR(.TRUE., .TRUE.)
          ELSE IF (.NOT.MFLAG) THEN
             WRITE(MYUNIT,'(A)') " runmin> Minimisation did not converge - STOP"
+            CALL FILE_OPEN("final_structure_min", XUNIT, .FALSE.)
+            DO I=1,NATOMS
+               WRITE(XUNIT,'(3F15.7)') X(3*I-2), X(3*I-1), X(3*I)
+            END DO
+            CLOSE(XUNIT)
             CALL TERMINATE_ERR(.TRUE., .TRUE.)
          ELSE
             WRITE(MYUNIT,*) " runmin> Minimisation converged in ", ITDONE, " steps"
