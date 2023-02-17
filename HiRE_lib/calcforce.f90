@@ -97,7 +97,6 @@ MODULE CALCFORCES
          ETOT = ETOT + THIS_E*SCALING(4)
          F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(4)
          EVEC%EDH = THIS_E*SCALING(4)  
-         WRITE(*,'(A,F20.10,A,F20.10)') "DH E: ", THIS_E, "  Force: ", MAX(SQRT(SUM(THIS_F(1:NOPT)**2)/NOPT), 1.0D-100 )
          !5.Non-bonded interactions
          CALL  E_NONBONDED(NOPT, X, THIS_F, EHHB, ESTAK, EVDW) 
          ETOT = ETOT + EHHB*SCALING(5) + ESTAK*SCALING(6) + EVDW*SCALING(7)
