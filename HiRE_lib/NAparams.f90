@@ -78,9 +78,10 @@ MODULE NAparams
    !> What is this?
    REAL(KIND = REAL64), PARAMETER :: rcut2_lj_in = 1.00D2
    
-   !Additional cutoffs used for speed of computation (the values are distances squared)
+   !Additional cutoffs used for speed of computation
    !> Cut off for DH calculations
-   REAL(KIND = REAL64), PARAMETER :: DHCUT = 2500.0
+   REAL(KIND = REAL64), PARAMETER :: DHCUT = 35.0
+   !> Cut off for non-bonded interactions (square of distance)
    REAL(KIND = REAL64), PARAMETER :: NBCUT = 400.0
    SAVE
 END MODULE NAparams
