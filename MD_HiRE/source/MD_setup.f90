@@ -75,7 +75,7 @@ MODULE MD_SETUP
          USE INPUTMOD
          USE MD_COMMONS                  ! global variables
          USE MOD_THERMALISE, ONLY: NTHERMALISE, NEQUIL, NCENTRE, NRMANG, NRESCALE, NEQDUMPE
-         USE MINIMISATION, ONLY: ITMAX, MUPDATE, EPS
+         USE MINIMISATION, ONLY: ITMAX, MUPDATE, EPS, DUMPINTMIN, DUMPMINCOORDST
          ! USE FILE_UTILS, ONLY: FILE_EXIST
         
          IMPLICIT NONE
@@ -206,7 +206,11 @@ MODULE MD_SETUP
             CALL READI(ITMAX)
             CALL READI(MUPDATE)
             CALL READF(EPS)
-            
+         
+         ELSE IF (WORD .EQ. 'MINTRACK') THEN
+            DUMPMINCOORDST = .TRUE.
+            CALL READI(DUMPINTMIN)
+
          !+++++++++++++++!   
          ! LETTER N      !
          !+++++++++++++++!
