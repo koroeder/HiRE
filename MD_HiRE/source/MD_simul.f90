@@ -179,11 +179,12 @@ MODULE MD_SIMULATION
          END IF 
          !write coordinate files
          IF (MOD(CURRSTEP,NDUMPX).EQ.0) THEN
+            WRITE(XUNIT,'(I6)') NATOMS 
             WRITE(XUNIT,*) " Step: ", CURRSTEP
             DO I=1,NATOMS
                WRITE(XUNIT,'(3F15.7)') COORDS(3*I-2), COORDS(3*I-1), COORDS(3*I)
             END DO
-            WRITE(XUNIT,*) "-----------------------------------------------"
+            !WRITE(XUNIT,*) "-----------------------------------------------"
          END IF
          ! get RMSD
          IF (RMSDT) THEN
