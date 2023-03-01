@@ -1,12 +1,12 @@
 ## @file createHiREtop_pdb.py
 #
 # Create topology from sequence
-
+import argparse
+from os.path import exists
 import FA2CGmapper
 import CGdatafromSeq
 import topology
 import ChemData
-import sys
 
 def read_seqlist(fname):
     seqlist = list()
@@ -18,8 +18,18 @@ def read_seqlist(fname):
     else:
         return seqlist
 
+#parse arguments
+parser = argparse.ArgumentParser(prog = 'Create HiRE input from sequence data',
+                    description = 'This script creates a topology from sequence',
+                    epilog = 'You can get a start file from a CG pdb file')
+
+parser.add_argument('filename', help='Name of sequence file used to create HiRE input') 
+args = parser.parse_args()
+fname = args.filename
+if not(exists(fname)):
+    raise FileNotFoundError("File %s does not exist" % fname)
 # read sequence
-seqlist = read_seqlist(sys.argv[1])
+seqlist = read_seqlist(fname)
 # get list of atoms
 CG_labels = CGdatafromSeq.get_atoms_from_seq(seqlist)
 # get res names used for topology

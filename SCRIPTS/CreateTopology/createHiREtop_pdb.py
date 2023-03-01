@@ -2,11 +2,12 @@
 #
 # Create topology from FA pdb file
 
+import argparse
+from os.path import exists
 import PDBhandler
 import FA2CGmapper
 import topology
 import ChemData
-import sys
 
 def create_start(coords):
     outf = open("start","w")
@@ -15,8 +16,18 @@ def create_start(coords):
         outf.write(line)
     outf.close()
 
+#parse arguments
+parser = argparse.ArgumentParser(prog = 'Create HiRE input from all atom pdb file',
+                    description = 'This script creates a topology and start file from an all atom pdb file',
+                    epilog = 'Do not forget to get an up-to-date parameter file')
+
+parser.add_argument('filename', help='Name of pdb file used to create HiRE input') 
+args = parser.parse_args()
+fname = args.filename
+if not(exists(fname)):
+    raise FileNotFoundError("File %s does not exist" % fname)
 # get data from pdb
-data = PDBhandler.parse_pdb(sys.argv[1])
+data = PDBhandler.parse_pdb(fname)
 # unpack tuple
 natom,nres,atomnames,elements,res,resnames,coordsbyres,termini = data
 # get masses for all atoms
