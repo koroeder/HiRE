@@ -160,7 +160,7 @@ MODULE MD_SIMULATION
       SUBROUTINE DUMPDATA(CURRSTEP)
          USE MD_COMMONS, ONLY: NATOMS, XUNIT, EUNIT, DUMPPDBT, NDUMPE, NDUMPP, NDUMPX, NDUMPRST, &
                                COORDS, VEL, EKIN, EPOT, ALIGNCONFT, RMSDT, NDUMPR, RUNIT, &
-                               NTASKS, TASKID
+                               NTASKS, TASKID, ELEMENTS
          USE HIRE_INTERFACE, ONLY: DUMP_PDB
          USE MOD_RESTART, ONLY: WRITE_RST_FILE
          USE MOD_RMSD, ONLY: GET_RMSD 
@@ -182,7 +182,7 @@ MODULE MD_SIMULATION
             WRITE(XUNIT,'(I6)') NATOMS 
             WRITE(XUNIT,*) " Step: ", CURRSTEP
             DO I=1,NATOMS
-               WRITE(XUNIT,'(3F15.7)') COORDS(3*I-2), COORDS(3*I-1), COORDS(3*I)
+               WRITE(XUNIT,'(A1,2X,3F15.7)') ELEMENTS(I),COORDS(3*I-2), COORDS(3*I-1), COORDS(3*I)
             END DO
             !WRITE(XUNIT,*) "-----------------------------------------------"
          END IF

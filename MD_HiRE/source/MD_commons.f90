@@ -27,8 +27,12 @@ MODULE MD_COMMONS
     REAL(KIND = REAL64), ALLOCATABLE :: ACC(:)
     ! velocity
     REAL(KIND = REAL64), ALLOCATABLE :: VEL(:)
-    ! atomic masses
+    ! particle masses
     REAL(KIND = REAL64), ALLOCATABLE :: MASSES(:)    
+    ! particle names
+    CHARACTER(LEN=4), ALLOCATABLE :: ATNAMES(:)
+    ! particle else
+    CHARACTER(LEN=1), ALLOCATABLE :: ELEMENTS(:)
     ! gamma
     REAL(KIND = REAL64) :: GAMMA = 1.0D-1 
     ! friction parameter
