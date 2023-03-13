@@ -12,6 +12,8 @@ MODULE EXCHANGES
    INTEGER :: MYCURRENTID
    !> contains the current order of replicas (the first id has the lowest T/highest lambda and the last id the highest T/lowest lambda)
    INTEGER, ALLOCATABLE :: CURRENT_ORDER(:)
+   !> unit for tracking replica exhange data
+   INTEGER :: REXUNIT
    CONTAINS
 
       SUBROUTINE SELECT_EXCHANGES()
@@ -85,6 +87,9 @@ MODULE EXCHANGES
                MEINITIATET = .TRUE.
             END IF
          END IF
+
+         CALL FLUSH(MYUNIT)
+
          ! we can now exclude all replicas that are not active - we will have an MPI_Barrier after this so they won't run away
          IF (MEACTIVET) THEN
             IF (REXMODE.EQ.'T') THEN
@@ -96,17 +101,21 @@ MODULE EXCHANGES
             END IF
          END IF
 
+         CALL FLUSH(MYUNIT)
+
          CALL UPDATE_CURR_ORDER()
          IF (TASKID.EQ.0) THEN
             NTHISTIME = 0
             IF (EXCHANGEDT) NTHISTIME = NTHISTIME + 1
             DO J=2,NREPLICA
+               REMD_TAG = J
                CALL MPI_RECV(EXCHANGEDT,1,MPI_LOGICAL,J-1,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
                IF (EXCHANGEDT) NTHISTIME = NTHISTIME + 1
             ENDDO
             NEXCHANGES = NEXCHANGES + NTHISTIME/2
             WRITE(*,*) " sel_exchanges> ", NTHISTIME/2, " exchanges this step, in total ", NEXCHANGES, " up to now"
          ELSE
+            REMD_TAG = TASKID + 1
             CALL MPI_SEND(EXCHANGEDT,1,MPI_LOGICAL,0,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
          END IF
          CALL MPI_BARRIER(MPI_COMM_WORLD,ERR_CODE_MPI)
@@ -152,7 +161,7 @@ MODULE EXCHANGES
             CALL MPI_SEND(COORDS,3*NATOMS,MPI_DOUBLE,OTHERREP,REMD_TAG+2,MPI_COMM_WORLD,ERR_CODE_MPI)
             CALL MPI_RECV(L1,1,MPI_DOUBLE,OTHERREP,REMD_TAG+3,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
          END IF
-         CALL MPI_BARRIER(MPI_COMM_WORLD,ERR_CODE_MPI)
+         ! CALL MPI_BARRIER(MPI_COMM_WORLD,ERR_CODE_MPI)
          WRITE(MYUNIT,'(A)') " passdataH> Sent and received data to determine exchanges" 
 
          ! calculate the probability and apply the acceptance/rejection criterion
@@ -241,7 +250,7 @@ MODULE EXCHANGES
             CALL MPI_SEND(EPOT,1,MPI_DOUBLE,OTHERREP,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
             CALL MPI_SEND(TEMP,1,MPI_DOUBLE,OTHERREP,REMD_TAG+1,MPI_COMM_WORLD,ERR_CODE_MPI)
          END IF
-         CALL MPI_BARRIER(MPI_COMM_WORLD,ERR_CODE_MPI)
+         ! CALL MPI_BARRIER(MPI_COMM_WORLD,ERR_CODE_MPI)
          WRITE(MYUNIT,'(A)') " passdataT> Sent and received data to determine exchanges" 
 
          ! the value for the probability is given by:
@@ -311,6 +320,7 @@ MODULE EXCHANGES
                NEWORDER(NEWPOS) = J 
             END DO
             CURRENT_ORDER = NEWORDER
+            WRITE(REXUNIT,*) NROUNDEX, CURRENT_ORDER
          ELSE
             CALL MPI_SEND(MYCURRENTID,1,MPI_INTEGER,0,TASKID,MPI_COMM_WORLD,ERR_CODE_MPI)
          END IF
