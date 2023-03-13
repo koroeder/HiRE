@@ -46,6 +46,7 @@ MODULE MPI_UTILS
          WRITE(IDSTR,'(I6)') TASKID + 1
          CALL FILE_OPEN("md_energy."//TRIM(ADJUSTL(IDSTR))//".log",EUNIT,.TRUE.)
          CALL FILE_OPEN("md_coords."//TRIM(ADJUSTL(IDSTR))//".xyz",XUNIT,.TRUE.)
+         CALL FILE_OPEN("md_temp."//TRIM(ADJUSTL(IDSTR))//".log",TEMPUNIT,.TRUE.)
          IF (RMSDT) CALL FILE_OPEN("md_rmsd."//TRIM(ADJUSTL(IDSTR))//".log",RUNIT,.TRUE.)
          IF (TASKID.EQ.0) CALL FILE_OPEN("md_rexid.log",REXUNIT,.TRUE.)
       END SUBROUTINE START_TRACKING_MPI

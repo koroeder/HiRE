@@ -63,6 +63,8 @@ MODULE MD_COMMONS
     INTEGER :: EUNIT
     ! output unit for RMSD
     INTEGER :: RUNIT
+    ! output unit for temperature
+    INTEGER :: TEMPUNIT
     ! output frequency for coordinates
     INTEGER :: NDUMPX
     ! output frequency for energy
