@@ -54,6 +54,7 @@ MODULE MPI_UTILS
       SUBROUTINE COMMUNICATE_SETTINGS()
          USE MD_COMMONS
          USE HIRE_INTERFACE, ONLY:  SET_UNIV_SCALING
+         USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
          IMPLICIT NONE
          REAL(KIND = REAL64), ALLOCATABLE :: TARRAY(:), STEP
 #ifdef MPI       
@@ -61,6 +62,9 @@ MODULE MPI_UTILS
          INCLUDE 'mpif.h'
          INTEGER MPISTATUS(MPI_STATUS_SIZE)
          INTEGER :: ERR_CODE_MPI, REMD_TAG
+         REAL(KIND=REAL64) :: KST
+         INTEGER :: OUTUNIT
+         CHARACTER(LEN=30) :: FNAME = "temperatures.dat"
 
          IF(TASKID.EQ.0) THEN
             IF (NREPLICA.NE.NTASKS) THEN
@@ -69,10 +73,18 @@ MODULE MPI_UTILS
                NREPLICA = NTASKS
             END IF
             ALLOCATE(TARRAY(NREPLICA))
-            STEP = (HIGHR - LOWR)/DBLE(NREPLICA-1)
+            ! STEP = (HIGHR - LOWR)/DBLE(NREPLICA-1)
+            KST = LOG(HIGHR/LOWR)/DBLE(NREPLICA-1)
+            IF (FILE_EXIST(FNAME)) THEN
+               CALL EXECUTE_COMMAND_LINE("rm "//TRIM(ADJUSTL(FNAME)))
+            END IF
+            CALL FILE_OPEN(FNAME,OUTUNIT,.TRUE.)
             DO J=0,NREPLICA-1
-               TARRAY(J+1) = LOWR + J*STEP
+               ! TARRAY(J+1) = LOWR + J*STEP
+               TARRAY(J+1) = LOWR*EXP(KST*J)
+               WRITE(OUTUNIT,*) J+1, TARRAY(J+1)
             END DO
+            CLOSE(OUTUNIT)
          END IF
 
          ! use SEND/RECV for temperature and lambda
