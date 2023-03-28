@@ -39,13 +39,16 @@ MODULE MPI_UTILS
       SUBROUTINE START_TRACKING_MPI()
          USE FILE_UTILS, ONLY: FILE_OPEN
          USE MD_COMMONS
+         USE EXCHANGES, ONLY: REXUNIT         
          IMPLICIT NONE
          CHARACTER(LEN=6) :: IDSTR
 
          WRITE(IDSTR,'(I6)') TASKID + 1
          CALL FILE_OPEN("md_energy."//TRIM(ADJUSTL(IDSTR))//".log",EUNIT,.TRUE.)
          CALL FILE_OPEN("md_coords."//TRIM(ADJUSTL(IDSTR))//".xyz",XUNIT,.TRUE.)
+         CALL FILE_OPEN("md_temp."//TRIM(ADJUSTL(IDSTR))//".log",TEMPUNIT,.TRUE.)
          IF (RMSDT) CALL FILE_OPEN("md_rmsd."//TRIM(ADJUSTL(IDSTR))//".log",RUNIT,.TRUE.)
+         IF (TASKID.EQ.0) CALL FILE_OPEN("md_rexid.log",REXUNIT,.TRUE.)         
       END SUBROUTINE START_TRACKING_MPI
 
       SUBROUTINE COMMUNICATE_SETTINGS()
@@ -77,9 +80,11 @@ MODULE MPI_UTILS
             IF (TASKID.EQ.0) THEN
                TEMP = TARRAY(1)
                DO J=2,NREPLICA
+                  REMD_TAG = J
                   CALL MPI_SSEND(TARRAY(J),1,MPI_DOUBLE,J-1,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
                END DO
             ELSE
+               REMD_TAG = TASKID + 1
                CALL MPI_RECV(TEMP,1,MPI_DOUBLE,0,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
             END IF
          END IF
@@ -87,9 +92,11 @@ MODULE MPI_UTILS
             IF (TASKID.EQ.0) THEN
                LAMBDA = TARRAY(1)
                DO J=2,NREPLICA
+                  REMD_TAG = J
                   CALL MPI_SEND(TARRAY(J),1,MPI_DOUBLE,J-1,REMD_TAG,MPI_COMM_WORLD,ERR_CODE_MPI)
                END DO
             ELSE
+               REMD_TAG = TASKID + 1
                CALL MPI_RECV(LAMBDA,1,MPI_DOUBLE,0,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
             END IF
             CALL MPI_BCAST(TEMP,1,MPI_DOUBLE,0,MPI_COMM_WORLD,ERR_CODE_MPI)
