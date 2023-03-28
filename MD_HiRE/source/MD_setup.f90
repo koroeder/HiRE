@@ -107,12 +107,12 @@ MODULE MD_SETUP
          ! Labels for each letter is: ! LETTER #A
          ! For each keyword add comment of format:
          ! ! Keyword: COMMENT
-         ! ! Added: 11/03/2021 (kr366), last modified: 11/03/2021 (kr366)
+         ! ! Added: 11/03/2021 (k2262470), last modified: 11/03/2021 (k2262470)
          ! ! Description: Keyword to comment lines
          ! Undocumented keywords will be deleted
         
          ! Keyword: COMMENT
-         ! Added: 11/03/2021 (kr366), last modified: 11/03/2021 (kr366)
+         ! Added: 11/03/2021 (k2262470), last modified: 11/03/2021 (k2262470)
          ! Description: Keyword to comment lines     
          IF (WORD.EQ.'COMMENT'.OR.WORD.EQ."!".OR.WORD.EQ."#") THEN
             RETURN
@@ -130,7 +130,7 @@ MODULE MD_SETUP
          !+++++++++++++++!     
          
          ! Keyword: COORDINATES
-         ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
+         ! Added: 02/11/2022 (k2262470), last modified: 02/11/2022 (k2262470)
          ! Description: Interval to dump coordinates
          ELSE IF (WORD .EQ. 'COORDINATES') THEN
             CALL READA(COORDSFILE) 
@@ -140,26 +140,26 @@ MODULE MD_SETUP
          !+++++++++++++++! 
           
          ! Keyword: DUMPCOORDS
-         ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
+         ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
          ! Description: Interval to dump coordinates
          ELSE IF (WORD .EQ. 'DUMPCOORDS') THEN
             CALL READI(NDUMPX) 
 
          ! Keyword: DUMPENERGY
-         ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
+         ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
          ! Description: Interval to dump energy
          ELSE IF (WORD .EQ. 'DUMPENERGY') THEN
             CALL READI(NDUMPE) 
 
          ! Keyword: DUMPPDB
-         ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
+         ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
          ! Description: Interval to dump coordinates as pdb files
          ELSE IF (WORD .EQ. 'DUMPPDB') THEN
             CALL READI(NDUMPP) 
             DUMPPDBT = .TRUE.
 
          ! Keyword: DUMPRST
-         ! Added: 30/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Added: 30/11/2022 (k2262470), last modified: 30/11/2022 (k2262470)
          ! Description: Interval to write restart file
          ELSE IF (WORD .EQ. 'DUMPRST') THEN
             CALL READI(NDUMPRST)            
@@ -177,7 +177,7 @@ MODULE MD_SETUP
          !+++++++++++++++!
 
          ! Keyword: GAMMA
-         ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
+         ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
          ! Description: Value for friction parameter gamma
          ELSE IF (WORD .EQ. 'GAMMA') THEN
             CALL READF(GAMMA) 
@@ -207,19 +207,19 @@ MODULE MD_SETUP
          !+++++++++++++++!
 
          ! Keyword: MDMODE
-         ! Added: 28/11/2022 (kr366), last modified: 28/11/2022 (kr366)
+         ! Added: 28/11/2022 (k2262470), last modified: 28/11/2022 (k2262470)
          ! Description: MD method to be used: VV for Velocity Verlet or LD for Langevin Dynamics
          ELSE IF (WORD .EQ. 'MDMODE') THEN
             CALL READA(MDMETHOD)
 
          ! Keyword: MDSTEPS
-         ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
+         ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
          ! Description: Number of MD steps to be taken
          ELSE IF (WORD .EQ. 'MDSTEPS') THEN
             CALL READI(MDSTEPS) 
 
          ! Keyword: MININIT
-         ! Added: 10/11/2022 (kr366), last modified: 10/11/2022 (kr366)
+         ! Added: 10/11/2022 (k2262470), last modified: 10/11/2022 (k2262470)
          ! Description: Run minimisation for initial structure
          ELSE IF (WORD .EQ. 'MININIT') THEN
             MININITIAL = .TRUE.
@@ -227,6 +227,9 @@ MODULE MD_SETUP
             CALL READI(MUPDATE)
             CALL READF(EPS)
          
+         ! Keyword: MINTRACK
+         ! Added: 28/03/2023 (k2262470), last modified: 28/03/2023 (k2262470)
+         ! Description: Run minimisation for initial structure            
          ELSE IF (WORD .EQ. 'MINTRACK') THEN
             DUMPMINCOORDST = .TRUE.
             CALL READI(DUMPINTMIN)
@@ -252,7 +255,7 @@ MODULE MD_SETUP
          !+++++++++++++++! 
 
          ! Keyword: RESTART
-         ! Added: 30/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Added: 30/11/2022 (k2262470), last modified: 30/11/2022 (k2262470)
          ! Description: Restart simulation from restart file
          ELSE IF (WORD .EQ. 'RESTART') THEN
             RESTARTSIMT = .TRUE.
@@ -262,7 +265,7 @@ MODULE MD_SETUP
             
 
          ! Keyword: REXMD
-         ! Added: 13/12/2022 (kr366), last modified: 13/12/2022 (kr366)
+         ! Added: 13/12/2022 (k2262470), last modified: 13/12/2022 (k2262470)
          ! Description: Replica exchange simualtion, either Hamiltonian or Temperature
          ELSE IF (WORD .EQ. 'REXMD') THEN
             REXT= .TRUE.
@@ -285,7 +288,7 @@ MODULE MD_SETUP
          !+++++++++++++++!
 
          ! Keyword: SCALEDAT
-         ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
+         ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
          ! Description: Time steps to be used
          ELSE IF (WORD .EQ. 'SCALEDAT') THEN
             CALL READA(SCALEDATNAME)
@@ -295,13 +298,13 @@ MODULE MD_SETUP
          !+++++++++++++++!
 
          ! Keyword: TEMPERATURE
-         ! Added: 02/11/2022 (kr366), last modified: 02/11/2022 (kr366)
+         ! Added: 02/11/2022 (k2262470), last modified: 02/11/2022 (k2262470)
          ! Description: Temperature to be used
          ELSE IF (WORD .EQ. 'TEMPERATURE') THEN
             CALL READF(TEMP)
 
          ! Keyword: THERMALISATION
-         ! Added: 20/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Added: 20/11/2022 (k2262470), last modified: 30/11/2022 (k2262470)
          ! Description: Thermalisation
          ELSE IF (WORD .EQ. 'THERMALISATION') THEN
             THERMINIT = .TRUE.
@@ -322,7 +325,7 @@ MODULE MD_SETUP
             
 
          ! Keyword: THERMALISE_OPTIONS
-         ! Added: 20/11/2022 (kr366), last modified: 30/11/2022 (kr366)
+         ! Added: 20/11/2022 (k2262470), last modified: 30/11/2022 (k2262470)
          ! Description: Thermalisation settings
          ELSE IF (WORD .EQ. 'THERMALISE_OPTIONS') THEN
             CALL READI(NCENTRE)
@@ -331,13 +334,13 @@ MODULE MD_SETUP
             CALL READI(NEQDUMPE)        
 
          ! Keyword: TIMESTEP
-         ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
+         ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
          ! Description: Time steps to be used
          ELSE IF (WORD .EQ. 'TIMESTEP') THEN
             CALL READF(DT)
 
          ! Keyword: TOPOLOGY
-         ! Added: 01/11/2022 (kr366), last modified: 01/11/2022 (kr366)
+         ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
          ! Description: Topology to be used
          ELSE IF (WORD .EQ. 'TOPOLOGY') THEN
             CALL READA(TOPNAME)
