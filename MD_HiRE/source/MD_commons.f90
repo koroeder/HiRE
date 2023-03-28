@@ -89,6 +89,7 @@ MODULE MD_COMMONS
     LOGICAL :: MININITIAL = .FALSE.
     ! Use thermalisation
     LOGICAL :: THERMINIT = .FALSE.
+    LOGICAL :: THERMINIT2 = .FALSE.
     ! Initial temperature
     REAL(KIND = REAL64) ::  TINIT = 1.0D-6
     ! Final temperature

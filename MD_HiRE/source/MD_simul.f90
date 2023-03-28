@@ -3,11 +3,11 @@ MODULE MD_SIMULATION
       SUBROUTINE ZERO_STEP()
          USE MD_COMMONS, ONLY: NATOMS, MYUNIT, COORDS, EPOT, EKIN, ACC, VEL, TEMP, &
                                NOPT, MDMETHOD, TFINAL, TINIT, THERMINIT, RESTARTSIMT, &
-                               RESTARTINPF, RESTARTSTEP, RMSDT
+                               RESTARTINPF, RESTARTSTEP, RMSDT, THERMINIT2
          USE MD_UTILS, ONLY: SET_DERIVED_PARAMS
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
-         USE MOD_THERMALISE, ONLY: THERMALISE
+         USE MOD_THERMALISE, ONLY: THERMALISE, THERMALISE2
          USE MOD_RESTART, ONLY: READ_RST_FILE
          USE MOD_RMSD, ONLY: SET_REF
          USE NUMKIND
@@ -36,12 +36,16 @@ MODULE MD_SIMULATION
          CALL GET_ACC(GRAD,ACC)
 
          IF (.NOT.RESTARTSIMT) THEN
-            IF (THERMINIT) THEN
+            IF (THERMINIT.OR.THERMINIT2) THEN
                IF (TFINAL.LT.0.0D0) THEN
                   TFINAL = TEMP
                END IF
                WRITE(MYUNIT,*) " mdhire> Thermalisation from ", TINIT, " to ", TFINAL   
-               CALL THERMALISE(TINIT, TFINAL, COORDS, VEL, ACC, EPOT)
+               IF (THERMINIT2) THEN 
+                  CALL THERMALISE2(TINIT, TFINAL, COORDS, VEL, ACC, EPOT)
+               ELSE IF (THERMINIT) THEN
+                  CALL THERMALISE(TINIT, TFINAL, COORDS, VEL, ACC, EPOT)
+               END IF
                IF (TEMP.NE.TFINAL) THEN
                   WRITE(MYUNIT,*) " mdhire> WARNING: Final T of thermalisation is not the same as simulation T."
                END IF
@@ -80,8 +84,8 @@ MODULE MD_SIMULATION
             IF (RESTARTSTEP.LT.MDSTEPS) THEN
                DO J=RESTARTSTEP, MDSTEPS
                   IF (REXT) CALL EXCHANGEREPS(J)
-                  CALL TAKE_MDSTEP(J)
-                  CALL DUMPDATA(J)
+                  CALL TAKE_MDSTEP(J,CURRTEMP)
+                  CALL DUMPDATA(J,CURRTEMP)
                END DO 
             END IF
          ELSE

@@ -9,7 +9,7 @@ MODULE MOD_THERMALISE
    !> Frequency of recentering and removing linear momentum, if 0, will not be used
    INTEGER :: NCENTRE = 1
    !> Frequency of removing ang velocity, if 0, will not be used
-   INTEGER :: NRMANG = 0
+   INTEGER :: NRMANG = 100
    !> Frequency of rescaling
    INTEGER :: NRESCALE = 1
    !> Frequency of writing energies to output file
@@ -125,6 +125,89 @@ MODULE MOD_THERMALISE
          WRITE(MYUNIT,*) " thermalise> Completed thermalisation"
          WRITE(MYUNIT,*) " " 
       END SUBROUTINE THERMALISE
+
+      SUBROUTINE THERMALISE2(TINIT, TFINAL, X, VEL, ACC, EPOT)
+         USE FILE_UTILS, ONLY: FILE_OPEN
+         USE MD_COMMONS, ONLY: NOPT, MDMETHOD, TEMP, EKIN, RMSDT, &
+                               ALIGNCONFT, NTASKS, TASKID
+         USE MD_CALCS
+         USE MOD_RMSD, ONLY: GET_RMSD
+         USE MOD_INTEGRATORS, ONLY: LANGEVIN_STEP, VELOCITY_VERLET, SCALEVEL, SCALEVEL_LANGEVIN
+         REAL(KIND = REAL64), INTENT(IN) :: TINIT
+         REAL(KIND = REAL64), INTENT(IN) :: TFINAL
+         REAL(KIND = REAL64), INTENT(INOUT) :: X(NOPT)
+         REAL(KIND = REAL64), INTENT(INOUT) :: VEL(NOPT)
+         REAL(KIND = REAL64), INTENT(INOUT) :: ACC(NOPT)
+         REAL(KIND = REAL64), INTENT(OUT) :: EPOT                  
+         REAL(KIND = REAL64) :: DTEMP, TSMALL, CURRTEMP
+         REAL(KIND = REAL64) :: DIST, RMSD
+         INTEGER :: I, EQUNIT, RQUNIT
+         CHARACTER(LEN=6) :: TASKSTR
+
+         ! Get the temperature increment used in thermalisation
+         ! If the initial T is zero, we set it to be very small, but non-zero for the initial temperatures
+         DTEMP = (TFINAL-TINIT)/DBLE(NTHERMALISE-1)
+
+         IF (TINIT.LT.1.0D-10) THEN
+            TSMALL = 1.0D-3
+            CALL INITIALISE_VEL(TSMALL)
+         ELSE 
+            CALL INITIALISE_VEL(TINIT)
+         END IF
+
+         IF (NTASKS.EQ.1) THEN
+            CALL FILE_OPEN("md_e_therm.log",EQUNIT,.TRUE.)
+            IF (RMSDT) CALL FILE_OPEN("md_rmsd_therm.log",RQUNIT,.TRUE.)
+         ELSE
+            WRITE(TASKSTR,'(I6)') TASKID
+            CALL FILE_OPEN("md_e_therm.log."//TRIM(ADJUSTL(TASKSTR)),EQUNIT,.TRUE.)
+            IF (RMSDT) CALL FILE_OPEN("md_rmsd_therm.log."//TRIM(ADJUSTL(TASKSTR)),RQUNIT,.TRUE.)
+         END IF
+         WRITE(MYUNIT,'(A,I8,A,I8,A)') " thermalise> Thermalise simulation in ", NTHERMALISE, " steps"
+         WRITE(MYUNIT,*) " "
+         TEMP = TINIT
+         DO I=1,NTHERMALISE
+            TEMP = TEMP + DTEMP
+            CALL THERMALISE_RESCALE_VEL(VEL,TEMP)
+
+            IF ((NCENTRE.GT.0).AND.(MOD(I,NCENTRE).EQ.0)) THEN
+               CALL REMOVE_LINMOM(X, VEL, .TRUE.)
+            END IF
+            IF ((NRMANG.GT.0).AND.(MOD(I,NRMANG).EQ.0)) THEN
+               CALL REMOVE_ANGVEL(X, VEL)
+            END IF
+            ! Velocity verlet?
+            IF (MDMETHOD.EQ.'VV') THEN
+               CALL VELOCITY_VERLET(X, VEL, ACC, EPOT, EKIN)
+            ! Langevin?
+            ELSE IF (MDMETHOD.EQ.'LD') THEN
+               CALL LANGEVIN_STEP(TEMP, X, VEL, ACC, EPOT, EKIN)
+            ELSE  
+               WRITE(MYUNIT,'(A)') " thermalise> No valid MD steps detected"
+               STOP                
+            END IF
+            IF (MOD(I,NEQDUMPE).EQ.0) THEN
+               CURRTEMP = CURRENT_T(VEL)
+               WRITE(MYUNIT,'(A,I8)') " thermalise> Completed step ", I
+               WRITE(MYUNIT,'(A,F12.4)') "             Total energy:        ", EPOT+EKIN           
+               WRITE(MYUNIT,'(A,F12.4)') "             Kinetic energy:      ", EKIN
+               WRITE(MYUNIT,'(A,F12.4)') "             Potential energy:    ", EPOT
+               WRITE(MYUNIT,'(A,F7.4)') "             Current temperature: ", CURRTEMP
+               WRITE(MYUNIT,'(A,F12.4)') " --------------------------------------------------"
+               WRITE(EQUNIT,'(I10,2(1X,F7.4),3(1X,F15.7))') I, TEMP, CURRTEMP, EPOT+EKIN, EPOT, EKIN 
+               IF (RMSDT) THEN
+                  CALL GET_RMSD(NATOMS, X, DIST, RMSD, ALIGNCONFT)
+                  WRITE(RQUNIT,'(I10,2(1X,F12.4))') I, DIST, RMSD
+               END IF
+               CALL FLUSH(MYUNIT)
+               CALL FLUSH(EQUNIT)
+               CALL FLUSH(RQUNIT)
+            END IF      
+         END DO
+         CLOSE(EQUNIT)
+         WRITE(MYUNIT,*) " thermalise> Completed thermalisation"
+         WRITE(MYUNIT,*) " " 
+      END SUBROUTINE THERMALISE2
 
 
       SUBROUTINE THERMALISE_RESCALE_VEL(VEL,TEMP)

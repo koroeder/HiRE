@@ -323,7 +323,6 @@ MODULE MD_SETUP
                TFINAL = -1.0D0
             END IF
             
-
          ! Keyword: THERMALISE_OPTIONS
          ! Added: 20/11/2022 (k2262470), last modified: 30/11/2022 (k2262470)
          ! Description: Thermalisation settings
@@ -331,7 +330,24 @@ MODULE MD_SETUP
             CALL READI(NCENTRE)
             CALL READI(NRMANG)
             CALL READI(NRESCALE)  
-            CALL READI(NEQDUMPE)        
+            CALL READI(NEQDUMPE)    
+            
+         ! Keyword: THERMALISENEW
+         ! Added: 28/03/2023 (k2262470), last modified: 28/03/2023 (k2262470)
+         ! Description: Thermalisation, new algorithm
+         ELSE IF (WORD .EQ. 'THERMALISENEW') THEN
+            THERMINIT2 = .TRUE.
+            CALL READI(NTHERMALISE)  
+            CALL READF(TINIT)
+            CALL READF(TFINAL)                     
+            CALL READI(NEQDUMPE)   
+            IF (NITEMS.GT.5) THEN
+               CALL READI(NCENTRE)
+               IF (NITEMS.GT.6) THEN
+                  CALL READI(NRMANG) 
+               END IF
+            END IF
+            
 
          ! Keyword: TIMESTEP
          ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
