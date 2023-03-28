@@ -1,30 +1,10 @@
-1. Go to GMIN-HiRE
+HiRE - High-resolution energy model for RNA
 
-2. If not already there, create a folder build
+To compile the code run:
 
-3. In build, create a unique folder for your current built, and enter this directory
+- createHIREexec for stand-alone HiRE version
+- createMDexec for HiRE MD executable
+- createGMINexec for HiRE GMIN executable
 
-4. Run FC=gfortran CC=gcc cmake ../../source (instead of gfortran and gcc, you can use other compilers e.g. ifort and icc)
-
-5. If you don't want the standard configuration run ccmake . and alter the current build settings (exit after configuring)
-
-6. run make, the executable OPEP+HiREGMIN should be created
-
-
-
-Files needed to run:
-
- - for GMIN: data - keyword input to set options for run
-             start - xyz coordinates
-             atomgroups - needed for grouprotation moves (input see GMIN documentation or examples)
-
- - for potential: 
-             ichain_RNA.dat 
-             protonated.dat 
-             baselist.dat 
-             chargeatm_RNA.dat
-             scale_RNA.dat   
-             bblist.dat
-             conf_initiale_RNA.pdb
-             parametres_RNA.top  
+See Examples for some basic examples and guidance on use.
 
