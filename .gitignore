@@ -7,3 +7,4 @@ bin
 Docs/html
 Docs/latex
 *.code-workspace
+__pycache__
