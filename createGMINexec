@@ -1,0 +1,115 @@
+#!/bin/bash
+
+
+# createGMINexec - A script to compile the HiRE GMIN executable
+
+help()
+{
+  echo "Script to create HiRE GMIN executable"
+  echo "Requires cmake and a fortran and C compiler"
+  echo "By the default gnu compilers are used"
+  echo "" 
+  echo "usage: createHIREexec [-f compiler] [-c Ccompiler] [-m] | [-h]"
+  echo ""
+  echo "-f - Fortran compiler - specify the compiler (gnu, intel, pgi)"
+  echo "-c - Specify C compiler, default same as Fortran compiler"
+  echo "-h - Display this help"
+  echo "-m - MPI version for BHPT"
+}
+
+## Main installer
+usesame="yes"
+fcompiler="gnu"
+ccompiler="gnu"
+mpi="no"
+
+#parse the options provided
+while [ "$1" != "" ]; do
+	case $1 in 
+	-f | --fortran )  shift
+		          fcompiler="$1"
+			  ;;
+ 	-c | --ccompiler ) shift
+		           ccompiler="$1"
+			   usesame="no"
+			   ;;
+	-h | --help ) help
+		      exit
+		      ;;
+    -m | --mpi ) mpi="yes"
+                 ;;
+	* ) help
+	    exit 1
+esac
+shift
+done
+
+#set compiler 
+if [ $fcompiler = "gnu" ]; then
+	FCOMPILER="gfortran"
+	CCOMPILER="gcc"
+	CXX="gcc"
+elif [ $fcompiler = "intel" ]; then
+	FCOMPILER="ifort"
+	CCOMPILER="icc"
+	CXX="icc"
+elif [ $fcompiler = "nag" ]; then
+	FCOMPILER="nagfor"
+	CCOMPILER="gcc"
+	CXX="gcc"
+elif [ $fcompiler = "pgi" ]; then
+	FCOMPILER="pgif90"
+	CCOMPILER="gcc"
+	CXX="gcc"
+else
+	echo " Compiler option $fcompiler does not exist"
+	exit 1
+fi
+
+if [ $usesame = "no" ]; then
+        if [ $ccompiler = "gnu" ]; then
+       		CCOMPILER="gcc"
+ 		CXX="gcc"
+	elif [ $ccompiler = "intel"]; then
+		CCOMPILER="icc"
+		CXX="icc"
+	else
+		echo " C compiler option $ccompiler not available"
+		exit 1
+	fi
+fi	
+
+#set directory name and set up directory
+if [ $mpi = "no" ]; then
+    dirname="$(date +%y%b%d)"
+else
+    dirname="MPI_$(date +%y%b%d)"
+fi
+current="$(pwd)"
+cd $current"/GMIN_HiRE"
+mkdir -p build
+cd build
+if [ -d "$dirname" ]; then
+        rm -rf "$dirname"
+fi
+mkdir $dirname
+cd $dirname
+
+if [ $mpi = "no" ]; then
+    FC=$FCOMPILER CC=$CCOMPILER CXX=$CXX cmake ../../source
+else
+    if [ $fcompiler = "gnu" ]; then
+       COMPILER="gfortran"
+    elif [ $fcompiler = "intel" ]; then
+       COMPILER="ifort"
+    fi
+    FC=mpif90 CC=mpicc cmake ../../source -DCOMPILER_SWITCH=$COMPILER -DWITH_MPI=ON
+fi
+
+make
+
+mkdir -p $current/bin
+cp HIREGMIN $current/bin/HIREGMIN_$dirname
+
+cd $current
+exit

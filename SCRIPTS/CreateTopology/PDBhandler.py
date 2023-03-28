@@ -33,7 +33,7 @@ def parse_line(line):
     res_id = int(line[22:26])
     atom_xyz = [float(line[30:38]), float(line[38:46]), float(line[46:54])]
     element = line[76:78].strip()
-    return atom_name, res_name, res_id, atom_xyz, element
+    return [atom_name, res_name, res_id, atom_xyz, element]
 
 ## Function to open pdb and parse it line by line
 #
@@ -90,6 +90,22 @@ def get_residues(natom,data):
         coordsbyres[ridx+1] = coords
     return resid, res, resnames, coordsbyres
 
+def shift_resids(natom,data):
+    resid = data[1][2]
+    shift = resid - 1
+    prev = 1
+    for i in range(natom):
+        curr = data[i+1][2] - shift
+        if prev<curr:
+            if prev+1==curr:
+                prev = curr
+            else:
+                shift = shift + curr - prev - 1
+                curr = data[i+1][2] - shift
+                prev = curr
+        data[i+1][2] = curr
+    return data
+
 ## Function to get a list of elements from data dictionary
 def get_elements(natom,data):
     elements = list()
@@ -124,6 +140,7 @@ def fix_termini(natom,termini):
 ## Function to parse file and obtain all relevant data
 def parse_pdb(inpfile):
     data, termini, natom = get_pdb_data(inpfile)
+    data = shift_resids(natom,data)
     nres, res, resnames, coordsbyres= get_residues(natom,data)
     elements = get_elements(natom,data)
     atomnames = get_atomnames(natom,data)

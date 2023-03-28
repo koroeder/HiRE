@@ -34,6 +34,7 @@ MODULE EXCHANGES
 
          ! increase the round number and set whether this is an odd or even round
          NROUNDEX = NROUNDEX + 1
+         NTHISTIME = 0
          ODDT = .FALSE.
          IF (MOD(NROUNDEX,2).EQ.1) ODDT=.TRUE.
          ! set active and initiators to false for all

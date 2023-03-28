@@ -1,0 +1,135 @@
+#!/bin/bash
+
+
+# createMDexec - A script to compile the HiRE MD executable
+
+help()
+{
+  echo "Script to create HiRE MD executable"
+  echo "Requires cmake and a fortran and C compiler"
+  echo "By the default gnu compilers are used"
+  echo "" 
+  echo "usage: createHIREexec [-f compiler] [-c Ccompiler] [-m] [-p] [-a] | [-h]"
+  echo ""
+  echo "-f - Fortran compiler - specify the compiler (gnu, intel, pgi)"
+  echo "-a - Analysis version with extra debugging"
+  echo "-c - Specify C compiler, default same as Fortran compiler"
+  echo "-h - Display this help"
+  echo "-m - Compile with MPI"
+  echo "-p - Profiling version for gprof"
+}
+
+## Main installer
+usesame="yes"
+fcompiler="gnu"
+ccompiler="gnu"
+analysis="no"
+profiling="no"
+mpi="no"
+
+#parse the options provided
+while [ "$1" != "" ]; do
+	case $1 in 
+	-f | --fortran )  shift
+		          fcompiler="$1"
+			  ;;
+ 	-c | --ccompiler ) shift
+		           ccompiler="$1"
+			   usesame="no"
+			   ;;
+	-h | --help ) help
+		      exit
+		      ;;
+	-a | --analysis ) analysis="yes"
+		          ;;
+	-p | --profiling ) profiling="yes"
+		           ;;
+    -m | --mpi ) mpi="yes"
+                 ;;
+	* ) help
+	    exit 1
+esac
+shift
+done
+
+#set compiler 
+if [ $fcompiler = "gnu" ]; then
+	FCOMPILER="gfortran"
+	CCOMPILER="gcc"
+	CXX="gcc"
+elif [ $fcompiler = "intel" ]; then
+	FCOMPILER="ifort"
+	CCOMPILER="icc"
+	CXX="icc"
+elif [ $fcompiler = "nag" ]; then
+	FCOMPILER="nagfor"
+	CCOMPILER="gcc"
+	CXX="gcc"
+elif [ $fcompiler = "pgi" ]; then
+	FCOMPILER="pgif90"
+	CCOMPILER="gcc"
+	CXX="gcc"
+else
+	echo " Compiler option $fcompiler does not exist"
+	exit 1
+fi
+
+if [ $usesame = "no" ]; then
+        if [ $ccompiler = "gnu" ]; then
+       		CCOMPILER="gcc"
+ 		CXX="gcc"
+	elif [ $ccompiler = "intel"]; then
+		CCOMPILER="icc"
+		CXX="icc"
+	else
+		echo " C compiler option $ccompiler not available"
+		exit 1
+	fi
+fi	
+
+#set directory name and set up directory
+if [ $mpi = "no" ]; then
+    dirname="$(date +%y%b%d)"
+else
+    dirname="MPI_$(date +%y%b%d)"
+fi
+current="$(pwd)"
+cd $current"/MD_HiRE"
+mkdir -p build
+cd build
+if [ -d "$dirname" ]; then
+        rm -rf "$dirname"
+fi
+mkdir $dirname
+cd $dirname
+
+if [ $analysis = "yes" ]; then
+	ANALYSIS=" -DFOR_ANALYSIS"
+else
+	ANALYSIS=" "
+fi
+
+if [ $profiling = "yes" ]; then
+	PROFILE=" -DFOR_PROFILING"
+else
+	PROFILE=" "
+fi
+
+if [ $mpi = "no" ]; then
+    FC=$FCOMPILER CC=$CCOMPILER CXX=$CXX cmake ../../source $PROFILE $ANALYSIS
+else
+    if [ $fcompiler = "gnu" ]; then
+       COMPILER="gfortran"
+    elif [ $fcompiler = "intel" ]; then
+       COMPILER="ifort"
+    fi
+    FC=mpif90 CC=mpicc cmake ../../source -DCOMPILER_SWITCH=$COMPILER -DWITH_MPI=ON
+fi
+
+make
+
+mkdir -p $current/bin
+cp HIREMD $current/bin/HIREMD_$dirname
+
+cd $current
+exit
