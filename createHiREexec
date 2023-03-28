@@ -1,0 +1,121 @@
+#!/bin/bash
+
+
+# createHIREexec - A script to compile a stand-alone HiRE executable
+
+help()
+{
+  echo "Script to create HiRE stand alone executable"
+  echo "Requires cmake and a fortran and C compiler"
+  echo "By the default gnu compilers are used"
+  echo "" 
+  echo "usage: createHIREexec [-f compiler] [-c Ccompiler] [-p] [-a] | [-h]"
+  echo ""
+  echo "-f - Fortran compiler - specify the compiler (gnu, intel, pgi)"
+  echo "-a - Analysis version with extra debugging"
+  echo "-c - Specify C compiler, default same as Fortran compiler"
+  echo "-h - Display this help"
+  echo "-p - Profiling version for gprof"
+}
+
+## Main installer
+usesame="yes"
+fcompiler="gnu"
+ccompiler="gnu"
+analysis="no"
+profiling="no"
+
+#parse the options provided
+while [ "$1" != "" ]; do
+	case $1 in 
+	-f | --fortran )  shift
+		          fcompiler="$1"
+			  ;;
+ 	-c | --ccompiler ) shift
+		           ccompiler="$1"
+			   usesame="no"
+			   ;;
+	-h | --help ) help
+		      exit
+		      ;;
+	-a | --analysis ) analysis="yes"
+		          ;;
+	-p | --profiling ) profiling="yes"
+		           ;;
+	* ) help
+	    exit 1
+esac
+shift
+done
+if [ $usesame = "yes" ]; then
+       ccompiler=$fcompiler
+fi
+
+#set compiler 
+if [ $fcompiler = "gnu" ]; then
+	FCOMPILER="gfortran"
+	CCOMPILER="gcc"
+	CXX="gcc"
+elif [ $fcompiler = "intel" ]; then
+	FCOMPILER="ifort"
+	CCOMPILER="icc"
+	CXX="icc"
+elif [ $fcompiler = "nag" ]; then
+	FCOMPILER="nagfor"
+	CCOMPILER="gcc"
+	CXX="gcc"
+elif [ $fcompiler = "pgi" ]; then
+	FCOMPILER="pgif90"
+	CCOMPILER="gcc"
+	CXX="gcc"
+else
+	echo " Compiler option $fcompiler does not exist"
+	exit 1
+fi
+
+if [ $usesame = "no" ]; then
+        if [ $ccompiler = "gnu" ]; then
+       		CCOMPILER="gcc"
+ 		CXX="gcc"
+	elif [ $ccompiler = "intel"]; then
+		CCOMPILER="icc"
+		CXX="icc"
+	else
+		echo " C compiler option $ccompiler not available"
+		exit 1
+	fi
+fi	
+
+#set directory name and set up directory
+dirname="$(date +%y%b%d)"
+current="$(pwd)"
+cd $current"/pureHiRE"
+mkdir -p build
+cd build
+if [ -d "$dirname" ]; then
+        rm -rf "$dirname"
+fi
+mkdir $dirname
+cd $dirname
+
+if [ $analysis = "yes" ]; then
+	ANALYSIS=" -DFOR_ANALYSIS"
+else
+	ANALYSIS=" "
+fi
+
+if [ $profiling = "yes" ]; then
+	PROFILE=" -DFOR_PROFILING"
+else
+	PROFILE=" "
+fi
+
+FC=$FCOMPILER CC=$CCOMPILER CXX=$CXX cmake ../../source $PROFILE $ANALYSIS
+
+make
+
+mkdir -p $current/bin
+cp HIRE $current/bin/HIRE_$dirname
+
+cd $current
+exit
