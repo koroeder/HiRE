@@ -11,15 +11,12 @@ PROGRAM MD_HIRE
    USE MD_SETUP, ONLY: READ_SETTINGS, SETUP_POTENTIAL, START_TRACKING
    USE MD_SIMULATION
    USE MD_UTILS, ONLY: REPORT_PARAMS, MD_START
-   USE MOD_IMD, ONLY: IMDT
-#ifdef IMD
-   USE MOD_IMD, ONLY: IMD_SETUP
-#endif
 #ifdef MPI
    USE MPI_UTILS, ONLY: COMMUNICATE_SETTINGS, REPORT_PARAMS_MPI, START_TRACKING_MPI
 #endif
    IMPLICIT NONE
    REAL(KIND=REAL64) :: TSTART, TEND, TSETUP, TEQ, TRUNS
+
 #ifdef MPI
    INCLUDE 'mpif.h'
    INTEGER :: ERROR
@@ -32,6 +29,7 @@ PROGRAM MD_HIRE
    TASKID = 0
 #endif
 
+
    CALL CPU_TIME(TSTART)
    ! 1. Simulation setup
    ! a) check the parameter input exists
@@ -39,10 +37,6 @@ PROGRAM MD_HIRE
    ! b) Read in all the simulation settings
    WRITE(MYUNIT,'(A)') " mdhire> Starting setup"
    CALL READ_SETTINGS()
-#ifdef IMD
-   ! setup for interactive simulations
-   CALL IMD_SETUP()
-#endif
    ! communicate the variables
 #ifdef MPI
    CALL COMMUNICATE_SETTINGS()
