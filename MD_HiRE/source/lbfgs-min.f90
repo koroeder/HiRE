@@ -64,6 +64,7 @@ MODULE MINIMISATION
 
       ! modified L-BFGS algorithm Jorge Nocedal 1990, modifications D J Wales
       SUBROUTINE MINLBFGS(N,M,XCOORDS,MFLAG,ENERGY,ITDONE,OUTUNIT)
+         USE MD_COMMONS, ONLY: ELEMENTS
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          IMPLICIT NONE
          INTEGER, INTENT(IN)                  :: N
@@ -351,9 +352,9 @@ MODULE MINIMISATION
          IF (DUMPMINCOORDST) THEN
             IF (MOD(ITDONE,DUMPINTMIN).EQ.0) THEN
                WRITE(MINUNIT, '(I6)') N/3
-               WRITE(MINUNIT, *) " Minimisation step: ", ITDONE
+               WRITE(MINUNIT, *) " Minimisation step: ", ITDONE, "Energy: ", ENERGY
                DO I=1,N/3
-                  WRITE(MINUNIT,'(3F15.7)') XCOORDS(3*I-2), XCOORDS(3*I-1), XCOORDS(3*I)
+                  WRITE(MINUNIT,'(A1,2X,3F15.7)') ELEMENTS(I), XCOORDS(3*I-2), XCOORDS(3*I-1), XCOORDS(3*I)
                END DO 
             END IF
          END IF
