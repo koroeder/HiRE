@@ -45,12 +45,18 @@ def parse_line(line):
 #
 # @return Dictionary containg all pdb data, numebr of atoms and a list of terminal atoms
 def get_pdb_data(inpfile):
+    usemodels = False
     data = dict()
     termini = [1] #first atom is always a terminus
     natom = 0
     with open(inpfile,"r") as f:
         lines = f.readlines()
         for line in lines:
+            if line[:5] == "MODEL":
+                if usemodels:
+                    return data,termini,natom
+                else:
+                    usemodels = True
             #parse atom information
             if line[:4] == "ATOM":
                 natom += 1
