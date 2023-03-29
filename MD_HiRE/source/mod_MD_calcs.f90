@@ -82,6 +82,7 @@ MODULE MD_CALCS
          INTEGER :: I, J, IDX
 
          CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
+         WRITE(*,*) "PCOM: ", PCOM
          TOTALMASS = SUM(MASSES)/3
          DO I=1,NATOMS
             DO J=1,3
@@ -90,6 +91,9 @@ MODULE MD_CALCS
                X(IDX) = X(IDX) - COM(J)
             END DO
          END DO
+         CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
+         WRITE(*,*) "PCOM_new: ", PCOM
+         WRITE(*,*) "COM: ", COM
       END SUBROUTINE REMOVE_LINMOM
 
 
@@ -176,6 +180,9 @@ MODULE MD_CALCS
             END DO
             ANG_MOM = ANG_MOM + CROSSP(ATX,P)
          END DO
+         WRITE(*,*) "ANG_MOM: ", ANG_MOM
+         WRITE(*,*) "ANGMOM: ", ANGMOM
+         WRITE(*,*) "ANGVEL: ", W
          ! WRITE(MYUNIT,'(A,3(F15.6))') " rm_angvel> Final angular momentum:     ", ANG_MOM(1:3)
       END SUBROUTINE REMOVE_ANGVEL
 END MODULE MD_CALCS
