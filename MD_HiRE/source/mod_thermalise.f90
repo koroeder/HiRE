@@ -174,11 +174,12 @@ MODULE MOD_THERMALISE
                CALL REMOVE_LINMOM(X, VEL, .TRUE.)
             END IF
             IF ((NRMANG.GT.0).AND.(MOD(I,NRMANG).EQ.0)) THEN
-               CALL REMOVE_ANGVEL(X, VEL)
+               CALL REMOVE_COM_MOTIONS(X,VEL)
             END IF
             ! Velocity verlet?
             IF (MDMETHOD.EQ.'VV') THEN
                CALL VELOCITY_VERLET(X, VEL, ACC, EPOT, EKIN)
+               CALL SCALEVEL(TEMP,VEL)
             ! Langevin?
             ELSE IF (MDMETHOD.EQ.'LD') THEN
                CALL LANGEVIN_STEP(TEMP, X, VEL, ACC, EPOT, EKIN)

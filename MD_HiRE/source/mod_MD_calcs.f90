@@ -44,7 +44,7 @@ MODULE MD_CALCS
          END DO
       END SUBROUTINE GET_ACC
 
-      ! subroutine to get com and linear momentum
+      ! subroutine to get centre of mass and its momentum
       SUBROUTINE DETERMINE_LINMOM(X,VEL,COM,PCOM)
          USE MD_COMMONS, ONLY: MYUNIT, NOPT, NATOMS, MASSES
          IMPLICIT NONE
@@ -60,11 +60,11 @@ MODULE MD_CALCS
          DO I=1,NATOMS
             DO J=1,3
                IDX = 3*(I-1) + J
-               COM(J) = COM(J) + X(IDX)*MASSES(J)
-               PCOM(J) = PCOM(J) + VEL(IDX)*MASSES(J)              
+               COM(J) = COM(J) + X(IDX)*MASSES(I)
+               PCOM(J) = PCOM(J) + VEL(IDX)*MASSES(I)              
             END DO
          END DO
-         TOTALMASS = SUM(MASSES)/3
+         TOTALMASS = SUM(MASSES)
          COM = COM/TOTALMASS
          ! WRITE(MYUNIT,'(A,3(F15.6))') " linmom> Centre of mass:             ", &
          !                             COM(1), COM(2), COM(3)
@@ -82,7 +82,7 @@ MODULE MD_CALCS
          INTEGER :: I, J, IDX
 
          CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
-         TOTALMASS = SUM(MASSES)/3
+         TOTALMASS = SUM(MASSES)
          DO I=1,NATOMS
             DO J=1,3
                IDX = 3*(I-1) + J 
@@ -151,6 +151,85 @@ MODULE MD_CALCS
          ! WRITE(MYUNIT,'(A,3(F15.6))') " get_angmom> Angular velocity:           ", W(1:3)      
       END SUBROUTINE GET_ANGMOM
 
+
+      SUBROUTINE GET_ANGMOM2(X,VEL,AMOM_COM,W)
+         USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES, TOTALMASS, TMASSINV
+         USE UTILS_VEC, ONLY: CROSSP
+         REAL(KIND=REAL64), INTENT(IN) :: X(NOPT)
+         REAL(KIND=REAL64), INTENT(INOUT) :: VEL(NOPT)          
+         REAL(KIND=REAL64) :: COM(3)        ! centre of mass
+         REAL(KIND=REAL64) :: PCOM(3)       ! linear momentum of com
+         REAL(KIND=REAL64) :: VCOM(3)       ! velocity of com        
+         REAL(KIND=REAL64) :: AMOM_COM(3)   ! ang momentum of com
+         REAL(KIND=REAL64) :: MOI(3,3)      ! moment of inertia tensor
+         REAL(KIND=REAL64) :: W(3)          ! angular velocity       
+         REAL(KIND=REAL64) :: XX, XY, XZ, YY, YZ, ZZ, XYZ(3), ATMASS
+         REAL(KIND = REAL64) :: WORK(3)
+         INTEGER :: I, J, IDX, PIVOT(3), STAT
+
+         CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
+
+         VCOM(1:3) = PCOM(1:3)*TMASSINV
+
+         AMOM_COM(1:3) = 0.0D0
+
+         DO I=1,NATOMS
+            IDX = 3*I-2
+            AMOM_COM(1:3) = AMOM_COM(1:3) + CROSSP(X(IDX:IDX+2),VEL(IDX:IDX+2))*MASSES(I)
+         END DO
+
+         AMOM_COM(1:3) = AMOM_COM(1:3) - CROSSP(COM,VCOM)*TOTALMASS
+
+         XX = 0.0D0
+         XY = 0.0D0
+         XZ = 0.0D0
+         YY = 0.0D0
+         YZ = 0.0D0
+         ZZ = 0.0D0
+
+         DO I=1,NATOMS
+            XYZ(1) = X(3*I-2) + COM(1)
+            XYZ(2) = X(3*I-1) + COM(2)
+            XYZ(3) = X(3*I) + COM(3)  
+            ATMASS = MASSES(I)
+            XX = XX + XYZ(1) * XYZ(1) * ATMASS
+            XY = XY + XYZ(1) * XYZ(2) * ATMASS
+            XZ = XZ + XYZ(1) * XYZ(3) * ATMASS
+            YY = YY + XYZ(2) * XYZ(2) * ATMASS
+            YZ = YZ + XYZ(2) * XYZ(3) * ATMASS
+            ZZ = ZZ + XYZ(3) * XYZ(3) * ATMASS
+         END DO
+
+         MOI(1,1) = YY + ZZ 
+         MOI(2,2) = XX + ZZ
+         MOI(3,3) = XX + YY
+         MOI(1,2) = -XY
+         MOI(2,1) = -XY
+         MOI(1,3) = -XZ
+         MOI(3,1) = -XZ
+         MOI(2,3) = -YZ
+         MOI(3,2) = -YZ
+
+         ! get LU factorisation for moment of inertia
+         CALL DGETRF(3,3,MOI,3,PIVOT,STAT)
+         IF (STAT.EQ.0) THEN
+            ! get inverse matrix for moment of inertia
+            CALL DGETRI(3,MOI,3,PIVOT,WORK,3,STAT)
+            IF (STAT.NE.0) THEN
+              WRITE(MYUNIT,*) " init_velocity> Error in matrix inversion with DGETRI, error code: ", STAT
+            END IF
+         ELSE 
+            WRITE(MYUNIT,*) " init_velocity> Error in LU factorisation with DGETRF, error code: ", STAT
+            STOP
+         END IF
+         ! compute the angular velocity
+         DO J=1,3
+            W(J) = DOT_PRODUCT(MOI(J,1:3),AMOM_COM(1:3))
+         END DO
+
+      END SUBROUTINE GET_ANGMOM2
+
+
       SUBROUTINE REMOVE_ANGVEL(X,VEL)
          USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES
          REAL(KIND=REAL64), INTENT(IN) :: X(NOPT)
@@ -178,4 +257,44 @@ MODULE MD_CALCS
          END DO
          ! WRITE(MYUNIT,'(A,3(F15.6))') " rm_angvel> Final angular momentum:     ", ANG_MOM(1:3)
       END SUBROUTINE REMOVE_ANGVEL
+
+      SUBROUTINE REMOVE_COM_MOTIONS(X, VEL)
+         USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES, TMASSINV
+         IMPLICIT NONE
+         REAL(KIND=REAL64), INTENT(IN) :: X(NOPT)
+         REAL(KIND=REAL64), INTENT(INOUT) :: VEL(NOPT) 
+         REAL(KIND=REAL64) :: COM(3)        ! centre of mass
+         REAL(KIND=REAL64) :: PCOM(3)       ! linear momentum of com
+         REAL(KIND=REAL64) :: VCOM(3)       ! linear momentum of com         
+         REAL(KIND=REAL64) :: ANGMOM(3)     ! angular momentum         
+         REAL(KIND=REAL64) :: W(3)          ! angular velocity
+         REAL(KIND=REAL64) :: XYZ(3)
+         INTEGER :: I, J, IDX
+
+         CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
+         CALL GET_ANGMOM2(X,VEL,ANGMOM,W)
+
+         ! get velocity of CoM
+         VCOM(1:3) = PCOM(1:3)*TMASSINV
+
+         ! remove translation
+         DO I=1,NATOMS
+            DO J=1,3
+               IDX = 3*(I-1) + J
+               VEL(IDX) = VEL(IDX) - VCOM(J)
+            END DO
+         END DO
+
+         ! stop rotation of CoM
+         DO I=1,NATOMS
+            DO J=1,3
+               XYZ(J) = X(3*(I-1)+J) - COM(J)
+            END DO
+            VEL(3*I-2) = VEL(3*I-2) - W(2)*XYZ(3) + W(3)*XYZ(2)
+            VEL(3*I-1) = VEL(3*I-1) - W(3)*XYZ(1) + W(1)*XYZ(3)
+            VEL(3*I)   = VEL(3*I)   - W(1)*XYZ(2) + W(2)*XYZ(1)
+         END DO
+         CALL GET_ANGMOM(X,VEL,ANGMOM,W)
+
+      END SUBROUTINE REMOVE_COM_MOTIONS
 END MODULE MD_CALCS

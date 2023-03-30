@@ -28,7 +28,11 @@ MODULE MD_COMMONS
     ! velocity
     REAL(KIND = REAL64), ALLOCATABLE :: VEL(:)
     ! particle masses
-    REAL(KIND = REAL64), ALLOCATABLE :: MASSES(:)    
+    REAL(KIND = REAL64), ALLOCATABLE :: MASSES(:) 
+    ! total mass
+    REAL(KIND = REAL64) :: TOTALMASS = 0.0D0
+    ! its inverse
+    REAL(KIND = REAL64) :: TMASSINV = 0.0D0
     ! particle names
     CHARACTER(LEN=4), ALLOCATABLE :: ATNAMES(:)
     ! particle else
