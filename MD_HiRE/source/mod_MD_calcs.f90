@@ -82,7 +82,6 @@ MODULE MD_CALCS
          INTEGER :: I, J, IDX
 
          CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
-         WRITE(*,*) "PCOM: ", PCOM
          TOTALMASS = SUM(MASSES)/3
          DO I=1,NATOMS
             DO J=1,3
@@ -91,9 +90,6 @@ MODULE MD_CALCS
                X(IDX) = X(IDX) - COM(J)
             END DO
          END DO
-         CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
-         WRITE(*,*) "PCOM_new: ", PCOM
-         WRITE(*,*) "COM: ", COM
       END SUBROUTINE REMOVE_LINMOM
 
 
@@ -180,9 +176,53 @@ MODULE MD_CALCS
             END DO
             ANG_MOM = ANG_MOM + CROSSP(ATX,P)
          END DO
-         WRITE(*,*) "ANG_MOM: ", ANG_MOM
-         WRITE(*,*) "ANGMOM: ", ANGMOM
-         WRITE(*,*) "ANGVEL: ", W
          ! WRITE(MYUNIT,'(A,3(F15.6))') " rm_angvel> Final angular momentum:     ", ANG_MOM(1:3)
       END SUBROUTINE REMOVE_ANGVEL
+
+
+      SUBROUTINE REMOVE_COM_MOTIONS(X, VEL)
+         USE MD_COMMONS, ONLY: NOPT, NATOMS, MASSES
+         IMPLICIT NONE
+         REAL(KIND=REAL64), INTENT(IN) :: X(NOPT)
+         REAL(KIND=REAL64), INTENT(INOUT) :: VEL(NOPT) 
+         REAL(KIND=REAL64) :: COM(3)        ! centre of mass
+         REAL(KIND=REAL64) :: PCOM(3)       ! linear momentum of com
+         REAL(KIND=REAL64) :: VCOM(3)       ! velocity of com
+         REAL(KIND=REAL64) :: ANGMOM(3)     ! angular momentum         
+         REAL(KIND=REAL64) :: W(3)          ! angular velocity
+         REAL(KIND=REAL64) :: XYZ(3)
+         REAL(KIND=REAL64) :: TMASSINV
+         INTEGER :: I, J, IDX
+
+         CALL DETERMINE_LINMOM(X,VEL,COM,PCOM)
+         CALL GET_ANGMOM(X,VEL,ANGMOM,W)
+
+         ! get velocity of CoM
+         VCOM(1:3) = 0.0D0
+         TMASSINV = 1.0/SUM(MASSES)
+         DO I=1,NATOMS
+            DO J=1,3
+               VCOM(1) = VCOM(1) + VEL(3*(I-1)+J) * MASSES(I)
+            END DO
+         END DO
+         VCOM(1:3) = VCOM(1:3) * TMASSINV
+
+         ! remove translation
+         DO I=1,NATOMS
+            DO J=1,3
+               IDX = 3*(I-1) + J
+               VEL(IDX) = VEL(IDX) - VCOM(J)
+            END DO
+         END DO
+
+         ! stop rotation of CoM
+         DO I=1,NATOMS
+            DO J=1,3
+               XYZ(J) = X(3*(I-1)+J) - COM(J)
+            END DO
+            VEL(3*I-2) = VEL(3*I-2) - W(2)*XYZ(3) + W(3)*XYZ(2)
+            VEL(3*I-1) = VEL(3*I-1) - W(3)*XYZ(1) + W(1)*XYZ(3)
+            VEL(3*I)   = VEL(3*I)   - W(1)*XYZ(2) + W(2)*XYZ(1)
+         END DO
+      END SUBROUTINE REMOVE_COM_MOTIONS
 END MODULE MD_CALCS
