@@ -10,8 +10,6 @@ MODULE MOD_THERMALISE
    INTEGER :: NCENTRE = 1
    !> Frequency of removing ang velocity, if 0, will not be used
    INTEGER :: NRMANG = 100
-   !> Frequency of rescaling
-   INTEGER :: NRESCALE = 1
    !> Frequency of writing energies to output file
    INTEGER ::  NEQDUMPE = 10
    !> Switch whether velocities need to be initialised
@@ -88,10 +86,8 @@ MODULE MOD_THERMALISE
                END IF
                ! Velocity verlet?
                IF (MDMETHOD.EQ.'VV') THEN
-                  IF (MOD(J,NRESCALE).EQ.0) THEN
-                     CALL SCALEVEL(TEMP,VEL)
-                  END IF
                   CALL VELOCITY_VERLET(X, VEL, ACC, EPOT, EKIN)
+                  CALL SCALEVEL(TEMP,VEL)
                ! Langevin?
                ELSE IF (MDMETHOD.EQ.'LD') THEN
                   !IF (MOD(J,NRESCALE).EQ.0) THEN                  
