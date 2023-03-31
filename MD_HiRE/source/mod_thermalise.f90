@@ -74,15 +74,11 @@ MODULE MOD_THERMALISE
             CALL THERMALISE_RESCALE_VEL(VEL,TEMP)
 
             DO J=1,NEQUIL
-               IF (NCENTRE.GT.0) THEN
-                  IF (MOD(J,NCENTRE).EQ.0) THEN
-                     CALL REMOVE_LINMOM(X, VEL, .TRUE.)
-                  END IF
-               END IF
-               IF (NRMANG.GT.0) THEN
-                  IF (MOD(J,NRMANG).EQ.0) THEN
-                     CALL REMOVE_ANGVEL(X, VEL)
-                  END IF
+               
+               IF ((NRMANG.GT.0).AND.(MOD(J,NRMANG).EQ.0)) THEN
+                  CALL REMOVE_COM_MOTIONS(X, VEL)
+               ELSE IF ((NCENTRE.GT.0).AND.(MOD(J,NCENTRE).EQ.0)) THEN
+                  CALL REMOVE_LINMOM(X, VEL, .TRUE.)
                END IF
                ! Velocity verlet?
                IF (MDMETHOD.EQ.'VV') THEN
@@ -165,13 +161,13 @@ MODULE MOD_THERMALISE
          DO I=1,NTHERMALISE
             TEMP = TEMP + DTEMP
             CALL THERMALISE_RESCALE_VEL(VEL,TEMP)
-
-            IF ((NCENTRE.GT.0).AND.(MOD(I,NCENTRE).EQ.0)) THEN
-               CALL REMOVE_LINMOM(X, VEL, .TRUE.)
-            END IF
+ 
             IF ((NRMANG.GT.0).AND.(MOD(I,NRMANG).EQ.0)) THEN
                CALL REMOVE_COM_MOTIONS(X,VEL)
+            ELSE IF ((NCENTRE.GT.0).AND.(MOD(I,NCENTRE).EQ.0)) THEN
+               CALL REMOVE_LINMOM(X, VEL, .TRUE.)
             END IF
+             
             ! Velocity verlet?
             IF (MDMETHOD.EQ.'VV') THEN
                CALL VELOCITY_VERLET(X, VEL, ACC, EPOT, EKIN)
