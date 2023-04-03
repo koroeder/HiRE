@@ -257,6 +257,15 @@ MODULE MD_SETUP
          ! LETTER R      !
          !+++++++++++++++! 
 
+         ! Keyword: READTEMPS
+         ! Added: 03/04/2023 (k2262470), last modified: 03/04/2023 (k2262470)
+         ! Description: Read temperatures for T-REX from file
+         ELSE IF (WORD .EQ. 'READTEMPS') THEN
+            READTEMPS = .TRUE.
+            IF (NITEMS.GT.1) THEN
+               CALL READA(TEMPSFILE)
+            END IF           
+
          ! Keyword: RESTART
          ! Added: 30/11/2022 (k2262470), last modified: 30/11/2022 (k2262470)
          ! Description: Restart simulation from restart file
