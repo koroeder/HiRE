@@ -55,6 +55,7 @@ MODULE MPI_UTILS
          USE MD_COMMONS
          USE HIRE_INTERFACE, ONLY:  SET_UNIV_SCALING
          USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
+         USE MD_UTILS, ONLY: TERMINATE_ERR
          IMPLICIT NONE
          REAL(KIND = REAL64), ALLOCATABLE :: TARRAY(:), STEP
 #ifdef MPI       
@@ -63,8 +64,7 @@ MODULE MPI_UTILS
          INTEGER MPISTATUS(MPI_STATUS_SIZE)
          INTEGER :: ERR_CODE_MPI, REMD_TAG
          REAL(KIND=REAL64) :: KST
-         INTEGER :: OUTUNIT
-         CHARACTER(LEN=30) :: FNAME = "temperatures.dat"
+         INTEGER :: TEMPSUNIT
 
          IF(TASKID.EQ.0) THEN
             IF (NREPLICA.NE.NTASKS) THEN
@@ -74,17 +74,23 @@ MODULE MPI_UTILS
             END IF
             ALLOCATE(TARRAY(NREPLICA))
             ! STEP = (HIGHR - LOWR)/DBLE(NREPLICA-1)
-            KST = LOG(HIGHR/LOWR)/DBLE(NREPLICA-1)
-            IF (FILE_EXIST(FNAME)) THEN
-               CALL EXECUTE_COMMAND_LINE("rm "//TRIM(ADJUSTL(FNAME)))
+            IF (READTEMPS) THEN
+               IF (.NOT.FILE_EXIST(TEMPSFILE)) THEN
+                  WRITE(MYUNIT,'(A)') " comm_settings> Cannot locate file with REX temperatures - STOP"
+                  CALL TERMINATE_ERR(.FALSE., .FALSE.)
+               END IF
+               CALL FILE_OPEN(TEMPSFILE,TEMPSUNIT,.TRUE.)
+               DO J=1,NREPLICA
+                  READ(TEMPSUNIT,*) TARRAY(J)
+               END DO
+               CLOSE(TEMPSUNIT)
+            ELSE 
+               KST = LOG(HIGHR/LOWR)/DBLE(NREPLICA-1)
+               DO J=0,NREPLICA-1
+                  ! TARRAY(J+1) = LOWR + J*STEP
+                  TARRAY(J+1) = LOWR*EXP(KST*J)
+               END DO
             END IF
-            CALL FILE_OPEN(FNAME,OUTUNIT,.TRUE.)
-            DO J=0,NREPLICA-1
-               ! TARRAY(J+1) = LOWR + J*STEP
-               TARRAY(J+1) = LOWR*EXP(KST*J)
-               WRITE(OUTUNIT,*) J+1, TARRAY(J+1)
-            END DO
-            CLOSE(OUTUNIT)
          END IF
 
          ! use SEND/RECV for temperature and lambda

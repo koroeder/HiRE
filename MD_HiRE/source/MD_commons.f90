@@ -17,6 +17,10 @@ MODULE MD_COMMONS
     INTEGER :: TASKID = 0
     ! interval of REX steps
     INTEGER :: NREXSTEPS = 2500
+    ! read temperatures from file 
+    LOGICAL :: READTEMPS = .FALSE.
+    ! name of file
+    CHARACTER(LEN=25) :: TEMPSFILE = "temperatures.dat"
     ! method used in MD, can be VV - Velocity Verlet or LD - Langevin Dynamics
     CHARACTER(LEN=2) :: MDMETHOD = 'VV'
     ! number of MD steps to be taken
