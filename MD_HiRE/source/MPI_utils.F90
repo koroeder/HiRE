@@ -73,18 +73,24 @@ MODULE MPI_UTILS
                NREPLICA = NTASKS
             END IF
             ALLOCATE(TARRAY(NREPLICA))
-            ! STEP = (HIGHR - LOWR)/DBLE(NREPLICA-1)
+            
             IF (READTEMPS) THEN
                IF (.NOT.FILE_EXIST(TEMPSFILE)) THEN
                   WRITE(MYUNIT,'(A)') " comm_settings> Cannot locate file with REX temperatures - STOP"
                   CALL TERMINATE_ERR(.FALSE., .FALSE.)
                END IF
-               CALL FILE_OPEN(TEMPSFILE,TEMPSUNIT,.TRUE.)
+               CALL FILE_OPEN(TEMPSFILE,TEMPSUNIT,.FALSE.)
                DO J=1,NREPLICA
-                  READ(TEMPSUNIT,*) TARRAY(J)
+                  CALL INPUT(ENDT, TEMPSUNIT)
+                  CALL READF(TARRAY(J))         
+                  IF (ENDT) THEN
+                     WRITE(MYUNIT,*) "End of file before all entries were read: ", TEMPSFILE, " - STOP"
+                     CALL TERMINATE_ERR(.FALSE., .FALSE.)
+                  END IF
                END DO
                CLOSE(TEMPSUNIT)
             ELSE 
+               ! STEP = (HIGHR - LOWR)/DBLE(NREPLICA-1)
                KST = LOG(HIGHR/LOWR)/DBLE(NREPLICA-1)
                DO J=0,NREPLICA-1
                   ! TARRAY(J+1) = LOWR + J*STEP

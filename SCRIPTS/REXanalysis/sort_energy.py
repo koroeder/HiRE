@@ -22,19 +22,19 @@ def main():
     for i in range(1,nrep+1):
         for k in range(N):
             posinT = T_list.index(T_kn[i-1][k])
-            val = U_kn[posinT][k]
+            val = U_kn[i-1][k]
             # print(posinT, T_kn[i-1][k], val)
-            E_kn[i-1][k] = val
+            E_kn[posinT][k] = val
 
       
     for i in range(1,nrep+1):
         np.savetxt("energy_sorted_temp."+str(i)+".log", E_kn[i-1])
 #        np.savetxt("energy_sorted_rep."+str(i)+".log", U_kn[i-1])
         
-        y, binEdges = np.histogram(E_kn[i-1][int(N/2):N], bins=50)
+        y, binEdges = np.histogram(E_kn[i-1][int(3*N/4):N], bins=200)
         bincenters = 0.5 * (binEdges[1:] + binEdges[:-1])
         plt.plot(bincenters, y, '-')
-        plt.show()
+    plt.show()
     
 
 if __name__ == "__main__":
