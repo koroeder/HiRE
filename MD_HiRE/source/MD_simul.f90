@@ -164,7 +164,7 @@ MODULE MD_SIMULATION
             WRITE(MYUNIT,'(A,F12.4)') "           Potential energy:    ", EPOT
             WRITE(MYUNIT,'(A,F12.4)') "           Current temperature: ", CURRTEMP
             WRITE(MYUNIT,'(A,F12.4)') " --------------------------------------------------"
-            IF (REXT) WRITE(TEMPUNIT,'(I10,F12.4)') CURRSTEP, CURRTEMP, TEMP
+            IF (REXT) WRITE(TEMPUNIT,'(I10,2F12.4)') CURRSTEP, CURRTEMP, TEMP
             CALL FLUSH(MYUNIT)
          END IF
       END SUBROUTINE TAKE_MDSTEP
