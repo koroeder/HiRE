@@ -68,8 +68,8 @@ MODULE MOD_BASESTACKING
             SK = SCORE_RNA(14)
         !    Th = 20 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE(48)
-            GM = SCORE(49)
+            Th = SCORE_RNA(48)
+            GM = SCORE_RNA(49)
          ELSE IF (TI.LT.3.AND.TJ.LT.3) THEN
             !pur-pur
             EQ = SCORE_RNA(18)
@@ -77,8 +77,8 @@ MODULE MOD_BASESTACKING
             SK = SCORE_RNA(15)
         !    Th = 35 * 3.15159/180          ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE(50)
-            GM = SCORE(51)
+            Th = SCORE_RNA(50)
+            GM = SCORE_RNA(51)
          ELSE
             !pyr-pyr
             EQ = SCORE_RNA(19)
@@ -86,8 +86,8 @@ MODULE MOD_BASESTACKING
             SK = SCORE_RNA(16)   
         !    Th = 40 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE(52)
-            GM = SCORE(53)
+            Th = SCORE_RNA(52)
+            GM = SCORE_RNA(53)
          ENDIF       
       END SUBROUTINE STACKPARAMS2
     
