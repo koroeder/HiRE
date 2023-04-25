@@ -7,7 +7,7 @@ MODULE NAparams
    IMPLICIT NONE
 
    !> number of parameters given in scale.dat
-   INTEGER, PARAMETER :: SCORESIZE=53
+   INTEGER, PARAMETER :: SCORESIZE=81
    !> HiRE potential parameters given in scale.dat
    REAL(KIND = REAL64) :: SCORE_RNA(SCORESIZE)
    
@@ -54,7 +54,11 @@ MODULE NAparams
    !> rna parameter titration
    REAL(KIND = REAL64) :: tit                
    !> rna parameter hb charged base
-   REAL(KIND = REAL64) :: noWCq              
+   REAL(KIND = REAL64) :: noWCq       
+   
+   REAL(KIND = REAL64) :: cwwAA, cwwAG, cwwAC, cwwAU, cwwGC, cwwGU, cwwCC, cwwCU, cwwUU, &
+                           twwAA, twwAC, twwAU, twwGG, twwGC, twwGU, twwCC, twwCU, twwUU, &
+                           cwh, twh, cws, tws, chh, thh, chs, ths, css, tss
       
    !Variables for titration
    !> titration start
@@ -120,26 +124,36 @@ MODULE RNA_HB_PARAMS
       
       !> Routine to fill module arrays for RNA
       SUBROUTINE FILL_RNA_HB_PARAMS
-         USE NAparams, ONLY: WC, WCCanonic, noWC, TIT, noWCq, Z   
+         USE NAparams, ONLY: WC, WCCanonic, noWC, TIT, noWCq, Z, &
+            cwwAA, cwwAG, cwwAC, cwwAU, cwwGC, cwwGU, cwwCC, cwwCU, cwwUU, &
+            twwAA, twwAC, twwAU, twwGG, twwGC, twwGU, twwCC, twwCU, twwUU, &
+            cwh, twh, cws, tws, chh, thh, chs, ths, css, tss
+       
          USE NUM_DEFS, ONLY: PI
+         
+         ! non WW bp scales are multipied by the number of HB formed 
          
          alpam(:,:,:) = 2.0D0
          alpbm(:,:,:) = 2.0D0
-         !         A-A
+         !         A-A                                
+         ! exsisting BP : cww, tww, twh, cws, tws, thh, chs*1, ths*3, css, tss*3
          dREF(1:3,2,2) =  (/ 5.63, 6.84, 5.92/)       !WWt, HHt, HWt                    
          alpam(1:3,2,2) = (/ 2.40, 1.05, 2.72/)
          alpbm(1:3,2,2) = (/ 2.40, 1.08, 1.29/)
-         s(1:3,2,2,1,1) = (/2*wc, 2*noWc, 2*noWc/)    !Br2  1,1 -> q1=0, q2=0
+         !s(1:3,2,2,1,1) = (/2*wc, 2*noWc, 2*noWc/)   !Br2  1,1 -> q1=0, q2=0
+         s(1:3,2,2,1,1) = (/twwAA, 2*thh, 2*twh/)     !Br2  1,1 -> q1=0, q2=0
          s(1:3,2,2,1,2) = (/    z,2*noWcq, z/)        !Br2  1,2 -> q1=0, q2=1
          s(1:3,2,2,2,1) = (/    z,2*noWcq, 2*noWcq/)  !Br2  2,1 -> q1=1, q2=0
          s(1:3,2,2,2,2) = (/    z,2*noWcq, z/)        !Br2  2,2 -> q1=1, q2=1
          Nparam(2,2) = 3  !Br3  CHECK angle sign when order is inverted when one is negative
 
          !         A-C
+         ! exsisting BP : cww, tww, cws, tws, thh*1, chs*1, ths, css, tss
          dREF(1:3,2,3) = (/7.26, 5.78, 4.78/)         !wsc, HWt, +Wc  
          alpam(1:3,2,3) = (/2.36, 1.36, 2.64/)
          alpbm(1:3,2,3) = (/0.75, 2.30, 1.78/)   
-         s(1:3,2,3,1,1) = (/ 2*noWc,  2*noWc, z /)    !Br2  1,1 -> q1=0, q2=0
+         !s(1:3,2,3,1,1) = (/ 2*noWc,  2*noWc, z /)   !Br2  1,1 -> q1=0, q2=0
+         s(1:3,2,3,1,1) = (/ 2*tws,  0*twh, z /)      !Br2  1,1 -> q1=0, q2=0
          s(1:3,2,3,1,2) = (/ 2*noWcq, z, z/)          !Br2  1,2 -> q1=0, q2=1
          s(1:3,2,3,2,1) = (/ z, 2*noWcq, 2*tit/)      !Br2  2,1 -> q1=1, q2=0
          s(1:3,2,3,2,2) = (/ z, z, z/)                !Br2  2,2 -> q1=1, q2=1
@@ -155,10 +169,12 @@ MODULE RNA_HB_PARAMS
          Nparam(3,2) = Nparam(2,3)
 
          !         A-G
+         ! exsisting BP : cww, cwh, twh, cws, tws, chh*1, thh*1, chs*1, ths, css, tss*3
          dREF(1:4,2,1) = (/ 4.88, 6.63, 6.17, 6.05/)         !  WW_c, HSt, sst, +Hc  
          alpam(1:4,2,1) = (/ 3.04, 1.19, -2.01, 2.62/)
          alpbm(1:4,2,1) = (/ 2.58, -1.69, -1.57, 0.89/)
-         s(1:4,2,1,1,1) = (/ 2*wc, 2*noWc, 2*noWc, z/)       !Br2  1,1 -> q1=0, q2=0
+         !s(1:4,2,1,1,1) = (/ 2*wc, 2*noWc, 2*noWc, z/)       !Br2  1,1 -> q1=0, q2=0
+         s(1:4,2,1,1,1) = (/ cwwAG, ths, tss, z/)       !Br2  1,1 -> q1=0, q2=0
          s(1:4,2,1,1,2) = (/ z, 2*noWcq, 2*noWcq, z/)        !Br2  1,2 -> q1=0, q2=1
          s(1:4,2,1,2,1) = (/ z, 2*noWcq, 2*noWcq, 2*tit/)    !Br2  2,1 -> q1=1, q2=0
          s(1:4,2,1,2,2) = (/ z, 2*noWcq, 2*noWcq, 2*tit/)    !Br2  2,2 -> q1=1, q2=1
@@ -174,10 +190,12 @@ MODULE RNA_HB_PARAMS
          Nparam(1,2) = Nparam(2,1)
 
          !         A-U
+         ! exsisting BP : cww, tww, cwh, cws, tws, thh*1, chs*1, ths, css, tss
          dREF(1:3,2,4) = (/ 4.92, 6.0, 6.0/)        ! WWc, HWt, HWc  5.78, 5.89
          alpam(1:3,2,4) = (/ 2.84, 0.91, 0.93/)
          alpbm(1:3,2,4) = (/ 2.36, 1.82, 2.46/)
-         s(1:3,2,4,1,1) = (/ 2.2*wcCanonic, 2*noWc, 2*noWc/) !Br2  1,1 -> q1=0, q2=0 
+         !s(1:3,2,4,1,1) = (/ 2.2*wcCanonic, 2*noWc, 2*noWc/) !Br2  1,1 -> q1=0, q2=0 
+         s(1:3,2,4,1,1) = (/ cwwAU, twh, cwh/) !Br2  1,1 -> q1=0, q2=0 
                                              !OKKIO : cambiato a mano 14.4 -> 16!!!
          s(1:3,2,4,1,2) = (/ z, z, z/)                       !Br2  1,2 -> q1=0, q2=1
          s(1:3,2,4,2,1) = (/ z, 2*noWcq, 2*noWcq/)           !Br2  2,1 -> q1=1, q2=0
@@ -204,10 +222,12 @@ MODULE RNA_HB_PARAMS
    !           Nparam(3,3) = 1
 
          !         C-G
+         ! exsisting BP : cww, cwh, cwh, twh, cws, tws, chh*1, thh*1, chs*1, css
          dREF(1:3,3,1) = (/ 4.75, 5.28, 5.68/)              ! WWc, WWt, +Wc
          alpam(1:3,3,1) = (/ 2.17, 1.64, 1.92/)
          alpbm(1:3,3,1) = (/ 2.71, -3.07, 2.34/)
-         s(1:3,3,1,1,1) = (/ 2.6*wcCanonic, 2*wc, z/)       !Br2  1,1 -> q1=0, q2=0
+         !s(1:3,3,1,1,1) = (/ 2.6*wcCanonic, 2*wc, z/)       !Br2  1,1 -> q1=0, q2=0
+         s(1:3,3,1,1,1) = (/ cwwGC, twwGC, z/)       !Br2  1,1 -> q1=0, q2=0
          s(1:3,3,1,1,2) = (/ z, z, z/)                      !Br2  1,2 -> q1=0, q2=1
          s(1:3,3,1,2,1) = (/ z, z, 1*tit/)                  !Br2  2,1 -> q1=1, q2=0
          s(1:3,3,1,2,2) = (/ z, z, z/)                      !Br2  2,2 -> q1=1, q2=1
@@ -223,10 +243,12 @@ MODULE RNA_HB_PARAMS
          Nparam(1,3) = Nparam(3,1)
 
          !         C-U
+         ! exsisting BP : cww, tww, cwh, cws, tws, thh*1, chs*1, ths, css
          dREF(1:1,3,4) = (/ 4.81 /)             ! WWc
          alpam(1:1,3,4) = (/ 2.02 /)
          alpbm(1:1,3,4) = (/-2.50 /)            !Br3 CHECK when particles are inverted
-         s(1:1,3,4,1,1) = (/2*wc/)              !Br2  1,1 -> q1=0, q2=0     
+         !s(1:1,3,4,1,1) = (/2*wc/)              !Br2  1,1 -> q1=0, q2=0     
+         s(1:1,3,4,1,1) = (/cwwCU/)
          s(1:1,3,4,1,2) = (/ z /)               !Br2  1,2 -> q1=0, q2=1
          s(1:1,3,4,2,1) = (/ z /)               !Br2  2,1 -> q1=1, q2=0
          s(1:1,3,4,2,2) = (/ z /)               !Br2  2,2 -> q1=1, q2=1
@@ -242,20 +264,24 @@ MODULE RNA_HB_PARAMS
          Nparam(4,3) = Nparam(3,4)
 
          !         G-G
+         ! exsisting BP : tww, cwh, twh, cws, chh*1, thh*1, chs*1, ths*1, css, tss*3
          dREF(1:3,1,1) =  (/ 6.00, 6.00, 6.73 /)        !     HWc, HWt, SSt   6.22 -> 6.0, 6.25 -> 6.00
          alpam(1:3,1,1) = (/ 1.27, 3.02, -1.78 /)
          alpbm(1:3,1,1) = (/ 2.90, 0.82, -1.83 /)
-         s(1:3,1,1,1,1) = (/ 2*noWc, 2*noWc, 2*noWc /)      !Br2  1,1 -> q1=0, q2=0     
+         !s(1:3,1,1,1,1) = (/ 2*noWc, 2*noWc, 2*noWc /)      !Br2  1,1 -> q1=0, q2=0 
+         s(1:3,1,1,1,1) = (/ cwh, twh, tss /)      !Br2  1,1 -> q1=0, q2=0 
          s(1:3,1,1,1,2) = (/ z, z, 2*noWcq /)               !Br2  1,2 -> q1=0, q2=1
          s(1:3,1,1,2,1) = (/  2*noWcq, 2*noWcq, 2*noWcq/)   !Br2  2,1 -> q1=1, q2=0
          s(1:3,1,1,2,2) = (/ z, z, 2*noWcq/)                !Br2  2,2 -> q1=1, q2=1
          Nparam(1,1) = 3
 
          !         G-U
+        ! exsisting BP : cww, tww, twh, cws, tws, css*1, tss
          dREF(1:1,1,4) = (/ 5.05 /)               ! WWc         
          alpam(1:1,1,4) = (/ 2.29 /)
          alpbm(1:1,1,4) = (/ 1.68 /)
-         s(1:1,1,4,1,1) = (/ 2.1*wcCanonic /)     !Br2  1,1 -> q1=0, q2=0 !OKKIO : cambiato a mano 14.7 -> 16!!!
+         !s(1:1,1,4,1,1) = (/ 2.1*wcCanonic /)     !Br2  1,1 -> q1=0, q2=0 !OKKIO : cambiato a mano 14.7 -> 16!!!
+         s(1:1,1,4,1,1) = (/ cwwGU /)     !Br2  1,1 -> q1=0, q2=0 !OKKIO : cambiato a mano 14.7 -> 16!!!
          s(1:1,1,4,1,2) = (/ z /)                 !Br2  1,2 -> q1=0, q2=1
          s(1:1,1,4,2,1) = (/ z /)                 !Br2  2,1 -> q1=1, q2=0
          s(1:1,1,4,2,2) = (/ z /)                 !Br2  2,2 -> q1=1, q2=1
@@ -271,10 +297,12 @@ MODULE RNA_HB_PARAMS
          Nparam(4,1) = Nparam(1,4)
 
          !         U-U
+         ! exsisting BP : cww, tww, cwh, twh, cws, tws, chs*1, css*1
          dREF(1:3,4,4) =  (/ 4.94, 4.84, 5.63 /)           ! WWc, WWt, wht
          alpam(1:3,4,4) = (/ 1.85, -1.88, 2.36 /)
          alpbm(1:3,4,4) = (/ 2.48, 1.71, -2.57 /)
-         s(1:3,4,4,1,1) = (/ 2*wc, 2*wc, 2*noWc /)        !Br2  1,1 -> q1=0, q2=0
+         !s(1:3,4,4,1,1) = (/ 2*wc, 2*wc, 2*noWc /)        !Br2  1,1 -> q1=0, q2=0
+         s(1:3,4,4,1,1) = (/ cwwUU, twwUU, twh /)        !Br2  1,1 -> q1=0, q2=0
          s(1:3,4,4,1,2) = (/ z, z, 2*noWcq /)                !Br2  1,2 -> q1=0, q2=1
          s(1:3,4,4,2,1) = (/ z, z, z /)                    !Br2  2,1 -> q1=1, q2=0
          s(1:3,4,4,2,2) = (/ z, z, z /)                    !Br2  2,2 -> q1=1, q2=1
