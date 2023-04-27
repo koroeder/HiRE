@@ -114,4 +114,59 @@ MODULE MD_UTILS
          HDT = 0.5*DT
          GFRIC = 1.0D0 - GAMMA*HDT
       END SUBROUTINE SET_DERIVED_PARAMS
+
+      SUBROUTINE SEED_RANDOM()
+         USE MD_COMMONS, ONLY: MYUNIT, TASKID, RANDOMSEED
+         IMPLICIT NONE 
+         CHARACTER(LEN=10) :: DATECHAR, TIMECHAR, ZONECHAR
+         INTEGER :: VALS(8), RNDSEED
+
+         IF (RANDOMSEED.GT.0) THEN
+            RNDSEED = RANDOMSEED
+            WRITE(MYUNIT,*) " seed_rnd> use user input as seed: ", RNDSEED
+         ELSE
+            CALL DATE_AND_TIME(DATECHAR,TIMECHAR,ZONECHAR, VALS)
+            RNDSEED=VALS(6)*60 + VALS(7) + VALS(8)
+            WRITE(MYUNIT,*) " seed_rnd> derive seed from time stamp: ", RNDSEED
+         END IF
+         CALL SDPRND(RNDSEED+TASKID)
+
+      END SUBROUTINE SEED_RANDOM
+
+      SUBROUTINE TEST_RANDOM(NTEST,MODE)
+         USE FILE_UTILS, ONLY: FILE_OPEN
+         USE RAND_ROUTINES
+         USE NUMKIND
+         IMPLICIT NONE
+         INTEGER, INTENT(IN) :: NTEST
+         INTEGER, INTENT(IN) :: MODE
+         INTEGER :: LOWER, UPPER, RINT
+         REAL(KIND=REAL64) :: MEAN, STDEV, RANDNORM, DPRAND
+         INTEGER :: J, OUTUNIT
+
+         CALL SEED_RANDOM()
+
+         CALL FILE_OPEN("test_random.dat", OUTUNIT, .TRUE.)
+         IF (MODE.EQ.1) THEN
+            DO J=1,NTEST
+               WRITE(OUTUNIT, '(F12.8)') DPRAND()
+            END DO
+         ELSE IF (MODE.EQ.2) THEN
+            LOWER = 0
+            UPPER = 9
+            DO J=1,NTEST
+               CALL RANDINT(LOWER, UPPER, RINT)
+               WRITE(OUTUNIT, '(I4)') RINT
+            END DO
+         ELSE IF (MODE.EQ.3) THEN
+            STDEV = 1.0
+            MEAN = 0.0
+            CALL RAND_NORMAL(STDEV, MEAN, RANDNORM)
+            WRITE(OUTUNIT, '(F12.7)') RANDNORM
+         ELSE
+            WRITE(*,*) "test_random> mode needs to be 1,2 or 3"
+         END IF
+         CLOSE(OUTUNIT)
+         STOP
+      END SUBROUTINE TEST_RANDOM
 END MODULE MD_UTILS
