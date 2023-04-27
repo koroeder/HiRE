@@ -305,6 +305,12 @@ MODULE MD_SETUP
          ELSE IF (WORD .EQ. 'SCALEDAT') THEN
             CALL READA(SCALEDATNAME)
 
+         ! Keyword: SEED
+         ! Added 27/04/2023 (k2262470), last modified: 27/04/2023 (k2262470)
+         ! Description: Input a random number ssed, otherwise the current system time is used
+         ELSE IF (WORD .EQ. 'SEED') THEN
+            CALL READI(RANDOMSEED)
+
          !+++++++++++++++!   
          ! LETTER T      !
          !+++++++++++++++!

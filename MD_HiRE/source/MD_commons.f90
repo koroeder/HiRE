@@ -51,6 +51,8 @@ MODULE MD_COMMONS
     REAL(KIND = REAL64) :: DT = 1.0D-2
     ! half a time step
     REAL(KIND = REAL64) :: HDT
+    ! random number seed
+    INTEGER :: RANDOMSEED = -1
     ! temperature
     REAL(KIND = REAL64) :: TEMP = 300.0  
     ! scaling for Hamiltonian
