@@ -143,6 +143,34 @@ def fix_termini(natom,termini):
             new_term.append(t+1)
     return sorted(set(termini+new_term))
 
+## Function to make sure we have correct termini
+#
+# The final entry should be the last atom
+# In addition, we added the last atom of each molecule, but not the first
+# Here, we fix this problem, and then transfer the list into a set to
+# remove duplicates and then back into a sorted list to be useful
+def fix_termini(natom,termini):
+    if termini[-1] != natom:
+        termini.append(natom)
+    new_term = list()
+    for t in termini:
+        if t==1 or t==natom:
+            continue
+        else:
+            new_term.append(t+1)
+    return sorted(set(termini+new_term))
+
+def fix_termini_CG(natom,termini):
+    if termini[-1] != natom:
+        termini.append(natom)
+    new_term = list()
+    for t in termini:
+        if t==1 or t==natom:
+            continue
+        else:
+            new_term.append(t+1)
+    return sorted(termini+new_term)
+
 ## Function to parse file and obtain all relevant data
 def parse_pdb(inpfile):
     data, termini, natom = get_pdb_data(inpfile)
@@ -155,6 +183,21 @@ def parse_pdb(inpfile):
             elements[idx] = name[0]
     termini = fix_termini(natom, termini)
     return natom,nres,atomnames,elements,res,resnames,coordsbyres,termini
+
+## Function to parse CG file and obtain all relevant data
+def parse_CGpdb(inpfile):
+    data, termini, natom = get_pdb_data(inpfile)
+    data = shift_resids(natom,data)
+    nres, res, resnames, coordsbyres= get_residues(natom,data)
+    elements = get_elements(natom,data)
+    atomnames = get_atomnames(natom,data)
+    if elements[0] == "":
+        for idx,name in enumerate(atomnames):
+            elements[idx] = name[0]
+    termini = fix_termini_CG(natom, termini)
+    return natom,nres,atomnames,elements,res,resnames,coordsbyres,termini
+
+
 
 # Can run this script alone to check everything is parsed correctly
 if __name__ == "__main__":
