@@ -114,5 +114,9 @@ MODULE MD_COMMONS
     CHARACTER(LEN=25) :: RESTARTINPF = "md_restart.dat"
     ! Frequency to dump restart file
     INTEGER :: NDUMPRST = 1000
+    ! use reflective sphere
+    LOGICAL :: USEREFLCTSPHERE = .FALSE.
+    ! Radius of reflective sphere
+    REAL(KIND=REAL64) :: DIST2REF = 0.0D0
     SAVE
  END MODULE MD_COMMONS

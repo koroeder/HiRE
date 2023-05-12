@@ -96,6 +96,7 @@ MODULE MD_SETUP
 
       SUBROUTINE SETKEYS(WORD)
          USE INPUTMOD
+         USE NUMKIND
          USE MD_COMMONS                  ! global variables
          USE MOD_THERMALISE, ONLY: NTHERMALISE, NEQUIL, NCENTRE, NRMANG, NEQDUMPE
          USE MINIMISATION, ONLY: ITMAX, MUPDATE, EPS, DUMPINTMIN, DUMPMINCOORDST
@@ -104,6 +105,7 @@ MODULE MD_SETUP
          IMPLICIT NONE
          CHARACTER(25), INTENT(IN) :: WORD
          CHARACTER(1) :: CONTINUEDUMMY = "F"
+         REAL(KIND = REAL64) :: DUMMYDIST
         
          ! Keyword IF clause - first is comments, last is unrecognised command,
          ! everything else in alphabetical order
@@ -265,6 +267,14 @@ MODULE MD_SETUP
             IF (NITEMS.GT.1) THEN
                CALL READA(TEMPSFILE)
             END IF           
+
+         ! Keyword: REFLECTSPHERE
+         ! Added: 30/11/2022 (k2262470), last modified: 30/11/2022 (k2262470)
+         ! Description: UIse reflective sphere as limit
+         ELSE IF (WORD .EQ. 'REFLECTSPHERE') THEN
+            USEREFLCTSPHERE = .TRUE.
+            CALL READF(DUMMYDIST)
+            DIST2REF = DUMMYDIST**2
 
          ! Keyword: RESTART
          ! Added: 30/11/2022 (k2262470), last modified: 30/11/2022 (k2262470)
