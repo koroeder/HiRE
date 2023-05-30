@@ -46,7 +46,7 @@ MODULE FILL_PARAMS
          cwwAG = SCORE_RNA(55)*SCORE_RNA(39)
          cwwAC = SCORE_RNA(56)*SCORE_RNA(39)
          cwwAU = SCORE_RNA(57)*SCORE_RNA(40)
-         cwwGC = SCORE_RNA(58)*SCORE_RNA(39)
+         cwwGC = SCORE_RNA(58)*SCORE_RNA(40)
          cwwGU = SCORE_RNA(59)*SCORE_RNA(40)
          cwwCC = SCORE_RNA(60)*SCORE_RNA(39)
          cwwCU = SCORE_RNA(61)*SCORE_RNA(39)
