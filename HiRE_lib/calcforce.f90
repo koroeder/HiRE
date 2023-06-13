@@ -24,7 +24,9 @@ MODULE CALCFORCES
       !> excluded volume
       REAL(KIND = REAL64) :: EVDW           
       !> stacking interactions
-      REAL(KIND = REAL64) :: ESTAK         
+      REAL(KIND = REAL64) :: ESTAK 
+      !> sugar base interaction
+      REAL(KIND = REAL64) :: ESB        
       !> SAXS energy
       REAL(KIND = REAL64) :: ESAXS          
       !> Distance contraints
@@ -39,7 +41,7 @@ MODULE CALCFORCES
    TYPE(POT_ENE) :: EVEC
 
    !> Individual energy scaling - can be used for H-REX simulation focusing for example on non-bonding terms
-   REAL(KIND=REAL64) :: SCALING(7) = 1.0D0
+   REAL(KIND=REAL64) :: SCALING(8) = 1.0D0
 
    CONTAINS
   
@@ -61,6 +63,7 @@ MODULE CALCFORCES
          USE MOD_DIHEDRALS, ONLY: ENERGY_DIHS
          USE MOD_DEBYEHUECKEL, ONLY: ENERGY_DH, DH_ENERGY
          USE MOD_NONBONDED, ONLY: E_NONBONDED
+         USE MOD_SUGARBASE, ONLY: E_SUGARBASE
          USE MOD_SAXS, ONLY: RNA_SAXS_FORCE
          USE MOD_RESTRAINTS, ONLY: E_DISTRESTR, E_POSRESTR, NRESTS, NPOSRES
          IMPLICIT NONE    
@@ -104,12 +107,17 @@ MODULE CALCFORCES
          F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*(SCALING(5)+SCALING(6)+SCALING(7))/3.0
          EVEC%EHBOND = EHHB*SCALING(5)
          EVEC%ESTAK = ESTAK*SCALING(6) 
-         EVEC%EVDW = EVDW*SCALING(7)   
-         !6. SAXS energy and force
+         EVEC%EVDW = EVDW*SCALING(7)
+         !6. Sugar-base interaction
+         CALL E_SUGARBASE(NOPT, X, THIS_F, THIS_E)
+         ETOT = ETOT + THIS_E*SCALING(8)
+         F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(8)
+         EVEC%ESB = THIS_E*SCALING(8)  
+         !7. SAXS energy and force
          F_SAXS(1:NOPT) = 0.0D0
          CALL RNA_SAXS_FORCE(NOPT, X, ESAXS, F_SAXS)
          EVEC%ESAXS = ESAXS
-         !7. Energy for any restraints
+         !8. Energy for any restraints
          ECONST = 0.0D0
          F_CONST(1:NOPT) = 0.0D0
          IF (NRESTS.GT.0) THEN
@@ -174,6 +182,7 @@ MODULE CALCFORCES
          ENEPOT%EHBOND = 0.0D0
          ENEPOT%ESTAK = 0.0D0  
          ENEPOT%EVDW = 0.0D0  
+         ENEPOT%ESB = 0.0D0
          ENEPOT%ESAXS = 0.0D0   
          ENEPOT%EDISTR = 0.0D0
          ENEPOT%EPOSR = 0.0D0
@@ -198,6 +207,7 @@ MODULE CALCFORCES
          WRITE(EUNIT, '(A,F15.5)') " Ehbond: ", ENEPOT%EHBOND
          WRITE(EUNIT, '(A,F15.5)') " Evdw:   ", ENEPOT%EVDW
          WRITE(EUNIT, '(A,F15.5)') " Estak:  ", ENEPOT%ESTAK
+         WRITE(EUNIT, '(A,F15.5)') " Esb:    ", ENEPOT%ESB         
          WRITE(EUNIT, '(A,F15.5)') " Esaxs:  ", ENEPOT%ESAXS
          WRITE(EUNIT, '(A,F15.5)') " Edistr: ", ENEPOT%EDISTR
          WRITE(EUNIT, '(A,F15.5)') " Eposr:  ", ENEPOT%EPOSR
