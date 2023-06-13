@@ -138,7 +138,7 @@ MODULE MOD_ANGLES
 
                ! ENERGY
                DA = ANT-TEQ(IC)
-               DF = TK(IC)*DA*SCORE_RNA(2+NTHETATYPE(JN))*SCORE_RNA(47)
+               DF = TK(IC)*DA*SCORE_RNA(3+NTHETATYPE(JN))*SCORE_RNA(2)
                EAW = DF*DA
                DFW = -(2*DF)/DSIN(ANT)
 

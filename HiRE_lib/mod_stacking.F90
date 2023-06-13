@@ -63,31 +63,31 @@ MODULE MOD_BASESTACKING
             
          IF ((TI.LT.3.AND.TJ.GT.2).OR.(TJ.LT.3.AND.TI.GT.2)) THEN
             !pyr-pur
-            EQ = SCORE_RNA(17)
-            WID = SCORE_RNA(20)
-            SK = SCORE_RNA(14)
+            EQ = SCORE_RNA(34)
+            WID = SCORE_RNA(37)
+            SK = SCORE_RNA(40)
         !    Th = 20 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE_RNA(48)
-            GM = SCORE_RNA(49)
+            Th = SCORE_RNA(43)
+            GM = SCORE_RNA(46)
          ELSE IF (TI.LT.3.AND.TJ.LT.3) THEN
             !pur-pur
-            EQ = SCORE_RNA(18)
-            WID = SCORE_RNA(21)
-            SK = SCORE_RNA(15)
+            EQ = SCORE_RNA(35)
+            WID = SCORE_RNA(38)
+            SK = SCORE_RNA(41)
         !    Th = 35 * 3.15159/180          ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE_RNA(50)
-            GM = SCORE_RNA(51)
+            Th = SCORE_RNA(44)
+            GM = SCORE_RNA(47)
          ELSE
             !pyr-pyr
-            EQ = SCORE_RNA(19)
-            WID = SCORE_RNA(22)
-            SK = SCORE_RNA(16)   
+            EQ = SCORE_RNA(36)
+            WID = SCORE_RNA(39)
+            SK = SCORE_RNA(42)   
         !    Th = 40 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE_RNA(52)
-            GM = SCORE_RNA(53)
+            Th = SCORE_RNA(45)
+            GM = SCORE_RNA(48)
          ENDIF       
       END SUBROUTINE STACKPARAMS2
     

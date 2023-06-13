@@ -9,6 +9,8 @@ MODULE MOD_SUGARBASE
    INTEGER :: NSBPAIRS = 0
    !> List of pairs considered 
    INTEGER, ALLOCATABLE :: SB_PAIRS(:,:)
+   !> scaling for sugar base interactions
+   REAL(KIND = REAL64) :: SB_SCALE
    !> potential parameters for LJ potential
    REAL(KIND = REAL64) :: ALJ12
    REAL(KIND = REAL64) :: BLJ6
@@ -23,8 +25,9 @@ MODULE MOD_SUGARBASE
          INTEGER :: I, J, FIRST, LAST, IDBASE, IDSUGAR
          CHARACTER(4) :: ATNAME
 
-         ALJ12 = SCORE_RNA(39)
-         BLJ6 = SCORE_RNA(40)
+         SB_SCALE = SCORE_RNA(55)
+         ALJ12 = SCORE_RNA(56)
+         BLJ6 = SCORE_RNA(57)
 
          CALL DEALLOC_SB()
 
@@ -79,6 +82,8 @@ MODULE MOD_SUGARBASE
             F(3*AT1-2:3*AT1) = F(3*AT1-2:3*AT1) + FSB(1:3)
             F(3*AT2-2:3*AT2) = F(3*AT2-2:3*AT2) - FSB(1:3)
          END DO
+         ESB = ESB * SB_SCALE
+         F(1:NOPT) = F(1:NOPT) * SB_SCALE
       END SUBROUTINE E_SUGARBASE
 
       SUBROUTINE DEALLOC_SB()
