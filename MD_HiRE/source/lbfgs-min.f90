@@ -87,7 +87,7 @@ MODULE MINIMISATION
          ITER=0
          ITDONE=0
 
-         CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENERGY, GRAD)
+         CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENERGY, GRAD, .FALSE.)
          RMS = RMSF(N,GRAD)
 
          !  Catch cold fusion  and discard.
@@ -258,7 +258,7 @@ MODULE MINIMISATION
 
          NDECREASE=0
 
-20       CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENEW, GNEW)
+20       CALL HIRE_ENERGY_GRAD(N, XCOORDS, ENEW, GNEW, .FALSE.)
          RMS = RMSF(N,GNEW)
 
          !  Catch cold fusion and discard.

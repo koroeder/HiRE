@@ -56,20 +56,25 @@ MODULE HIRE_INTERFACE
       !> @param[in] X - input coordinates
       !> @param[out] E - total HiRE energy for this set of coordinates
       !> @param[out] GRAD - gradient array (size is NOPT)
+      !> @param[in] SAXST - use SAXs force?
       !>
       !> @see CALCFORCE
-      SUBROUTINE HIRE_ENERGY_GRAD(NOPT, X, E, GRAD)
+      SUBROUTINE HIRE_ENERGY_GRAD(NOPT, X, E, GRAD, SAXST)
 #ifdef __HIRE
          USE CALCFORCES, ONLY: CALCFORCE
+         USE SAXS_DEFS, ONLY: SAXSFORCET
 #endif   
          INTEGER, INTENT(IN) :: NOPT                    !should be 3*NATOMS
          REAL(KIND = R64), INTENT(IN) :: X(NOPT)     !input coordinates
          REAL(KIND = R64), INTENT(OUT) :: E          !energy
          REAL(KIND = R64), INTENT(OUT) :: GRAD(NOPT) !gradient
-       
+         LOGICAL, INTENT(IN) :: SAXST
+
          GRAD(:) = 0.0D0
          E = 1.0D10     
 #ifdef __HIRE       
+         ! set whether we calculate SAXS
+         SAXSFORCET = SAXST
          !call subroutine to calculate force and energy
          CALL CALCFORCE(NOPT,X,GRAD,E)
          GRAD(:)=-GRAD(:)
@@ -107,16 +112,16 @@ MODULE HIRE_INTERFACE
          DO I = 1,NOPT
             COORDS_PLUS(:) = COORDS(:)
             COORDS_PLUS(I) = COORDS(I) + DELTA
-            CALL HIRE_ENERGY_GRAD(NOPT,COORDS_PLUS,DUMMY_ENERGY,GRAD_PLUS)
+            CALL HIRE_ENERGY_GRAD(NOPT,COORDS_PLUS,DUMMY_ENERGY,GRAD_PLUS,.FALSE.)
             COORDS_PLUS2(:) = COORDS(:)
             COORDS_PLUS2(I) = COORDS(I) + 2.0D0 * DELTA
-            CALL HIRE_ENERGY_GRAD(NOPT,COORDS_PLUS2,DUMMY_ENERGY,GRAD_PLUS2)
+            CALL HIRE_ENERGY_GRAD(NOPT,COORDS_PLUS2,DUMMY_ENERGY,GRAD_PLUS2,.FALSE.)
             COORDS_MINUS(:) = COORDS(:)
             COORDS_MINUS(I) = COORDS(I) - DELTA
-            CALL HIRE_ENERGY_GRAD(NOPT,COORDS_MINUS,DUMMY_ENERGY,GRAD_MINUS)
+            CALL HIRE_ENERGY_GRAD(NOPT,COORDS_MINUS,DUMMY_ENERGY,GRAD_MINUS,.FALSE.)
             COORDS_MINUS2(:) = COORDS(:)
             COORDS_MINUS2(I) = COORDS(I) - 2.0D0 * DELTA
-            CALL HIRE_ENERGY_GRAD(NOPT,COORDS_MINUS2,DUMMY_ENERGY,GRAD_MINUS2)
+            CALL HIRE_ENERGY_GRAD(NOPT,COORDS_MINUS2,DUMMY_ENERGY,GRAD_MINUS2,.FALSE.)
             HESSIAN(I,:) = (GRAD_MINUS2(:) - 8.0D0 * GRAD_MINUS(:) &
                            + 8.0D0 *GRAD_PLUS(:) - GRAD_PLUS2(:))/(12.0D0*DELTA)
          END DO            

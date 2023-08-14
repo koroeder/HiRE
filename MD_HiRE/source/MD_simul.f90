@@ -31,7 +31,7 @@ MODULE MD_SIMULATION
          END IF
 
          ! get initial energies
-         CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, GRAD)
+         CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, GRAD, .FALSE.)
          ! get acceleration
          CALL GET_ACC(GRAD,ACC)
 

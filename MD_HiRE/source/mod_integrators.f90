@@ -28,7 +28,7 @@ MODULE MOD_INTEGRATORS
          ! calculate new coordinates
          X(1:NOPT) = X(1:NOPT) + VEL(1:NOPT)*DT
          ! calculate new gradient
-         CALL HIRE_ENERGY_GRAD(NOPT, X, EPOT, GRAD)
+         CALL HIRE_ENERGY_GRAD(NOPT, X, EPOT, GRAD, .FALSE.)
          ! get acceleration form gradient
          CALL GET_ACC(GRAD,ACC)
          ! calculate full step velocity
@@ -52,7 +52,7 @@ MODULE MOD_INTEGRATORS
         ! calculate new coordinates
         X(1:NOPT) = X(1:NOPT) + VEL(1:NOPT)*DT + 0.5*ACC(1:NOPT)*DT*DT
         ! calculate new gradient
-        CALL HIRE_ENERGY_GRAD(NOPT, X, EPOT, GRAD)
+        CALL HIRE_ENERGY_GRAD(NOPT, X, EPOT, GRAD, .FALSE.)
         ! save old acceleration
         OLDACC(1:NOPT) = ACC(1:NOPT)
         ! get new acceleration form gradient
@@ -97,7 +97,7 @@ MODULE MOD_INTEGRATORS
             END DO
          END DO
          ! get new potential energy and gradient
-         CALL HIRE_ENERGY_GRAD(3*NATOMS, X, EPOT, GRAD)         
+         CALL HIRE_ENERGY_GRAD(3*NATOMS, X, EPOT, GRAD, .FALSE.)         
          ! get acceleration
          CALL GET_ACC(GRAD,ACC)
          DO I=1,NATOMS
