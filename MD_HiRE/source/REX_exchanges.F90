@@ -170,11 +170,11 @@ MODULE EXCHANGES
          ! calculate the probability and apply the acceptance/rejection criterion
          IF (MEINITIATET) THEN
             ! current scaling set is L1
-            CALL HIRE_ENERGY_GRAD(3*NATOMS, X1, U11, G)
-            CALL HIRE_ENERGY_GRAD(3*NATOMS, X2, U12, G)
+            CALL HIRE_ENERGY_GRAD(3*NATOMS, X1, U11, G, .FALSE.)
+            CALL HIRE_ENERGY_GRAD(3*NATOMS, X2, U12, G, .FALSE.)
             CALL SET_UNIV_SCALING(L2)
-            CALL HIRE_ENERGY_GRAD(3*NATOMS, X1, U21, G)
-            CALL HIRE_ENERGY_GRAD(3*NATOMS, X2, U22, G)
+            CALL HIRE_ENERGY_GRAD(3*NATOMS, X1, U21, G, .FALSE.)
+            CALL HIRE_ENERGY_GRAD(3*NATOMS, X2, U22, G, .FALSE.)
             ! the exchnge probability is given by:
             !H-REX: P(1<->2) = min(1, exp[(1/kT1 - 1/kT2){(U1(x2)-U1(x1)) + (U2(x1)-U2(x2))}])
             DUMMY = (1.0/T1 - 1.0/T2)*((U12 - U11) + (U21 - U22))
