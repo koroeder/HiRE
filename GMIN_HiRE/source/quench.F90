@@ -71,7 +71,7 @@
          NUM_ZERO_EVS=6
          IF (ALLOCATED(HESS)) DEALLOCATE(HESS)
          ALLOCATE(HESS(3*NATOMS,3*NATOMS))
-         CALL POTENTIAL(P,GRAD,EREAL,.TRUE.,.TRUE.)
+         CALL POTENTIAL(P,GRAD,EREAL,.TRUE.,.TRUE.,.FALSE.)
          CALL MASSWT()
          
 #ifdef __SPARSE
@@ -161,7 +161,7 @@
                             WRITE(MYUNIT, '(A,F12.8)') 'quench> Lowering sloppy convergence to ', BQMAX
                         END IF
                         CALL MYLBFGS(NOPT,MUPDATE,P,.FALSE.,GMAX,CFLAG,EREAL,MAXIT,ITER,.TRUE.)
-                        CALL POTENTIAL(P,GRAD,EREAL,.TRUE.,.TRUE.)
+                        CALL POTENTIAL(P,GRAD,EREAL,.TRUE.,.TRUE.,.FALSE.)
                         CALL MASSWT()
                         CALL DSYEV('N','L',3*NATOMS,HESS,3*NATOMS,EVALUES,WORK,LWORK,INFO)
                         EVALUES(:) = ABS(EVALUES(:))

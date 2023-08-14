@@ -136,7 +136,6 @@
 ! SAXS for HiRE
       LOGICAL           :: SAXST = .FALSE.           !use SAXS
       INTEGER           :: SAXSNSTEPS = 1            !frequency for applying SAXS
-      LOGICAL           :: SAXSFORCET = .FALSE.      !compute SASX force at MC transition?
       LOGICAL           :: SAXSMODULT = .FALSE.      !modulate SAXS force with decreasing and periodic factor?
       REAL(KIND=REAL64) :: SAXSINVSIG = 2.5          !broadness of the periodic modulation
       REAL(KIND=REAL64) :: SAXSWAVE = 100.0          !length of the decreasing modulation 
