@@ -1012,7 +1012,7 @@ module SAXS_scoring
       implicit none
 
       integer, intent(in) :: num_grain
-      character*5, intent(in), dimension(1:num_grain) :: GrainName
+      character*4, intent(in), dimension(1:num_grain) :: GrainName
       real(kind = real64), intent(out),dimension(0:num_points-1, 1:num_grain ) :: F_q_CG
 
       integer :: grain_hash_num
@@ -1023,6 +1023,8 @@ module SAXS_scoring
         call hash_get( adjustl(trim(GrainName(grain_i))) , grain_hash_num )
         if (grain_hash_num /= 0 ) then
           F_q_CG(0:num_points-1, grain_i) = F_grains(0:num_points-1, grain_hash_num)
+          !print *, "Found structure factor parameters for Grain : "
+          !print '(i5,a)', grain_i, GrainName(grain_i)
         else
           print *, "Couldn't find structure factor parameters for Grain : "
           print '(i5,a)', grain_i, GrainName(grain_i)
@@ -1064,6 +1066,8 @@ module SAXS_scoring
         call hash_get( atom(1:2) , grain_hash_num )
         if (grain_hash_num /= 0 ) then
           F_q_CG(0:num_points-1, grain_i) = F_grains(0:num_points-1, grain_hash_num)
+          !print *, "Found structure factor parameters for Grain : "
+          !print '(i5,a,a)', grain_i, ' ', atom
         else
           print *, "Couldn't find structure factor parameters for Grain : "
           print '(i5,a,a)', grain_i, ' ', atom
