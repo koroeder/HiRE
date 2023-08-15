@@ -153,7 +153,7 @@ MODULE MCmod
       DO I=1, NPAR
          TEMP(I)=TEMPTRAJ(I-1)
       ENDDO
-      CALL POTENTIAL(COORDS(:,MYNODE+1),GRAD, POTEL, .TRUE., .FALSE.)
+      CALL POTENTIAL(COORDS(:,MYNODE+1),GRAD, POTEL, .TRUE., .FALSE., .FALSE.)
 
       WRITE(MYUNIT, '(A, 2G20.10)') 'Temperature range', TEMPTRAJ(0), TEMPTRAJ(NPAR-1)
       WRITE(MYUNIT, '(A, G20.10)') 'For this replica T=', TEMPTRAJ(MYNODE)
@@ -171,7 +171,7 @@ MODULE MCmod
 #else
       WRITE(MYUNIT,'(A)') 'Calculating initial energy'
       DO JP=1,NPAR
-         CALL POTENTIAL(COORDS(:,MYNODE+1),GRAD, POTEL, .TRUE., .FALSE.)          
+         CALL POTENTIAL(COORDS(:,MYNODE+1),GRAD, POTEL, .TRUE., .FALSE., .FALSE.)          
          WRITE(MYUNIT,'(A,I10)') 'mc calling initial quench'
          CALL QUENCH(.FALSE.,JP,ITERATIONS,TIME,QDONE,SCREENC)
          NQTOT=NQTOT+1
@@ -398,7 +398,7 @@ MODULE MCmod
             !  Sanity check to make sure the Markov energy agrees with COORDSO. 
             !  Stop if not true.
             IF (DEBUG.AND.(.NOT.FEBHT)) THEN
-               CALL POTENTIAL(COORDSO(:,JP),GRAD,OPOTEL,.FALSE.,.FALSE.)
+               CALL POTENTIAL(COORDSO(:,JP),GRAD,OPOTEL,.FALSE.,.FALSE., .FALSE.)
                IF (ABS(OPOTEL-EPREV(JP)).GT.ABS(ECONV)) THEN
                   WRITE(MYUNIT,'(2(A,G20.10))') 'mc> ERROR - energy for coordinates in COORDSO=',OPOTEL, &
      &                                                  ' but Markov energy=',EPREV(JP)
