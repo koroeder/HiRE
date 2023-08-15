@@ -29,7 +29,7 @@
 
       IF (CHECKDID == 0) THEN
          GTEST = .FALSE.
-         CALL POTENTIAL (X, G, ENERGY, GTEST, STEST)
+         CALL POTENTIAL (X, G, ENERGY, GTEST, STEST, .FALSE.)
          WRITE(MYUNIT, *) 'Energy  = ', ENERGY
          RMSF=MAX(SQRT(SUM(G(1:3*NATOMS)**2)/(3*NATOMS)), 1.0D-100 )
          WRITE(MYUNIT,'(A,2G15.7)') "RMS force: ", RMSF,RMS
@@ -46,7 +46,7 @@
             endif
             GTEST = .FALSE.
             X(IVRNO) = X(IVRNO) - DELX
-            CALL POTENTIAL(X, G, FM, GTEST, STEST)
+            CALL POTENTIAL(X, G, FM, GTEST, STEST, .FALSE.)
 
             if (rigidinit.and.atomrigidcoordt) then
                call transformctorigid(x, tmpcoords)
@@ -56,7 +56,7 @@
             endif
 
             X(IVRNO) = X(IVRNO) + 2.D0*DELX
-            CALL POTENTIAL(X, G, FP, GTEST, STEST)
+            CALL POTENTIAL(X, G, FP, GTEST, STEST, .FALSE.)
      
             if (rigidinit.and.atomrigidcoordt) then
                call transformctorigid(x, tmpcoords)
@@ -67,7 +67,7 @@
  
             GTEST = .TRUE.
             X(IVRNO) = X(IVRNO) - DELX
-            CALL POTENTIAL(X, G, ENERGY, GTEST, STEST)
+            CALL POTENTIAL(X, G, ENERGY, GTEST, STEST, .FALSE.)
             DFN = (FP - FM) / (2.D0*DELX)
             IF (ABS(DFN).LT.1.0D-10) DFN = 0.D0
             DFA = G(IVRNO)
@@ -86,15 +86,15 @@
             DO IVRNO2 = 1, 3*NATOMS
                WRITE(MYUNIT,*) IVRNO1, IVRNO2
                X(IVRNO1) = X(IVRNO1) - DELX
-               CALL POTENTIAL (X,G,ENERGY,.TRUE.,.FALSE.)
+               CALL POTENTIAL (X,G,ENERGY,.TRUE.,.FALSE., .FALSE.)
                FM   = G(IVRNO2)
 
                X(IVRNO1) = X(IVRNO1) + 2.D0*DELX
-               CALL POTENTIAL (X,G,ENERGY,.TRUE.,.FALSE.)
+               CALL POTENTIAL (X,G,ENERGY,.TRUE.,.FALSE., .FALSE.)
                FP   = G(IVRNO2)
 
                X(IVRNO1) = X(IVRNO1) - DELX
-               CALL POTENTIAL (X,G,ENERGY,.TRUE.,.TRUE.)
+               CALL POTENTIAL (X,G,ENERGY,.TRUE.,.TRUE., .FALSE.)
                DFN  = (FP - FM) / (2.D0*DELX)
                DFA  = HESS(IVRNO1,IVRNO2)
 
@@ -107,7 +107,7 @@
 
       ELSE IF (CHECKDID == 3) THEN
             WRITE(MYUNIT,'(A)') 'checkd > Minimise configuration'
-            CALL POTENTIAL(X, G, ENERGY, GTEST, STEST) 
+            CALL POTENTIAL(X, G, ENERGY, GTEST, STEST, .FALSE.) 
             WRITE(MYUNIT, *) 'checkd > Initial energy: ', ENERGY
             CALL CPU_TIME(TIME1)
             CALL MYLBFGS(3*NATOMS,MUPDATE,X,.FALSE.,QTESTMAX,CFLAG,POTEL,MAXIT,ITERATIONS,.TRUE.)
