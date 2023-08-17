@@ -1,5 +1,9 @@
 HiRE - High-resolution energy model for RNA
 
+This model is under development, and we hope to complete this development by early 2024. 
+If you want to use it in the meantime, please contact Konstantin Roeder (konstantin.roeder_at_kcl.ac.uk) or Samuela Pasquali (samuela.pasquali_at_u-paris.fr) 
+for advice on how to use it, and what to look out for.
+
 To compile the code run:
 
 - createHIREexec for stand-alone HiRE version
@@ -7,4 +11,4 @@ To compile the code run:
 - createGMINexec for HiRE GMIN executable
 
 See Examples for some basic examples and guidance on use.
-
+(Examples may be out of date as we are still in the development stage)

@@ -1,7 +1,7 @@
 !> @file
 !> Contains SAXS_scoring module
 
-!> Functionality to obtain sAXS scoring
+!> Functionality to obtain SAXS scoring
 module SAXS_scoring
   use vec_utils
   use UTILS_IO, only: GETUNIT
@@ -88,6 +88,8 @@ module SAXS_scoring
       !new dummy variable 
       INTEGER :: N_REPLICA = 0
 
+      saxs_max = SAXSMAX
+      
       QFILE=GETUNIT() !find free io unit number
       num_atoms = nparticles
       delta_q = max_q/num_points
@@ -99,7 +101,7 @@ module SAXS_scoring
         allocate(target_curve(0:num_points-1))
         ! ... and fill it
         open(unit=QFILE, file='saxs_target.dat', status='old')
-        q_loop: do point_q=0, num_points -1
+        q_loop: do point_q=0, max_q_point -1
           read(QFILE,*) q, target_curve(point_q)
         end do q_loop
         close(QFILE)
@@ -220,9 +222,9 @@ module SAXS_scoring
       real(kind = real64), dimension(:), allocatable :: pos_SOL, pos_TOT ! TOT = SYSTEM + SOL
       real(kind = real64), dimension(:,:), allocatable :: DistanceMatrix_TOT, F_CG_TOT
       integer :: grain_i, grain_j, q, num_TOT, num_SOL
-      real(kind = real64) :: time1, time2
+      real(kind = real64) :: time1, time2, time3, arg
       
-      call cpu_time(time1)
+  
 
 
       if_refine_hydration_layer: if (in_solution_curve .and. refine_hydration_layer) then
@@ -281,19 +283,24 @@ module SAXS_scoring
         end do
       end do
 
+     call cpu_time(time1)
+      
       q_loop: do q = 1, max_q_point - 1
         do grain_i = 1, num_TOT
 ! Add diagonal term (i,i) once
           I1(q)  = I1(q) + F_CG_TOT(q,grain_i)**2
 ! Add half non-diagonal terms twice
           do grain_j = grain_i+1, num_TOT
-             I1(q)  = I1(q) + 2 * F_CG_TOT(q,grain_i) * F_CG_TOT(q,grain_j) * &
-                 & sin(DistanceMatrix_TOT(grain_j,grain_i) * q * delta_q) / &
-                 & (q * delta_q * DistanceMatrix_TOT(grain_j,grain_i)) 
+              arg = DistanceMatrix_TOT(grain_j,grain_i) * q * delta_q
+              I1(q)  = I1(q) + 2 * F_CG_TOT(q,grain_i) * F_CG_TOT(q,grain_j) * &
+                & sin(arg)/arg
           end do
         end do
       end do q_loop
 
+      call cpu_time(time2)
+      
+      
       ! Log10 everything
       logI(:) = log10(I1(:))
       ! Define linear TARGET curve
@@ -305,7 +312,7 @@ module SAXS_scoring
       end if
 
       ! Compute E_saxs and F_saxs            
-      cscale = 1
+      cscale = I0(0)/I1(0)
       do q = 1, max_q_point - 1
         qphys = q * delta_q
         E_num = E_num + ((cscale * I1(q) - I0(q)) * qphys)**2
@@ -335,8 +342,8 @@ module SAXS_scoring
       end if
 
 
-      call cpu_time(time2)
-      print *, 'fct_generate_SAXS_curve : ',time2-time1
+      call cpu_time(time3)
+      print *, 'fct_generate_SAXS_curve : ',time2-time1, time3-time2
 
       return
 
