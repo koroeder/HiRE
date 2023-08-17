@@ -57,10 +57,11 @@ MODULE MOD_SAXS
             ELSE
                ESAXS = 0.0D0
             ENDIF
-            IF (SAXS_SAVE) THEN
+            IF (SAXS_PRINT) THEN
                CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
                WRITE(SAXSS, *) KMODUL*KDECRE, ESAXS
             END IF
+            WRITE(*,*) 'SAXS score: ', ESAXS
          END IF 
       END SUBROUTINE RNA_SAXS_FORCE
 
