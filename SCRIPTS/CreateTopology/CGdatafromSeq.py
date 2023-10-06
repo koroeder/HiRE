@@ -24,8 +24,12 @@ def get_atoms_from_seq(seqlist):
 # param[in] seqlist - List of residue names
     CG_atoms = list()
     for res in seqlist:
-        if res in ["A5", "C5", "G5", "U5", "DA5", "DC5", "DG5", "DT5"]:
+        if res in ["A5", "C5", "G5", "U5"]:
             bb = ["O", "C", "R4", "R1"]
+        elif res in ["DA5", "DC5", "DG5", "DT5"]:
+            bb = ["O", "C", "R4", "S1"]
+        elif res in ["DA", "DA3", "DC", "DC3", "DG", "DG3", "DT", "DT3"]:
+            bb = ["P", "O", "C", "R4", "S1"]
         else:
             bb = ["P", "O", "C", "R4", "R1"]
         if res in ["A3", "A5", "A", "DA", "DA3", "DA5"]:
@@ -86,3 +90,5 @@ def translate_CGresnames(seqlist):
     for res in seqlist:
         new_resnames.append(CGmaps.CG_resnames[res])
     return new_resnames
+
+

@@ -197,6 +197,39 @@ def parse_CGpdb(inpfile):
     termini = fix_termini_CG(natom, termini)
     return natom,nres,atomnames,elements,res,resnames,coordsbyres,termini
 
+def RNA_or_DNA(CG_resnames):
+# check whether each molecule is RNA or DNA (can only be one!)
+    nmol = 0
+    termini_res = list()
+    for idx,res in enumerate(CG_resnames):
+        if res[-1] == "5":
+            nmol += 1
+            termini_res.append(idx)
+        elif res[-1] == "3":
+            termini_res.append(idx)           
+    moltype = list()
+    for mol in range(nmol):
+        start = termini_res[2*mol]
+        end = termini_res[2*mol+1]
+        DNAT = False
+        RNAT = False
+       
+        for res in CG_resnames[start:end+1]:
+            if res in ["DA", "DA3", "DA5", "DC", "DC3", "DC5",
+                       "DG", "DG3", "DG5", "DT", "DT3", "DT5"]:
+                DNAT = True
+            else:
+                RNAT = True
+        if (DNAT and RNAT):
+            raise ValueError("This molecule has RNA and DNA nucleotides")
+        elif (DNAT==0) and (RNAT==0):
+            raise ValueError("This molecule has no RNA and DNA nucleotides")
+        else:
+            if RNAT:
+                moltype.append(0)
+            elif DNAT:
+                moltype.append(1)
+    return moltype
 
 
 # Can run this script alone to check everything is parsed correctly

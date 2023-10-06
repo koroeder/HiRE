@@ -85,6 +85,11 @@ def FA2CG_res(resid,labels,masses,coords):
         name_p1 = "U1"
         parts = 1
 
+    if (resid[0]=="D"):
+        DNAT = True
+    else:
+        DNAT = False
+
     CG_labels = list()
     CG_coords = list()
     part_mass = list()
@@ -95,8 +100,11 @@ def FA2CG_res(resid,labels,masses,coords):
     # Iterate over every atom in the residue, and follow the appropriate CG mapping
     for idx,l in enumerate(labels):
         # For all heavy backbone atoms, we map 1:1 as given in CGmaps
-        if l in CGmaps.CG_backbone.keys():
-            CG_labels.append(CGmaps.CG_backbone[l])
+        if l in CGmaps.CG_backbone_RNA.keys():
+            if DNAT:
+                CG_labels.append(CGmaps.CG_backbone_DNA[l])
+            else:
+                CG_labels.append(CGmaps.CG_backbone_RNA[l])
             CG_coords.append(coords[idx][:])
         # For any atom in the base particles, we append the relevant coordinates 
         # and mass to a list. Here, we distinguish between a 

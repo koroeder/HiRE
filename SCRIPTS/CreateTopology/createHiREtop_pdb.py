@@ -48,6 +48,10 @@ CG_termini = FA2CGmapper.get_CG_termini(res,termini,CG_resrange)
 # finally, get CG particle charges and types
 CG_charges, CG_partypes = FA2CGmapper.assign_par_properties(CG_labels)
 
+# extension to study DNA and RNA: assign whether we have RNA or DNA!
+#TODO fix the handler
+moltype = PDBhandler.RNA_or_DNA(CG_resnames)
+
 # translate all information into topology data dictionary
 top_dict = topology.init_topology()
 top_dict["nres"] = nres
@@ -64,8 +68,8 @@ top_dict["charges"] = CG_charges
 top_dict["particle_type"] = CG_partypes
 
 #bonding information
-bonds,bondtype = ChemData.get_bonds(top_dict["nmol"], CG_termini, CG_labels)
-nbondtypes,rk,req,nbonds,bonds_top = ChemData.get_bondinfo(bonds,bondtype)
+bonds,bondtype,bondmol = ChemData.get_bonds(top_dict["nmol"], CG_termini, CG_labels, moltype)
+nbondtypes,rk,req,nbonds,bonds_top = ChemData.get_bondinfo(bonds,bondtype,bondmol)
 top_dict["nbonds"] = nbonds
 top_dict["bonds"] = bonds_top
 top_dict["nbondtypes"] = nbondtypes
@@ -73,8 +77,8 @@ top_dict["rk"] = rk
 top_dict["req"] = req
 
 #angle information
-angles,angtype = ChemData.get_angles(top_dict["nmol"], CG_termini, CG_labels)
-nangtypes,tk,teq,nangles,angles_top = ChemData.get_angleinfo(angles,angtype)
+angles,angtype,angmol = ChemData.get_angles(top_dict["nmol"], CG_termini, CG_labels, moltype)
+nangtypes,tk,teq,nangles,angles_top = ChemData.get_angleinfo(angles,angtype,angmol)
 top_dict["nangles"] = nangles
 top_dict["angs"] = angles_top
 top_dict["nangtypes"] = nangtypes
@@ -82,8 +86,8 @@ top_dict["tk"] = tk
 top_dict["teq"] = teq
 
 #dihedral information
-dihs,dihtypes = ChemData.get_dihs(top_dict["nmol"], CG_termini, CG_labels)
-ntorstypes,pk,phi,ndihs,dihs_top,pn = ChemData.get_dihinfo(dihs,dihtypes)
+dihs,dihtypes,dihmol = ChemData.get_dihs(top_dict["nmol"], CG_termini, CG_labels, moltype)
+ntorstypes,pk,phi,ndihs,dihs_top,pn = ChemData.get_dihinfo(dihs,dihtypes,dihmol)
 top_dict["ndihs"] = ndihs
 top_dict["dihs"] = dihs_top
 top_dict["ndihstypes"] = ntorstypes
