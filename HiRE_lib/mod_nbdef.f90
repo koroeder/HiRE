@@ -12,8 +12,12 @@ MODULE NBDEFS
    ! 1: C5*  2: O5*  3: P  4: CA  5: CY
    ! 6,7: G1,2  8,9: A1,2  10: U1  11: C1
    ! 12: D 13: MG 14: NA  15:CL
+   ! Update: we have now 16 types, there is CY for RNA and for DNA
+   ! 1: C5*  2: O5*  3: P  4: CA  5: CY (RNA), 6: CY (DNA),
+   ! 7,8: G1,2  9,10: A1,2  11: U1  12: C1
+   ! 13: D 14: MG 15: NA  16: CL
    !> Number of different particles currently implemented
-   INTEGER, PARAMETER  :: NTYPES = 15              
+   INTEGER, PARAMETER  :: NTYPES = 16              
    !> Size paramters for general beads
    REAL(KIND = REAL64) :: NBCT2GEN   = 3.6D0
    !> Size paramters for C4 beads   
@@ -39,7 +43,7 @@ MODULE NBDEFS
    REAL(KIND = REAL64) :: NBSCORE(NTYPES,NTYPES)
    !> Charges of particle types, these charges should never change!
    REAL(KIND = REAL64), DIMENSION(NTYPES), PARAMETER ::  &
-                         CHRG = (/0.0, 0.0,-1.0, 0.0, 0.0, &
+                         CHRG = (/0.0, 0.0,-1.0, 0.0, 0.0, 0.0, &
                                   0.0, 0.0, 0.0, 0.0, 0.0, &
                                   0.0, 0.0, 2.0, 1.0,-1.0 /) 
                                                
@@ -57,21 +61,23 @@ MODULE NBDEFS
          ! CY are bigger - not used
          NBCT2(5,1:NTYPES) = NBCT2CY      
          NBCT2(1:NTYPES,5) = NBCT2CY
+         NBCT2(6,1:NTYPES) = NBCT2CY      
+         NBCT2(1:NTYPES,6) = NBCT2CY      
          ! bases beads size 
-         NBCT2(6:11,6:11) = NBCT2BASE
+         NBCT2(7:12,7:12) = NBCT2BASE
          ! phosphorus size       
          NBCT2(3,3) = NBCT2PP
          ! Dummy particles
-         NBCT2(12,1:NTYPES) = NBCT2DUMMY
-         NBCT2(1:NTYPES,12) = NBCT2DUMMY
+         NBCT2(13,1:NTYPES) = NBCT2DUMMY
+         NBCT2(1:NTYPES,13) = NBCT2DUMMY
          !effective radius adjustments
          ! P-P  and Mg++, Na+ and Cl- interactions
-         NBSCORE(3,13:15) = NBRADLARGE ! P-ion interactions
-         NBSCORE(13:15,3) = NBRADLARGE ! P-ion interactions
-         NBSCORE(13,14:15) = NBRADLARGE ! Mg - Na,Cl interactions
-         NBSCORE(14:15,13) = NBRADLARGE ! Na,Cl - Mg interactions
+         NBSCORE(3,14:16) = NBRADLARGE ! P-ion interactions
+         NBSCORE(14:16,3) = NBRADLARGE ! P-ion interactions
+         NBSCORE(14,15:16) = NBRADLARGE ! Mg - Na,Cl interactions
+         NBSCORE(15:16,14) = NBRADLARGE ! Na,Cl - Mg interactions
          NBSCORE(3,3) = NBRADLARGE   ! P-P interactions 
-         NBSCORE(13,13) = NBRADLARGE ! Mg++ interactions      
+         NBSCORE(14,14) = NBRADLARGE ! Mg++ interactions      
       END SUBROUTINE SET_NBPARAMS
  
       !> Routine to populate all NB arrays

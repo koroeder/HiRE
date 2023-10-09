@@ -33,6 +33,7 @@ MODULE MOD_SUGARBASE
 
          DO I=1,NRES
             !only for RNA
+            !TODO add DNA here
             IF (RESTYPES(I).EQ.0) THEN
                FIRST = RESSTART(I)
                LAST = RESFINAL(I)

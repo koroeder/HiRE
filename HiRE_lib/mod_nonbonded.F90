@@ -93,6 +93,7 @@ MODULE MOD_NONBONDED
                TJ = BTYPE(J)
 
                !If restype is 0 for both this is RNA-RNA 
+               !TODO: add RNA-DNA and DNA-DNA interactions here
                IF ((TYPEI.EQ.0).AND.(TYPEJ.EQ.0)) THEN
                   !Hydrogen bonding between nucleotides
                   CALL RNA_BB(I, J, NOPT, X, F, THIS_EHB, HBEXIST)

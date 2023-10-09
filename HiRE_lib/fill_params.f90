@@ -96,16 +96,16 @@ MODULE FILL_PARAMS
          !CLOSE(BINFOUNIT) 
          BLIST(1:NRES) = RESFINAL(1:NRES)
          DO I=1,NRES
-            IF (RESNAMES(I)(1:1).EQ."G") THEN
+            IF ((RESNAMES(I)(1:1).EQ."G").OR.(RESNAMES(I)(1:2).EQ."DG")) THEN
                BTYPE(I) = 1
                RESTYPES(I) = 0
-            ELSEIF (RESNAMES(I)(1:1).EQ."C") THEN 
+            ELSEIF ((RESNAMES(I)(1:1).EQ."C").OR.(RESNAMES(I)(1:2).EQ."DC")) THEN 
                BTYPE(I) = 3
                RESTYPES(I) = 0
-            ELSEIF (RESNAMES(I)(1:1).EQ."A") THEN 
+            ELSEIF ((RESNAMES(I)(1:1).EQ."A").OR.(RESNAMES(I)(1:2).EQ."DA")) THEN 
                BTYPE(I) = 2
                RESTYPES(I) = 0
-            ELSEIF (RESNAMES(I)(1:1).EQ."U") THEN
+            ELSEIF ((RESNAMES(I)(1:1).EQ."U").OR.(RESNAMES(I)(1:2).EQ."DT")) THEN
                BTYPE(I) = 4
                RESTYPES(I) = 0
             ENDIF
