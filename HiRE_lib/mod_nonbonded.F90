@@ -30,7 +30,7 @@ MODULE MOD_NONBONDED
       !> @see ENERGY_EXCLV
       SUBROUTINE E_NONBONDED(NOPT, X, F, EHHB, ESTAK, EVDW)
          USE UTILS_IO, ONLY: GETUNIT
-         USE MOD_HBONDS, ONLY: RNA_BB
+         USE MOD_HBONDS, ONLY: ENERGY_HB
          USE MOD_EXCLV, ONLY: ENERGY_EXCLV
          USE MOD_BASESTACKING, ONLY: RNA_STACKV2
          USE NAPARAMS, ONLY: BOCC, BTYPE, BLIST, &
@@ -92,11 +92,11 @@ MODULE MOD_NONBONDED
                TI = BTYPE(I)
                TJ = BTYPE(J)
 
-               !If restype is 0 for both this is RNA-RNA 
-               !TODO: add RNA-DNA and DNA-DNA interactions here
-               IF ((TYPEI.EQ.0).AND.(TYPEJ.EQ.0)) THEN
+               !If restype is 0 it is RNA and if it is 1 it is DNA
+               !Currently we can do RNA-RNA or DNA-DNA interactions
+               IF (((TYPEI.EQ.0).OR.(TYPEI.EQ.1)).AND.((TYPEJ.EQ.0).OR.(TYPEJ.EQ.1)) THEN
                   !Hydrogen bonding between nucleotides
-                  CALL RNA_BB(I, J, NOPT, X, F, THIS_EHB, HBEXIST)
+                  CALL ENERGY_HB(I, J, TYPEI, TYPEJ, NOPT, X, F, THIS_EHB, HBEXIST)
                   EHHB = EHHB + THIS_EHB                       
                   !Stacking energy
                   !CALL RNA_STACKV(NOPT, BLIST(I),BLIST(J),TI,TJ,F,X,THIS_ESTAK,STACKUNIT)  !old Stacking
@@ -107,9 +107,7 @@ MODULE MOD_NONBONDED
                      WRITE(HBUNIT,'(4I6,2F15.7)') I, J, TI, TJ, DSQRT(DA2), THIS_EHB
                   ENDIF
 #endif
-               !If restype is 1 for both this is DNA-DNA
-               ELSEIF ((TYPEI.EQ.1).AND.(TYPEJ.EQ.1)) THEN
-                  CYCLE
+              
                !If restype is 2 for both this is protein-protein
                ELSEIF ((TYPEI.EQ.2).AND.(TYPEJ.EQ.2)) THEN 
                   CYCLE

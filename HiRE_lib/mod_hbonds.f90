@@ -32,56 +32,40 @@ MODULE MOD_HBONDS
          INTSCALE = SCORE_RNA(54)
       END SUBROUTINE SET_HBVARS 
 
-      !> Routine to calculate the base-base interactions
-      !> @brief
-      !>
-      !> This function takes care of the Base-Base interaction,
-      !> including hydrogen bonding, stacking and cooperativity
-      !> the 3 last atoms of each bases are used.\n
-      !> 
-      !> Particle ids: I-2 == I-1 == I  - - -  J+1 == J == J-1 \n
-      !> Forces:       FI3    Fi2   Fi1        Fj1   FJ2   Fj3
-      !>
-      !> @param[in] BI - index for base i
-      !> @param[in] BJ - index for base j
-      !> @param[in] NOPT - number of degrees of freedom
-      !> @param[in] X - coordinates
-      !> @param[inout] F - forces array, which is updated within the routine
-      !> @param[out] THIS_EHB - energy of hydrogen bond
-      !> @param[out] HBEXIST - are the two bases hydrogen bonded?
-      !> 
-      !> @see RNA_HBNEW
-      !> @see RNA_NewPlanev
-      SUBROUTINE RNA_BB(BI, BJ, NOPT, X, F, THIS_EHB, HBEXIST)
+      SUBROUTINE ENERGY_HB(BI, BJ, MTYPEI, MTYPEJ, NOPT, X, F, THIS_EHB, HBEXIST)
          USE NAPARAMS, ONLY: BTYPE, BP_CURR
-         USE RNA_HB_PARAMS, ONLY: planarityDistEq
+         !as the planarityDistEq is zero, we don't need it any longer
+!         USE RNA_HB_PARAMS, ONLY: PDEQ_RNA => planarityDistEq
+!         USE DNA_HB_PARAMS, ONLY: PDEQ_DNA => planarityDistEq
          USE VAR_DEFS, ONLY: RESFINAL
          USE HB_DEFS, ONLY: SAVE_HB, HBDAT
-      
-         INTEGER, INTENT(IN) :: BI, BJ        ! indices of base I and J
-         INTEGER, INTENT(IN) :: NOPT                   !should be 3*NATOMS
-         REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    !input coordinates
-         REAL(KIND = REAL64), INTENT(INOUT) :: F(NOPT)   !force from bonds
-         REAL(KIND = REAL64), INTENT(OUT) :: THIS_EHB
-         LOGICAL, INTENT(OUT) :: HBEXIST      
-         
+
+         INTEGER, INTENT(IN) :: BI, BJ                 ! indices of base I and J
+         INTEGER, INTENT(IN) :: MTYPEI, MTYPEJ         ! type of base I and J (RNA or DNA)
+         INTEGER, INTENT(IN) :: NOPT                   ! should be 3*NATOMS
+         REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    ! input coordinates
+         REAL(KIND = REAL64), INTENT(INOUT) :: F(NOPT) ! force from bonds
+         REAL(KIND = REAL64), INTENT(OUT) :: THIS_EHB  ! energy contribution
+         LOGICAL, INTENT(OUT) :: HBEXIST               ! do we have a hydrogen bond formed?
+
          REAL(KIND = REAL64), PARAMETER :: BPTHRESH = 2.3D0 !Energy cutoff for BP in BP_curr
          
          INTEGER :: I, J                      ! indices for atoms under consideration
-         INTEGER :: TI, TJ                    ! base types for I and J
+         INTEGER :: TI, TJ                    ! base types for I and J - A, C, G, U/T
 
-         INTEGER :: IDX, A, B, ID, JP
-         REAL(KIND = REAL64) :: ENP1, ENP2, ETEMP, EHHB, REHHB, FTEMP_O(3), DISTEQ
-         REAL(KIND = REAL64), DIMENSION(3,3) :: FTEMP, FIHB, FJHB, FIPL, FJPL
+         INTEGER, PARAMETER :: A = 1 , B = 2
+         INTEGER :: IDX, ID, JP
+         REAL(KIND = REAL64) :: ENP1, ENP2, ETEMP, EHHB, REHHB, FTEMP_J(3), FTEMP_I(3)!, DISTEQ
+         REAL(KIND = REAL64), DIMENSION(3,3) :: FIHB, FJHB
          REAL(KIND = REAL64), DIMENSION(3,3) :: FHB_I, FHB_J, FNP1_I, FNP1_J, FNP2_I, FNP2_J
-         
+
          ! set variables based on identify of bases
          I = RESFINAL(BI)     ! last atom's index for first base (B1 for A and G, CY for C and U) 
          JP = RESFINAL(BJ)    ! last atom's index for base 2
          J = JP - 1            ! central atom's index for base 2 
          TI = BTYPE(BI)
          TJ = BTYPE(BJ)
-
+         
          !set forces and energies to zero
          THIS_EHB = 0.0D0
          EHHB = 0.0D0
@@ -95,40 +79,35 @@ MODULE MOD_HBONDS
          FNP2_I(:,:) = 0.0D0
          FNP2_J(:,:) = 0.0D0
 
-         ! back to OLD planarity for indices
-         A = 1 !NEW: 3 /OLD: 1 
-         B = 2 !NEW: 5 /OLD: 2
-   !      IF (I < 6) B=4 !NEW planarity
+         ETEMP = 0.0D0
+         FTEMP_I(1:3) = 0.0D0
+         FTEMP_J(1:3) = 0.0D0
+         !QUERY: this is set in the old code - I think there is a problem in how this is all set up and we need to pick either a loop or this without loop
+         IDX = 0
+         !QUERY: is this the correct one to use here I or J - I guess it is the cross over MTYPEI to TJ
+         !determine planarity for I
+         !IF (MTYPEI.EQ.0) THEN
+         !   DISTEQ = PDEQ_RNA(TJ, 3-IDX)
+         !ELSE IF (MTYPEI.EQ.1) THEN
+         !   DISTEQ = PDEQ_DNA(TJ, 3-IDX)
+         !END IF
+         CALL PlaneV(NOPT, I-B, I-A, I, JP-IDX, X, ENP1, FNP1_I(:,3), FNP1_I(:,2), FNP1_I(:,1), FTEMP_J)!, distEq)
+         !determine planarity for J
+         !IF (MTYPEJ.EQ.0) THEN
+         !   DISTEQ = PDEQ_RNA(TI, 3-IDX)
+         !ELSE IF (MTYPEI.EQ.1) THEN
+         !   DISTEQ = PDEQ_DNA(TI, 3-IDX)
+         !END IF
+         CALL PlaneV(NOPT, JP-B, JP-A, JP, I-IDX, X, ENP2, FNP2_J(:,3), FNP2_J(:,2), FNP1_J(:,1), FTEMP_I)!, distEq)
+         FNP1_J(1:3, IDX + 1) = FNP1_J(1:3, IDX + 1) + FTEMP_J
+         FNP2_I(1:3, IDX + 1) = FNP2_I(1:3, IDX + 1) + FTEMP_I
 
-         DO IDX = 0,0 !NEW: 0,0 /OLD: 0,2
-            ETEMP = 0.0D0
-            FTEMP(:,:) = 0.0D0
-            FTEMP_o(:) = 0.0D0
-            DISTEQ = planarityDistEq(TJ, 3-IDX)
-            CALL RNA_NewPlanev(NOPT, I-b, I-a, I, JP-IDX, X, Etemp, Ftemp(:,3), Ftemp(:,2), Ftemp(:,1), Ftemp_o, distEq)
-            Fnp1_i = Fnp1_i + Ftemp
-            Fnp1_j(:,idx+1) = Fnp1_j(:,idx+1) + Ftemp_o
-            Enp1 = Enp1 + Etemp
-
-            ETEMP = 0.0D0
-            FTEMP(:,:) = 0.0D0
-            FTEMP_o(:) = 0.0D0
-            DISTEQ = planarityDistEq(TI, 3-idx)
-            CALL RNA_NewPlanev(NOPT, JP-b, JP-a, JP, I-IDX, X, Etemp, Ftemp(:,3), Ftemp(:,2), Ftemp(:,1), Ftemp_o, distEq)
-            Fnp2_j = Fnp2_j + Ftemp
-            Fnp2_i(:,idx+1) = Fnp2_i(:,idx+1) + Ftemp_o
-            Enp2 = Enp2 + Etemp
-         END DO
-
-         !get HB contribution
-         CALL RNA_HBNEW(BI, BJ, I, TI, J, TJ, NOPT, X, EHHB, HBEXIST, &
-                        FHB_I, FHB_J, ENP1, ENP2)
+         CALL HBNEW(BI, BJ, MTYPEI, MTYPEJ, I, TI, J, TJ, NOPT, X, EHHB, HBEXIST, FHB_I, FHB_J, ENP1, ENP2)
 
          IF (.NOT. HBEXIST) RETURN !at this stage THIS_EHB is still 0.0D0
 
          !Total energy and regularised energy
-         !QUERY: which one are we now using - Mult or add? What's the difference?
-         THIS_EHB = EHHB*(ENP1+ENP2)         !Mult: * !Add: +
+         THIS_EHB = EHHB*(ENP1+ENP2)
          REHHB = THIS_EHB/(EPSHB*INTSCALE)
          !update base pairing in BP_CURR
          IF ((ABS(THIS_EHB).GE.BPTHRESH).AND.(ABS(BI-BJ).NE.1)) THEN
@@ -136,21 +115,9 @@ MODULE MOD_HBONDS
             BP_CURR(BJ,BI) = .TRUE.
          END IF
          
-         !
-         ! Multiplicative Energy
-   !      Fihb = Fhb_i*Enp1*Enp2
-   !      Fjhb = Fhb_j*Enp1*Enp2
-   !      Fipl = Ehhb*Fnp1_i*Enp2 + Ehhb*Enp1*Fnp2_i
-   !      Fjpl = Ehhb*Fnp1_j*Enp2 + Ehhb*Enp1*Fnp2_j
-         ! Additive Energy
-         FIHB = FHB_I*(ENP1 + ENP2)
-         FJHB = FHB_J*(ENP1 + ENP2)
-         FIPL = EHHB*(FNP1_I + FNP2_I)
-         FJPL = EHHB*(FNP1_J + FNP2_J)
-
-         ! OLD planarity !NEW Additive
-         FIHB = FIHB + FIPL
-         FJHB = FJHB + FJPL
+         ! Additive 
+         FIHB = FHB_I*(ENP1 + ENP2) + EHHB*(FNP1_I + FNP2_I)
+         FJHB = FHB_J*(ENP1 + ENP2) + EHHB*(FNP1_J + FNP2_J)
 
          !lm759> save Hbond pairs to hbonds.dat
          IF (SAVE_HB) THEN
@@ -159,28 +126,6 @@ MODULE MOD_HBONDS
             END IF
          END IF
 
-         ! NEW planarity Multiplicative
-   !      id = I
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fihb(:,1) +  Fipl(:,1)
-   !      id = J +1
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fjhb(:,1) +  Fjpl(:,1)
-   !      id = I-1
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fihb(:,2) 
-   !      id = I-2
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fihb(:,3)
-   !      id = J
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fjhb(:,2)
-   !      id = J-1
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fjhb(:,3)
-   !      id = I - a
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fipl(:,2)
-   !      id = J - a+1
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fjpl(:,2)
-   !      id = I - b
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fipl(:,3)
-   !      id = J - b+1
-   !      F(id*3-2:id*3)=F(id*3-2:id*3) + Fjpl(:,3)
-
          ! OLD planarity !NEW Additive
          DO IDX = 1,3
             ID = I - IDX + 1
@@ -188,7 +133,82 @@ MODULE MOD_HBONDS
             ID = JP - IDX + 1
             F((3*ID-2):(3*ID)) = F((3*ID-2):(3*ID)) + FJHB(:,IDX)      
          ENDDO
-      END SUBROUTINE RNA_BB
+
+      END SUBROUTINE ENERGY_HB
+
+      !> Energy and distance between plane and point
+      !> @brief
+      !>
+      !> Computes the distance between one point and the plane defined by 3 other points (i.e. distance(l, plane(i,j,k))).\n
+      !> The force and energy contributions are then calculated as well.
+      !>
+      !> @param[in] NOPT - number of degrees of freedom
+      !> @param[in] I - index for CG particle i
+      !> @param[in] J - index for CG particle j
+      !> @param[in] K - index for CG particle k
+      !> @param[in] L - index for CG particle l
+      !> @param[in] X - coordinates
+      !> @param[out] Enewpl - energy for the planarity term
+      !> @param[out] FI - forces vector for particle i
+      !> @param[out] FJ - forces vector for particle j
+      !> @param[out] FK - forces vector for particle k
+      !> @param[out] FL - forces vector for particle l                          
+      !> @param[in] DEQ - equilibrium distance
+      SUBROUTINE PlaneV(NOPT, I, J, K, L, X, Enewpl, FI, FJ, FK, FL)!, DEQ)
+         USE VEC_UTILS
+         IMPLICIT NONE
+
+         INTEGER, INTENT(IN) :: I,J,K,L                ! particle indices
+         INTEGER, INTENT(IN) :: NOPT                   ! number of CG particles
+!         REAL(KIND = REAL64), INTENT(IN) :: DEQ     ! equilibrium distance
+         
+         REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)   ! coordinates
+         REAL(KIND = REAL64), INTENT(OUT) :: Enewpl    ! planarity term
+         REAL(KIND = REAL64), INTENT(OUT) :: FI(3), FJ(3), FK(3), FL(3) ! forces on particles
+
+         ! position vectors for particles, and vectors between them
+         REAL(KIND = REAL64) :: RI(3), RJ(3), RK(3), RL(3), RIJ(3), RKJ(3), RLJ(3)
+         REAL(KIND = REAL64) :: NORMAL(3), DNDQ(3), DIST, DELTA, NNORM, DEDD, DEDD_SCALED, TERM2
+
+         ! define particle positions from coordinates
+         RI(1:3) = X(3*I-2:3*I)
+         RJ(1:3) = X(3*J-2:3*J)
+         RK(1:3) = X(3*K-2:3*K)
+         RL(1:3) = X(3*L-2:3*L)
+         
+         ! get vectors to define plane and distance to point
+         RIJ(1:3) = RI(1:3) - RJ(1:3)
+         RKJ(1:3) = RK(1:3) - RJ(1:3)
+         RLJ(1:3) = RL(1:3) - RJ(1:3)
+
+         ! normal vectors and distance 
+         NORMAL = CROSSPRODUCT(RIJ, RKJ)
+         NNORM = DSQRT(DOT_PRODUCT(NORMAL, NORMAL))
+         DIST = DOT_PRODUCT(NORMAL/NNORM,RLJ)
+         
+         !IF (DIST.GT.0.0) THEN
+         !   DELTA = DIST-DEQ
+         !ELSE
+         !   DELTA = DIST+DEQ
+         !ENDIF
+         DELTA = DIST
+         ! energy contribution    !OLD: -/3.0 !Add: + !Mul: -
+         ENEWPL = INTSCALE * EXP(-(DELTA/GAUSSW)**2)/1.0D0
+         ! force 
+         DEDD = 2 * ENEWPL * (DELTA/GAUSSW**2)
+         DEDD_SCALED = DEDD/NNORM
+         TERM2 = DOT_PRODUCT(NORMAL, RLJ)/NNORM**2
+
+         FL(1:3) = DEDD_SCALED*NORMAL(1:3) 
+         ! dn / d ri
+         FI(1:3) = DEDD_SCALED*(CROSSPRODUCT(RKJ, RLJ)-TERM2*CROSSPRODUCT(RKJ,NORMAL))
+         ! dn / d rk
+         FK(1:3) = DEDD_SCALED*(CROSSPRODUCT(RLJ, RIJ)-TERM2*CROSSPRODUCT(NORMAL,RIJ))
+         ! dn / d rj
+         DNDQ = RKJ - RIJ
+         FJ(1:3) = DEDD_SCALED*(CROSSPRODUCT(RLJ, DNDQ)-NORMAL-TERM2*CROSSPRODUCT(NORMAL,DNDQ))
+
+      END SUBROUTINE PlaneV
 
       !> This routine calculates the h-bond energies and forces between two bases.         
       !> @brief
@@ -213,10 +233,13 @@ MODULE MOD_HBONDS
       !> @param[out] FB - forces array for base b     
       !> @param[in] ENP1 - energy from plane environment to be added for base 1 (or A or I)
       !> @param[in] ENP2 - energy from plane environment to be added for base 2 (or B or J)
-      SUBROUTINE RNA_HBNEW(BI, BJ, IDXA, TYA, IDXB, TYB, NOPT, X, EHHB, HBEXIST, &
-                        FA, FB, ENP1, ENP2)
+      SUBROUTINE HBNEW(BI, BJ, MTYPEI, MTYPEJ, IDXA, TYA, IDXB, TYB, NOPT, X, EHHB, HBEXIST, &
+         FA, FB, ENP1, ENP2)
          USE NAPARAMS, ONLY: BPROT, BOCC, RCUT2_HB_MCMC_OUT
-         USE RNA_HB_PARAMS
+         USE RNA_HB_PARAMS, ONLY: RCALPAM => CALPAM, RCALPBM => CALPBM, RSALPAM => SALPAM, &
+                                  RSALPBM => SALPBM, RDREF => DREF, RS => S, RNPARAM => NPARAM
+         USE DNA_HB_PARAMS, ONLY: DCALPAM => CALPAM, DCALPBM => CALPBM, DSALPAM => SALPAM, &
+                                  DSALPBM => SALPBM, DDREF => DREF, DS => S, DNPARAM => NPARAM
          USE VEC_UTILS
          IMPLICIT NONE
          
@@ -224,6 +247,7 @@ MODULE MOD_HBONDS
          !QUERY: A comment in the old routine stated that IDXA and IDXB are the last particles in A and B
          !       But the routine is passed I and J, where J = RESFINAL(B) - 1 
          !       This seems to be accounted for in the definitions of A1 .. B3 later on
+         INTEGER, INTENT(IN) :: MTYPEI, MTYPEJ         ! type of base I and J (RNA or DNA)
          INTEGER, INTENT(IN) :: IDXA, IDXB             ! indices of GC particles
          INTEGER, INTENT(IN) :: TYA, TYB               ! types of base A and B
          INTEGER, INTENT(IN) :: NOPT                   ! should be 3*NATOMS
@@ -249,7 +273,7 @@ MODULE MOD_HBONDS
          REAL(KIND = REAL64) :: COSA, COSB, SINA, SINB
          !local variables to save RNA HB variables from RNA_HB_PARAMS module
          REAL(KIND = REAL64) :: CALPA, SALPA, CALPB, SALPB, SIGHB, STR
-         INTEGER :: PAR  !iteration index
+         INTEGER :: PAR, NPAR !iteration index and limit for iteration
          !variables in the energy and force calculations
          REAL(KIND = REAL64) :: D2, EHHA, VANGL, EHB, dEHB(3)
          REAL(KIND = REAL64) :: ANGA, ANGB, RALPA(3), RALPB(3)
@@ -266,7 +290,7 @@ MODULE MOD_HBONDS
          HBEXIST = .FALSE.
          FA(1:3,1:3) = 0.0D0
          FB(1:3,1:3) = 0.0D0
-         
+
          !particle positions from coordinates
          A1(1:3) = X((3*IDXA-8):(3*IDXA-6))
          A2(1:3) = X((3*IDXA-5):(3*IDXA-3))
@@ -280,12 +304,12 @@ MODULE MOD_HBONDS
          VA(1:3) = A1(1:3) - A2(1:3)
          UB(1:3) = B3(1:3) - B2(1:3)
          VB(1:3) = B1(1:3) - B2(1:3)     
-         RBA(1:3) = A3(1:3) - B3(1:3) 
+         RBA(1:3) = A3(1:3) - B3(1:3)
 
          !check distance between A and B is not too far for HB interactions
          CALL NORMED_VEC(RBA, RBA0, DBA)
          IF (DBA**2 .GE. RCUT2_HB_MCMC_OUT) RETURN
-         
+
          ! get norms and normed vectors for distances
          CALL NORMED_VEC(UA, UA0, DUA)
          CALL NORMED_VEC(UB, UB0, DUB)
@@ -308,17 +332,32 @@ MODULE MOD_HBONDS
          COSA = DOT_PRODUCT(RA0, UA0)
          SINA = DOT_PRODUCT(RA0, MA0)
          COSB = DOT_PRODUCT(RB0, UB0)
-         SINB = DOT_PRODUCT(RB0, MB0)      
+         SINB = DOT_PRODUCT(RB0, MB0)
          
+          
          !iteration over all relevant parameters
-         DO PAR = 1,NPARAM(TYA,TYB)
+         IF ((MTYPEI.EQ.0).AND.(MTYPEJ.EQ.0)) THEN
+            NPAR = RNPARAM(TYA,TYB)
+         ELSE IF ((MTYPEI.EQ.1).AND.(MTYPEJ.EQ.1)) THEN
+            NPAR = DNPARAM(TYA,TYB)
+         END IF
+         DO PAR = 1,NPAR
             !copy HB parameters
-            SIGHB = dREF(PAR,TYA,TYB)
-            CALPA = CALPAM(PAR,TYA,TYB)
-            SALPA = SALPAM(PAR,TYA,TYB)
-            CALPB = CALPBM(PAR,TYA,TYB)
-            SALPB = SALPBM(PAR,TYA,TYB)
-            STR = S(PAR,TYA,TYB,QI+1,QJ+1)   !Br2 here is where the WC or non-wc parameters are defined (check)
+            IF ((MTYPEI.EQ.0).AND.(MTYPEJ.EQ.0)) THEN
+               SIGHB = RDREF(PAR,TYA,TYB)
+               CALPA = RCALPAM(PAR,TYA,TYB)
+               SALPA = RSALPAM(PAR,TYA,TYB)
+               CALPB = RCALPBM(PAR,TYA,TYB)
+               SALPB = RSALPBM(PAR,TYA,TYB)
+               STR = RS(PAR,TYA,TYB,QI+1,QJ+1)   !Br2 here is where the WC or non-wc parameters are defined (check)   
+            ELSE IF ((MTYPEI.EQ.1).AND.(MTYPEJ.EQ.1)) THEN
+               SIGHB = DDREF(PAR,TYA,TYB)
+               CALPA = DCALPAM(PAR,TYA,TYB)
+               SALPA = DSALPAM(PAR,TYA,TYB)
+               CALPB = DCALPBM(PAR,TYA,TYB)
+               SALPB = DSALPBM(PAR,TYA,TYB)
+               STR = DS(PAR,TYA,TYB,QI+1,QJ+1)   !Br2 here is where the WC or non-wc parameters are defined (check)   
+            END IF            
 
             ! Exponential contribution based on base distance
             D2 = (DBA - SIGHB)/Y
@@ -417,83 +456,6 @@ MODULE MOD_HBONDS
          ENDDO
          IF (EHHB .GE. REGCUT) RETURN      !! TEST HB EXISTANCE 06-04-2012
          HBEXIST = .TRUE.
-      END SUBROUTINE RNA_HBNEW
+      END SUBROUTINE HBNEW
 
-      !> Energy and distance between plane and point
-      !> @brief
-      !>
-      !> Computes the distance between one point and the plane defined by 3 other points (i.e. distance(l, plane(i,j,k))).\n
-      !> The force and energy contributions are then calculated as well.
-      !>
-      !> @param[in] NOPT - number of degrees of freedom
-      !> @param[in] I - index for CG particle i
-      !> @param[in] J - index for CG particle j
-      !> @param[in] K - index for CG particle k
-      !> @param[in] L - index for CG particle l
-      !> @param[in] X - coordinates
-      !> @param[out] Enewpl - energy for the planarity term
-      !> @param[out] FI - forces vector for particle i
-      !> @param[out] FJ - forces vector for particle j
-      !> @param[out] FK - forces vector for particle k
-      !> @param[out] FL - forces vector for particle l                          
-      !> @param[in] distEq - equilibrium distance
-      SUBROUTINE RNA_NewPlanev(NOPT, I, J, K, L, X, Enewpl, FI, FJ, FK, FL, distEq)
-         USE VEC_UTILS
-         IMPLICIT NONE
-
-         INTEGER, INTENT(IN) :: I,J,K,L                ! particle indices
-         INTEGER, INTENT(IN) :: NOPT                   ! number of CG particles
-         REAL(KIND = REAL64), INTENT(IN) :: DISTEQ     ! equilibrium distance
-         
-         REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)   ! coordinates
-         REAL(KIND = REAL64), INTENT(OUT) :: Enewpl    ! planarity term
-         REAL(KIND = REAL64), INTENT(OUT) :: FI(3), FJ(3), FK(3), FL(3) ! forces on particles
-
-         ! position vectors for particles, and vectors between them
-         REAL(KIND = REAL64) :: RI(3), RJ(3), RK(3), RL(3), RIJ(3), RKJ(3), RLJ(3)
-         REAL(KIND = REAL64) :: NORMAL(3), DNDQ(3), DIST, DELTA, NNORM, DEDD
-
-         
-         ! define particle positions from coordinates
-         RI(1:3) = X(3*I-2:3*I)
-         RJ(1:3) = X(3*J-2:3*J)
-         RK(1:3) = X(3*K-2:3*K)
-         RL(1:3) = X(3*L-2:3*L)
-         
-         ! get vectors to define plane and distance to point
-         RIJ(1:3) = RI(1:3) - RJ(1:3)
-         RKJ(1:3) = RK(1:3) - RJ(1:3)
-         RLJ(1:3) = RL(1:3) - RJ(1:3)
-
-         ! normal vectors and distance 
-         NORMAL = CROSSPRODUCT(RIJ, RKJ)
-         NNORM = DSQRT(DOT_PRODUCT(NORMAL, NORMAL))
-         DIST = DOT_PRODUCT(NORMAL/NNORM,RLJ)
-         
-         ! QUERY: is this correct? Or do we want the absolute value?
-         IF (DIST.GT.0.0) THEN
-            DELTA = DIST-DISTEQ
-         ELSE
-            DELTA = DIST+DISTEQ
-         ENDIF
-         
-         ! energy contribution    !OLD: -/3.0 !Add: + !Mul: -
-         ENEWPL = INTSCALE * EXP(-(DELTA/GAUSSW)**2)/1.0D0
-         ! force 
-         DEDD = 2 * ENEWPL * (DELTA/GAUSSW**2)
-         FL(1:3) = DEDD*NORMAL(1:3)/NNORM   
-         
-         ! dn / d ri
-         FI(1:3) = dedd*(crossproduct(RKJ, RLJ) - dot_product(normal, RLJ) &
-                        * crossproduct(RKJ,normal)/nnorm**2)/nnorm
-         ! dn / d rk
-         FK(1:3) = dedd*(crossproduct(RLJ, RIJ) - dot_product(normal, RLJ) &
-                        * crossproduct(normal,RIJ)/nnorm**2)/nnorm     
-         ! dn / d rj
-         DNDQ = RKJ - RIJ
-         FJ(1:3) = dedd*(crossproduct(RLJ, DNDQ)-normal- dot_product(normal, RLJ) & 
-                        * crossproduct(normal,DNDQ)/nnorm**2)/nnorm
-
-      END SUBROUTINE RNA_NewPlanev
-      
 END MODULE MOD_HBONDS
