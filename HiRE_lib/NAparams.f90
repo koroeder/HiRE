@@ -54,7 +54,8 @@ MODULE NAparams
    !> rna parameter titration
    REAL(KIND = REAL64) :: tit                
    !> rna parameter hb charged base
-   REAL(KIND = REAL64) :: noWCq              
+   REAL(KIND = REAL64) :: noWCq 
+   !> cis Watson-Crick base pairs for  RNA            
    REAL(KIND = REAL64) :: cwwAA
    REAL(KIND = REAL64) :: cwwAG 
    REAL(KIND = REAL64) :: cwwAC 
@@ -64,6 +65,9 @@ MODULE NAparams
    REAL(KIND = REAL64) :: cwwCC 
    REAL(KIND = REAL64) :: cwwCU 
    REAL(KIND = REAL64) :: cwwUU
+   !> non-canonical base pairs for RNA:
+   !> c/t - cis/trans
+   !> w - Watson-Crick, h - Hoogsteen, s - Sugar edge
    REAL(KIND = REAL64) :: cwh 
    REAL(KIND = REAL64) :: twh 
    REAL(KIND = REAL64) :: cws 
@@ -142,7 +146,6 @@ MODULE RNA_HB_PARAMS
       SUBROUTINE FILL_RNA_HB_PARAMS
          USE NAparams, ONLY: WC, WCCanonic, noWC, TIT, noWCq, Z, &
             cwwAA, cwwAG, cwwAC, cwwAU, cwwGC, cwwGU, cwwCC, cwwCU, cwwUU, &
-            !twwAA, twwAC, twwAU, twwGG, twwGC, twwGU, twwCC, twwCU, twwUU, &
             cwh, twh, cws, tws, chh, thh, chs, ths, css, tss, tww
        
          USE NUM_DEFS, ONLY: PI

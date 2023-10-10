@@ -100,15 +100,17 @@ MODULE FILL_PARAMS
          DO I=1,NRES
             IF ((RESNAMES(I)(1:1).EQ."G").OR.(RESNAMES(I)(1:2).EQ."DG")) THEN
                BTYPE(I) = 1
-               RESTYPES(I) = 0
             ELSEIF ((RESNAMES(I)(1:1).EQ."C").OR.(RESNAMES(I)(1:2).EQ."DC")) THEN 
                BTYPE(I) = 3
-               RESTYPES(I) = 0
             ELSEIF ((RESNAMES(I)(1:1).EQ."A").OR.(RESNAMES(I)(1:2).EQ."DA")) THEN 
                BTYPE(I) = 2
-               RESTYPES(I) = 0
             ELSEIF ((RESNAMES(I)(1:1).EQ."U").OR.(RESNAMES(I)(1:2).EQ."DT")) THEN
                BTYPE(I) = 4
+            ENDIF
+            ! set residue types (RNA or DNA)
+            IF (RESNAMES(I)(1:1).EQ."D") THEN
+               RESTYPES(I) = 1
+            ELSE 
                RESTYPES(I) = 0
             ENDIF
          ENDDO
