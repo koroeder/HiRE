@@ -68,8 +68,8 @@ top_dict["charges"] = CG_charges
 top_dict["particle_type"] = CG_partypes
 
 #bonding information
-bonds,bondtype,bondmol = ChemData.get_bonds(top_dict["nmol"], CG_termini, CG_labels, moltype)
-nbondtypes,rk,req,nbonds,bonds_top = ChemData.get_bondinfo(bonds,bondtype,bondmol)
+bonds,bondtype = ChemData.get_bonds(top_dict["nmol"], CG_termini, CG_labels)
+nbondtypes,rk,req,nbonds,bonds_top = ChemData.get_bondinfo(bonds,bondtype)
 top_dict["nbonds"] = nbonds
 top_dict["bonds"] = bonds_top
 top_dict["nbondtypes"] = nbondtypes

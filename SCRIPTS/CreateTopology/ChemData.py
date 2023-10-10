@@ -6,8 +6,23 @@
 # The way these fucntions work is identical for all three in the algorithmic approach
 # The functions for the bonding are annotated in detail
 
+
+
 import RNA_params
 import DNA_params
+import NucleicAcidData
+
+
+# @brief Function to obtain type from atom names
+#
+#
+# Types are 1 indexed in the stored list of bonds in NucleicAcidData.
+# If the type is used for the lookup later, -1 needs to be applied to each type index to get the correct zero-index.
+def get_bondtype(at1,at2):
+    for bond in NucleicAcidData.Bond_NA:
+        if bond.iscorrectbond(at1,at2):
+            return bond.get_type()
+    return 0
 
 ## @brief Obtain bond information for topology
 #
@@ -21,55 +36,30 @@ import DNA_params
 # For each bond an entry is added to both lists.
 #
 # @param[in] CG_partnames - List of particle names for molecule
-# @param[in] RNAorDNA - 0 - RNA, 1 - DNA
-def get_bond_list(CG_partnames, RNAorDNA):
+
+def get_bond_list(CG_partnames):
     bond_ids = list()
     bond_type = list()
     library = list()
 
     for idx,name in enumerate(CG_partnames):
-        if name == "P": #P-O5 bond
-            bond_ids.append((idx,idx+1))
-            bond_type.append(9)
-        elif name == "O": #O5-C5 bond
-            bond_ids.append((idx,idx+1))
-            bond_type.append(10)
-        elif name == "C": #C5-C4 bond
-            bond_ids.append((idx,idx+1))
-            bond_type.append(8)
-        elif name == "R4":
-            bond_ids.append((idx,idx+1)) #R4-R1 bond
-            bond_type.append(1)
-            try:
-                if (CG_partnames[idx+3]) == "P": #R4-P bond
-                    bond_ids.append((idx,idx+3))
-                    bond_type.append(0)
-                elif (CG_partnames[idx+4]) == "P": #R4-P bond
-                    bond_ids.append((idx,idx+4))
-                    bond_type.append(0)
-            except IndexError:
-                continue
-        elif name == "R1" or name == "S1":
-            bond_ids.append((idx,idx+1)) #R1-B1 bond
-            if CG_partnames[idx+1] == "A1":
-                bond_type.append(3)
-            elif CG_partnames[idx+1] == "C1":
-                bond_type.append(5)
-            elif CG_partnames[idx+1] == "G1":
-                bond_type.append(2)
-            elif CG_partnames[idx+1] == "U1":
-                bond_type.append(4)       
-        elif (name == "A1" or name == "G1"):
-            bond_ids.append((idx,idx+1)) #B1-B2 bond
-            if CG_partnames[idx+1] == "A2":
-                bond_type.append(7)
-            else:
-                bond_type.append(6)
+        if name in ["P", "O", "C", "R4", "R1", "S1", "A1", "A2"]: #P-O5 bond, O5-C5 bond, C5-C4 bond, R4-R1 bond and R4-S1 bond, R1/S1-A/C/GU/T1 bond, A1-A2 and G1-G2 bond
+            type = get_bondtype(name, CG_partnames[idx+1])
+            if type > 0:
+                bond_ids.append((idx,idx+1))
+                bond_type.append(type - 1) 
+            if name == "R4":
+                try:
+                    if (CG_partnames[idx+3]) == "P": #R4-P bond
+                        bond_ids.append((idx,idx+3))
+                    elif (CG_partnames[idx+4]) == "P": #R4-P bond
+                        bond_ids.append((idx,idx+4))
+                    type = get_bondtype("R4", "P")
+                    bond_type.append(type - 1)
+                except IndexError:
+                    continue
         else:
             continue
-
-        if len(bond_ids) > len(library):
-            library.append(RNAorDNA)
     return bond_ids, bond_type, library
 
 ## @brief get bonding information for all molecules
@@ -85,21 +75,17 @@ def get_bond_list(CG_partnames, RNAorDNA):
 # @param[in] nmol - Number of molecules
 # @param[in] termini - list of terminal atoms, used to derive the start and end indices for each molecule
 # @param[in] CG_partnames - list of all CG particles names
-# @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1))
 #
 # @see get_bond_list
-def get_bonds(nmol, termini, CG_partnames, moltype):
+def get_bonds(nmol, termini, CG_partnames):
     bonds = list()
     bondtype = list()
-    moltype_list = list()
     for molid in range(nmol):
         offset = termini[2*molid] - 1
         start = termini[2*molid]
         end = termini[2*molid+1]
-        RNAorDNA = moltype[molid]
-        bonds_mol, bondtype_mol, moltype_list_mol = get_bond_list(CG_partnames[start-1:end],RNAorDNA)
+        bonds_mol, bondtype_mol = get_bond_list(CG_partnames[start-1:end])
         bondtype += bondtype_mol
-        moltype_list += moltype_list_mol
         if offset == 0:
             bonds += bonds_mol           
         else:
@@ -107,7 +93,7 @@ def get_bonds(nmol, termini, CG_partnames, moltype):
                 at1 = bond[0]
                 at2 = bond[1]
                 bonds.append((at1+offset, at2+offset))
-    return bonds,bondtype,moltype_list
+    return bonds,bondtype
 
 ## @brief Parsing bond information to different format
 #
@@ -144,17 +130,12 @@ def get_bondinfo(bonds,bondtype,moltype):
         # change the number of bond types
         else:
             #retrieve type of molecule
-            thisbond_mol = moltype[idx]
             bondtypes_used[this_type] = True
             nbondtypes += 1
             btypemap[this_type] = nbondtypes
             this_toptype = nbondtypes
-            if thisbond_mol == 0:
-                req.append(RNA_params.RNA_bonds[this_type].dist)
-                rk.append(RNA_params.RNA_bonds[this_type].force)
-            elif thisbond_mol == 1:
-                req.append(DNA_params.DNA_bonds[this_type].dist)
-                rk.append(DNA_params.DNA_bonds[this_type].force)            
+            req.append(NucleicAcidData.NA_bonds[this_type].dist)
+            rk.append(NucleicAcidData.NA_bonds[this_type].force)         
             bonds_top += [3*bond[0], 3*bond[1], this_toptype]           
     return nbondtypes,rk,req,nbonds,bonds_top
 
