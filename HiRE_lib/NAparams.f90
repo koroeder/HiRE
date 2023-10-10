@@ -55,9 +55,26 @@ MODULE NAparams
    REAL(KIND = REAL64) :: tit                
    !> rna parameter hb charged base
    REAL(KIND = REAL64) :: noWCq              
-   REAL(KIND = REAL64) :: cwwAA, cwwAG, cwwAC, cwwAU, cwwGC, cwwGU, cwwCC, cwwCU, cwwUU, &
-                        !  twwAA, twwAC, twwAU, twwGG, twwGU, twwGC, twwCC, twwCU, twwUU, &
-                          cwh, twh, cws, tws, chh, thh, chs, ths, css, tss, tww
+   REAL(KIND = REAL64) :: cwwAA
+   REAL(KIND = REAL64) :: cwwAG 
+   REAL(KIND = REAL64) :: cwwAC 
+   REAL(KIND = REAL64) :: cwwAU 
+   REAL(KIND = REAL64) :: cwwGC 
+   REAL(KIND = REAL64) :: cwwGU 
+   REAL(KIND = REAL64) :: cwwCC 
+   REAL(KIND = REAL64) :: cwwCU 
+   REAL(KIND = REAL64) :: cwwUU
+   REAL(KIND = REAL64) :: cwh 
+   REAL(KIND = REAL64) :: twh 
+   REAL(KIND = REAL64) :: cws 
+   REAL(KIND = REAL64) :: tws 
+   REAL(KIND = REAL64) :: chh 
+   REAL(KIND = REAL64) :: thh 
+   REAL(KIND = REAL64) :: chs 
+   REAL(KIND = REAL64) :: ths
+   REAL(KIND = REAL64) :: css 
+   REAL(KIND = REAL64) :: tss
+   REAL(KIND = REAL64) :: tww
       
    !Variables for titration
    !> titration start
