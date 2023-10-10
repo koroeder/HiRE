@@ -11,4 +11,100 @@ To compile the code run:
 - createGMINexec for HiRE GMIN executable
 
 See Examples for some basic examples and guidance on use.
-(Examples may be out of date as we are still in the development stage)
+The examples have been updated on 10/10/2023 and are workign for the 80 parameter version of HiRE.
+The parameter set and example ar enot necessarily optimised simulations, but are simply illustrations of how to use the software.
+
+Current order of parameters:
+
+ 1 - Bonds
+
+ 2 - Angle scaling	
+ 3 - Angle type 1 
+ 4 - Angle type 2
+ 5 - Angle type 3
+ 6 - Angle type 4
+ 7 - Angle type 5
+ 8 - Angle type 6
+ 9 - Angle type 7
+10 - Angle type 8
+
+11 - dihedral scale
+12 - dihedral type 1
+13 - dihedral type 2
+14 - dihedral type 3
+15 - dihedral type 4
+16 - dihedral type 5
+17 - dihedral type 6
+18 - dihedral type 7
+19 - dihedral type 8
+20 - dihedral type 9
+21 - dihedral type 10
+
+22 - Excluded volume
+23 - Barrier 
+24 - Ratio 
+
+25 - nbct2base
+26 - nbct2gen
+27 - nbct2c4
+28 - nbct2cy
+29 - nbct2pp
+30 - nbradgen
+31 - nbradlarge
+
+32 - dielectric constant
+33 - Debye length
+
+34 - SK (stacking)
+35 - SK (stacking)
+36 - SK (stacking)
+37 - EQ (stacking)
+38 - EQ (stacking)
+39 - EQ (stacking)
+40 - WID (stacking)
+41 - WID (stacking)
+42 - WID (stacking)
+43 - Th (stacking)
+44 - Th (stacking)
+45 - Th (stacking)
+46 - GM (stacking)
+47 - GM (stacking)
+48 - GM (stacking)
+
+49 - EPSHB (hbonds)
+50 - CTIT (hbonds)
+51 - P (hbonds)
+52 - Y (hbonds)
+53 - GAUSSW (hbonds)
+54 - INTSCALE (hbonds)
+
+55 - sugar base scaling
+56 - ALJ12 sugar base
+57 - BLJ6 sugar base
+
+58 - KSAXS
+
+59 - Tit
+60 - noWCq
+61 - trans WC bp
+
+62 - cwwAA
+63 - cwwAG
+64 - cwwAC
+65 - cwwAU
+66 - cwwGC
+67 - cwwGU
+68 - cwwCC
+69 - cwwCU
+70 - cwwUU
+71 - cwh
+72 - twh
+73 - cws
+74 - tws
+75 - chh
+76 - thh
+77 - chs
+78 - ths
+79 - css
+80 - tss
+

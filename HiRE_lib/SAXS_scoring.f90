@@ -311,29 +311,40 @@ module SAXS_scoring
         I1(:) = 10**logI(:)
       end if
 
-      ! Compute E_saxs and F_saxs            
-      cscale = I0(0)/I1(0)
       do q = 1, max_q_point - 1
-        qphys = q * delta_q
-        E_num = E_num + ((cscale * I1(q) - I0(q)) * qphys)**2
-        F_pre = - 2 * qphys**2 * (cscale * I1(q) - I0(q)) / (max_q_point * I1(0)**2) ! NORMALIZATION ?
-      
-         do grain_i = 1, num_atoms
-            do grain_j = grain_i+1, num_tot
-               r = pos_TOT(grain_i*3-2:grain_i*3) - pos_TOT(grain_j*3-2:grain_j*3)
-               r2 = dot_product(r,r)
-               qr = qphys * dsqrt(r2)
-               F_grain = ( r / r2 ) * F_CG_TOT(q, grain_i) * F_CG_TOT(q, grain_j) * ( cos(qr) - sin(qr) / qr )
-               F_saxs(grain_i*3-2:grain_i*3) = F_saxs(grain_i*3-2:grain_i*3) + 2 * F_pre * F_grain
-               if (grain_j .le. num_atoms) then
-                   F_saxs(grain_j*3-2:grain_j*3) = F_saxs(grain_j*3-2:grain_j*3) - 2 * F_pre * F_grain
-               endif
-            enddo
-         enddo
+         cscale_num = cscale_num + I0(q)*I1(q)
+         cscale_den = cscale_den + I1(q)*I1(q)
       enddo
       
-      Esaxs = E_num / (max_q_point * I1(0)**2)  ! NORMALIZATION ?
+      ! Compute E_saxs and F_saxs            
+      !cscale = I0(0)/I1(0)
+      cscale = cscale_num/cscale_den
+      do q = 1, max_q_point - 1
+        !qphys = q * delta_q
+        qphys = 1
+        E_num = E_num + ((cscale * I1(q) - I0(q)) * qphys)**2
         
+       ! print *, qphys, cscale *I1(q), I0(q), ((cscale * I1(q) - I0(q)) * qphys)**2
+       ! F_pre = - 2 * qphys**2 * (cscale * I1(q) - I0(q)) / (max_q_point * I1(0)**2) ! NORMALIZATION ?
+      
+!         do grain_i = 1, num_atoms
+!           do grain_j = grain_i+1, num_tot
+!                r = pos_TOT(grain_i*3-2:grain_i*3) - pos_TOT(grain_j*3-2:grain_j*3)
+!                r2 = dot_product(r,r)
+!                qr = qphys * dsqrt(r2)
+!                F_grain = ( r / r2 ) * F_CG_TOT(q, grain_i) * F_CG_TOT(q, grain_j) * ( cos(qr) - sin(qr) / qr )
+!                F_saxs(grain_i*3-2:grain_i*3) = F_saxs(grain_i*3-2:grain_i*3) + 2 * F_pre * F_grain
+!                if (grain_j .le. num_atoms) then
+!                    F_saxs(grain_j*3-2:grain_j*3) = F_saxs(grain_j*3-2:grain_j*3) - 2 * F_pre * F_grain
+!                endif
+!             enddo
+!          enddo
+       enddo
+      
+      !Esaxs = E_num / (max_q_point * I1(0)**2)  ! NORMALIZATION ?
+      Esaxs = E_num / (max_q_point * I1(0))
+      !print *, 'Esaxs', Esaxs, E_num / (max_q_point*I1(0))
+      
       ! Deallocate everything
       if (in_solution_curve .and. refine_hydration_layer) then
         deallocate(F_CG_TOT, AtomNames_TOT, pos_SOL, DistanceMatrix_TOT, pos_TOT)

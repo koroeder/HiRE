@@ -27,8 +27,8 @@ MODULE FILL_PARAMS
          USE NAparams, ONLY: WC, WCCanonic, noWC, TIT, noWCq, SCORE_RNA, &
                            BLIST, BTYPE, BPROT, BP_CURR, &
                            cwwAA, cwwAG, cwwAC, cwwAU, cwwGC, cwwGU, cwwCC, cwwCU, cwwUU, &
-                           twwAA, twwAC, twwAU, twwGG, twwGU, twwGC, twwCC, twwCU, twwUU, &
-                           cwh, twh, cws, tws, chh, thh, chs, ths, css, tss
+                           !twwAA, twwAC, twwAU, twwGG, twwGU, twwGC, twwCC, twwCU, twwUU, &
+                           cwh, twh, cws, tws, chh, thh, chs, ths, css, tss, tww
          USE RNA_HB_PARAMS, ONLY: FILL_RNA_HB_PARAMS
          USE DNA_HB_PARAMS, ONLY: FILL_DNA_HB_PARAMS
        
@@ -45,15 +45,15 @@ MODULE FILL_PARAMS
          TIT = SCORE_RNA(59)
          noWCq = SCORE_RNA(60)
 
-         twwAA = 2.00 * SCORE_RNA(61)
-         twwAC = 2.00 * SCORE_RNA(61)
-         twwAU = 2.10 * SCORE_RNA(61)
-         twwGG = 2.00 * SCORE_RNA(61)
-         twwGC = 1.80 * SCORE_RNA(61)
-         twwGU = 2.00 * SCORE_RNA(61)
-         twwCC = 2.40 * SCORE_RNA(61)
-         twwCU = 2.20 * SCORE_RNA(61)
-         twwUU = 2.30 * SCORE_RNA(61)
+         !twwAA = 2.00 * SCORE_RNA(61)
+         !twwAC = 2.00 * SCORE_RNA(61)
+         !twwAU = 2.10 * SCORE_RNA(61)
+         !twwGG = 2.00 * SCORE_RNA(61)
+         !twwGC = 1.80 * SCORE_RNA(61)
+         !twwGU = 2.00 * SCORE_RNA(61)
+         !twwCC = 2.40 * SCORE_RNA(61)
+         !twwCU = 2.20 * SCORE_RNA(61)
+         !twwUU = 2.30 * SCORE_RNA(61)
 
          !twwAA = 2.00 * SCORE_RNA(61)
          !twwAC = 2.00 * SCORE_RNA(61)
@@ -64,6 +64,8 @@ MODULE FILL_PARAMS
          !twwCC = 2.00 * SCORE_RNA(61)
          !twwCU = 2.00 * SCORE_RNA(61)
          !twwUU = 2.00 * SCORE_RNA(61)
+         
+         tww = SCORE_RNA(61)
          
          cwwAA = SCORE_RNA(62)
          cwwAG = SCORE_RNA(63)

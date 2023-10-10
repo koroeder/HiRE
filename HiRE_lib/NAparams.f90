@@ -55,9 +55,26 @@ MODULE NAparams
    REAL(KIND = REAL64) :: tit                
    !> rna parameter hb charged base
    REAL(KIND = REAL64) :: noWCq              
-   REAL(KIND = REAL64) :: cwwAA, cwwAG, cwwAC, cwwAU, cwwGC, cwwGU, cwwCC, cwwCU, cwwUU, &
-                          twwAA, twwAC, twwAU, twwGG, twwGU, twwGC, twwCC, twwCU, twwUU, &
-                          cwh, twh, cws, tws, chh, thh, chs, ths, css, tss
+   REAL(KIND = REAL64) :: cwwAA
+   REAL(KIND = REAL64) :: cwwAG 
+   REAL(KIND = REAL64) :: cwwAC 
+   REAL(KIND = REAL64) :: cwwAU 
+   REAL(KIND = REAL64) :: cwwGC 
+   REAL(KIND = REAL64) :: cwwGU 
+   REAL(KIND = REAL64) :: cwwCC 
+   REAL(KIND = REAL64) :: cwwCU 
+   REAL(KIND = REAL64) :: cwwUU
+   REAL(KIND = REAL64) :: cwh 
+   REAL(KIND = REAL64) :: twh 
+   REAL(KIND = REAL64) :: cws 
+   REAL(KIND = REAL64) :: tws 
+   REAL(KIND = REAL64) :: chh 
+   REAL(KIND = REAL64) :: thh 
+   REAL(KIND = REAL64) :: chs 
+   REAL(KIND = REAL64) :: ths
+   REAL(KIND = REAL64) :: css 
+   REAL(KIND = REAL64) :: tss
+   REAL(KIND = REAL64) :: tww
       
    !Variables for titration
    !> titration start
@@ -125,8 +142,8 @@ MODULE RNA_HB_PARAMS
       SUBROUTINE FILL_RNA_HB_PARAMS
          USE NAparams, ONLY: WC, WCCanonic, noWC, TIT, noWCq, Z, &
             cwwAA, cwwAG, cwwAC, cwwAU, cwwGC, cwwGU, cwwCC, cwwCU, cwwUU, &
-            twwAA, twwAC, twwAU, twwGG, twwGC, twwGU, twwCC, twwCU, twwUU, &
-            cwh, twh, cws, tws, chh, thh, chs, ths, css, tss
+            !twwAA, twwAC, twwAU, twwGG, twwGC, twwGU, twwCC, twwCU, twwUU, &
+            cwh, twh, cws, tws, chh, thh, chs, ths, css, tss, tww
        
          USE NUM_DEFS, ONLY: PI
          
@@ -139,7 +156,7 @@ MODULE RNA_HB_PARAMS
 			   !cHS_AA, cSS_AA, cWS_AA, cWW_Aa, tHS_AA, tSS_AA, tWH_AA, tWS_AA, tWW_AA                    
          alpam(1:9,2,2) = (/ -1.654, 1.494, -1.095, 0.112, -1.912, 0.768, -0.300, -0.473, -0.568 /)
          alpbm(1:9,2,2) = (/ 1.531, 0.776, 1.595, -0.647, 1.400, 1.679, -1.889, 1.212, -0.566 /)
-         s(1:9,2,2,1,1) = (/0.5*chs, 1.5*css, cws, cwwAA, 1.5*ths, 1.5*tss, twh, tws, twwAA/)    	!Br2  1,1 -> q1=0, q2=0
+         s(1:9,2,2,1,1) = (/0.5*chs, 1.5*css, cws, cwwAA, 1.5*ths, 1.5*tss, twh, tws, tww/)    	!Br2  1,1 -> q1=0, q2=0
          s(1:9,2,2,1,2) = (/0.5*chs, 1.5*css, cws, z,     1.5*ths, 1.5*tss, twh, tws, z/)       !Br2  1,2 -> q1=0, q2=1
          s(1:9,2,2,2,1) = (/0.5*chs, 1.5*css, z,   z,     1.5*ths, z,       z,	 z ,  z/)  	!Br2  2,1 -> q1=1, q2=0
          s(1:9,2,2,2,2) = (/0.5*chs, 1.5*css, z,   z,     1.5*ths, z,       z,	 z,   z /)        !Br2  2,2 -> q1=1, q2=1
@@ -150,7 +167,7 @@ MODULE RNA_HB_PARAMS
 			! cHS_AC, cSS_AC, tHH_AC, tHS_AC, tSS_AC, tWS_AC, tWW_AC, cHS_CA, cSS_CA, cWS_CA, tHS_CA, tWH_CA, tWS_CA, cWW_CA
          alpam(1:14,2,3) = (/-1.858, 1.727, -2.062, -1.719, 0.695, -0.758, -0.728, 1.680, 0.998, 1.631, 1.372, -1.794, 1.536, -0.576/)
          alpbm(1:14,2,3) = (/-2.363, -1.758, 1.228, -2.186, -2.462, -2.142, -0.387, 0.566, -2.272, -0.262, 0.660, -0.815, -0.295, -1.321/)   
-         s(1:14,2,3,1,1) = (/ 0.5*chs, css, 0.5*thh, ths, tss, tws, twwAC, 0.5*chs, css, cws, ths, twh, tws, cwwAC /)    	!Br2  1,1 -> q1=0, q2=0
+         s(1:14,2,3,1,1) = (/ 0.5*chs, css, 0.5*thh, ths, tss, tws, tww, 0.5*chs, css, cws, ths, twh, tws, cwwAC /)    	!Br2  1,1 -> q1=0, q2=0
          s(1:14,2,3,1,2) = (/ 0.5*chs, css, 0.5*thh, ths, tss, tws, z,   0.5*chs, css, cws, ths, twh, tws, z   /)         !Br2  1,2 -> q1=0, q2=1
          s(1:14,2,3,2,1) = (/ 0.5*chs, css, 0.5*thh, ths, z,   tws, z,   0.5*chs, css, z,   ths, z,   tws, z   /)      	!Br2  2,1 -> q1=1, q2=0
          s(1:14,2,3,2,2) = (/ 0.5*chs, css, 0.5*thh, ths, z,   tws, z,   0.5*chs, css, z,   ths, z,   tws, z   /)         !Br2  2,2 -> q1=1, q2=1
@@ -190,7 +207,7 @@ MODULE RNA_HB_PARAMS
 			  ! cHS_AU, cSS_AU, cWS_AU, cWW_AU, tHH_AU, tHS_AU, tSS_AU, tWW_AU, cHS_UA, cSS_UA, cWH_UA, cWS_UA, tHS_UA, tWH_UA, tWS_UA
          alpam(1:15,2,4) = (/ -1.591, 1.584, -0.726, -0.140, -1.734, -1.687, 0.765, -0.190, 1.308, 1.042, -2.229, 1.503, 0.848, -2.196, 1.512/)
          alpbm(1:15,2,4) = (/ -2.165, -1.779, -2.397, -0.911,  0.471, -2.215, -2.448, -0.937, 0.100, -2.281, -0.697, -0.619, 0.302, -1.264,-1.048 /)
-         s(1:15,2,4,1,1) = (/0.5*chs, css, cws, cwwAU, 0.5*thh, ths, tss, 1.5*twwAU, 0.5*chs, 1.5*css, 1.5*cwh, 1.5*cws, 0.5*ths, twh, tws/) 	!Br2  1,1 -> q1=0, q2=0 
+         s(1:15,2,4,1,1) = (/0.5*chs, css, cws, cwwAU, 0.5*thh, ths, tss, 1.5*tww, 0.5*chs, 1.5*css, 1.5*cwh, 1.5*cws, 0.5*ths, twh, tws/) 	!Br2  1,1 -> q1=0, q2=0 
                                              												!OKKIO : cambiato a mano 14.4 -> 16!!!
          s(1:15,2,4,1,2) = (/0.5*chs, css, cws, z,     0.5*thh, ths, tss, z,       0.5*chs, 1.5*css, 1.5*cwh, 1.5*cws, 0.5*ths, twh, tws/)         !Br2  1,2 -> q1=0, q2=1
          s(1:15,2,4,2,1) = (/0.5*chs, css, z,   z,     0.5*thh, ths, z,   z,       0.5*chs, 1.5*css, z,       z,       0.5*ths, z,   z/)           !Br2  2,1 -> q1=1, q2=0
@@ -211,10 +228,10 @@ MODULE RNA_HB_PARAMS
         !   cHS_CC, cSS_CC, cWH_CC, cWS_CC, cWW_cC, tHS_CC, tWH_CC, tWS_CC, tWW_CC
         alpam(1:9,3,3) = (/ 1.015, -1.855, -1.015, -0.417, -0.442, 0.639, -1.114, -0.336, 0.903 /)
         alpbm(1:9,3,3) = (/ -2.226, -2.592, 0.738, -2.459, -1.554, -2.150, 1.026, -1.886, -0.939  /)
-        s(1:9,3,3,1,1) = (/ chs, css, cwh, cws, cwwCC, ths, twh, tws, twwCC /) 		!Br2  1,1 -> q1=0, q2=0
-        s(1:9,3,3,1,2) = (/ chs, css, cwh, cws, z,     ths, twh, tws, twwCC  /) 		!Br2  1,2 -> q1=0, q2=1
-        s(1:9,3,3,2,1) = (/ chs, css, z,   z,   z,     ths, z,   tws, twwCC  /) 		!Br2  2,1 -> q1=1, q2=0
-        s(1:9,3,3,2,2) = (/ chs, css, z,   z,   z,     ths, z,   tws, twwCC /) 		!Br2  2,2 -> q1=1, q2=1
+        s(1:9,3,3,1,1) = (/ chs, css, cwh, cws, cwwCC, ths, twh, tws, tww /) 		!Br2  1,1 -> q1=0, q2=0
+        s(1:9,3,3,1,2) = (/ chs, css, cwh, cws, z,     ths, twh, tws, tww  /) 		!Br2  1,2 -> q1=0, q2=1
+        s(1:9,3,3,2,1) = (/ chs, css, z,   z,   z,     ths, z,   tws, tww  /) 		!Br2  2,1 -> q1=1, q2=0
+        s(1:9,3,3,2,2) = (/ chs, css, z,   z,   z,     ths, z,   tws, tww /) 		!Br2  2,2 -> q1=1, q2=1
         Nparam(3,3) = 9
 
          !         C-G
@@ -222,7 +239,7 @@ MODULE RNA_HB_PARAMS
 			 !  cHS_CG, cSS_CG, cWH_CG, cWS_CG, tWH_CG, tWS_CG, cHH_GC, cSS_GC, cWS_GC, cWW_GC, tHH_GC, tSS_GC, tWS_GC , tWW_GC 
          alpam(1:14,3,1) = (/  0.131, -2.343, -0.620, -0.231, -0.786, -0.450, -2.354, -2.053, -1.911, -0.944, 0.991, -2.076, -2.059, -1.489 /)
          alpbm(1:14,3,1) = (/  1.645, 1.014, -1.914, 1.639, -1.861, 1.207, -2.054, 1.759, -0.408, -0.388, -2.207, 1.074, -0.220, -0.012 /)
-         s(1:14,3,1,1,1) = (/ 0.5*chs, 1.5*css, cwh, cws, twh, 1.5*tws, 0.5*chh, css, cws, cwwCC, 0.5*thh, tss, tws, twwGC/)       		!Br2  1,1 -> q1=0, q2=0
+         s(1:14,3,1,1,1) = (/ 0.5*chs, 1.5*css, cwh, cws, twh, 1.5*tws, 0.5*chh, css, cws, 1.5*cwwGC, 0.5*thh, tss, tws, tww/)       		!Br2  1,1 -> q1=0, q2=0
          s(1:14,3,1,1,2) = (/ 0.5*chs, 1.5*css, cwh, cws, twh, 1.5*tws, 0.5*chh, css, cws, z,     0.5*thh, tss, tws, z /)                  !Br2  1,2 -> q1=0, q2=1
          s(1:14,3,1,2,1) = (/ 0.5*chs, 1.5*css, z,   z,   z,   z,       0.5*chh, css, z,   z,     0.5*thh, tss, z,   z  /)                  	!Br2  2,1 -> q1=1, q2=0
          s(1:14,3,1,2,2) = (/ 0.5*chs, 1.5*css, z,   z,   z,   z,       0.5*chh, css, z,   z,     0.5*thh, tss, z,   z  /)                   !Br2  2,2 -> q1=1, q2=1
@@ -242,7 +259,7 @@ MODULE RNA_HB_PARAMS
 			 ! cHS_CU, cSS_CU, cWS_CU, cWW_CU, tHH_CU, tHS_CU, tWW_CU, cSS_UC, tWS_UC
          alpam(1:9,3,4) = (/0.779, -2.662, -0.392, -0.550, 0.559, 0.635, -0.901, -1.624, -1.904 /)
          alpbm(1:9,3,4) = (/-2.587, -2.127, -2.430, -0.393, 0.481, -2.035, -0.924, -2.363, -0.793 /)            !Br3 CHECK when particles are inverted
-         s(1:9,3,4,1,1) = (/0.5*chs, css, cws, cwwCU, 0.5*thh, ths, twwCU, css, tws/)              		!Br2  1,1 -> q1=0, q2=0     
+         s(1:9,3,4,1,1) = (/0.5*chs, css, cws, cwwCU, 0.5*thh, ths, tww, css, tws/)              		!Br2  1,1 -> q1=0, q2=0     
          s(1:9,3,4,1,2) = (/0.5*chs, css, cws, cwwCU, 0.5*thh, ths, z,   css, tws/)               		!Br2  1,2 -> q1=0, q2=1
          s(1:9,3,4,2,1) = (/0.5*chs, css, z,   cwwCU, 0.5*thh, ths, z,   css, z /)               		!Br2  2,1 -> q1=1, q2=0
          s(1:9,3,4,2,2) = (/0.5*chs, css, z,   cwwCU, 0.5*thh, ths, z,   css, z /)               		!Br2  2,2 -> q1=1, q2=1
@@ -262,7 +279,7 @@ MODULE RNA_HB_PARAMS
 			  ! cHH_gG, cHS_GG, cSS_GG, cWS_GG, tHH_gG, tHS_GG, tSS_GG, tWH_GG, tWW_GG
          alpam(1:9,1,1) = (/ 2.979, -1.883, 1.575, -0.851, -3.031, -1.821, 1.330, -0.120, -0.881 /)
          alpbm(1:9,1,1) = (/ -1.953, 1.062, 0.920, 1.556, -1.773, 1.039, 1.328, -2.322, -0.871 /)
-         s(1:9,1,1,1,1) = (/ 0.5*chh, 0.5*chs, 1.5*css, cws, 0.5*thh, 0.5*ths, 2*tss, twh, twwGG /)      		!Br2  1,1 -> q1=0, q2=0     
+         s(1:9,1,1,1,1) = (/ 0.5*chh, 0.5*chs, 1.5*css, cws, 0.5*thh, 0.5*ths, 2*tss, twh, tww /)      		!Br2  1,1 -> q1=0, q2=0     
          s(1:9,1,1,1,2) = (/ 0.5*chh, 0.5*chs, 1.5*css, cws, 0.5*thh, 0.5*ths, 2*tss, twh, z /)               	!Br2  1,2 -> q1=0, q2=1
          s(1:9,1,1,2,1) = (/ 0.5*chh, 0.5*chs, 1.5*css, cws, 0.5*thh, 0.5*ths, 2*tss, z,   z /)   			!Br2  2,1 -> q1=1, q2=0
          s(1:9,1,1,2,2) = (/ 0.5*chh, 0.5*chs, 1.5*css, cws, 0.5*thh, 0.5*ths, 2*tss, z,   z /)                	!Br2  2,2 -> q1=1, q2=1
@@ -273,10 +290,10 @@ MODULE RNA_HB_PARAMS
 			! cSS_GU, cWS_GU, tSS_GU, tWH_GU, tWS_GU, tWW_GU, cHS_UG, cSS_UG, cWH_UG, cWS_UG, tHS_UG, tWH_UG, tWS_UG, cWW_UG   
          alpam(1:14,1,4) = (/ 1.761, -0.380, 0.949, -0.465, -0.333, -0.964, 1.476, 1.025, -2.531, 1.590, 1.151, -2.475, 1.293, -0.779  /)
          alpbm(1:14,1,4) = (/ -1.630, -1.824, -2.298, 0.614, -2.159, -0.442, 0.676, -2.322, -0.829, -0.650, 0.452, -0.875, -1.623, -1.470  /) 
-         s(1:14,1,4,1,1) = (/ css, cws, tss, twh, tws, twwGU, 0.5*chs, 1.5*css, cwh, cws, 0.5*ths, twh, 0.5*tws, cwwGU /)     		!Br2  1,1 -> q1=0, q2=0 !OKKIO : cambiato a mano 14.7 -> 16!!!
-         s(1:14,1,4,1,2) = (/ css, cws, tss, z,   tws, twwGU, 0.5*chs, 1.5*css, cwh, cws, 0.5*ths, twh, 0.5*tws, z /)                 	!Br2  1,2 -> q1=0, q2=1
-         s(1:14,1,4,2,1) = (/ css, z,   tss, z,   z,   twwGU, 0.5*chs, 1.5*css, z,   z,   0.5*ths, z,   0.5*tws, z  /)                 	!Br2  2,1 -> q1=1, q2=0
-         s(1:14,1,4,2,2) = (/ css, z,   tss, z,   z,   twwGU, 0.5*chs, 1.5*css, z,   z,   0.5*ths, z,   0.5*tws, z /)                 	!Br2  2,2 -> q1=1, q2=1
+         s(1:14,1,4,1,1) = (/ css, cws, tss, twh, tws, tww, 0.5*chs, 1.5*css, cwh, cws, 0.5*ths, twh, 0.5*tws, cwwGU /)     		!Br2  1,1 -> q1=0, q2=0 !OKKIO : cambiato a mano 14.7 -> 16!!!
+         s(1:14,1,4,1,2) = (/ css, cws, tss, z,   tws, tww, 0.5*chs, 1.5*css, cwh, cws, 0.5*ths, twh, 0.5*tws, z /)                 	!Br2  1,2 -> q1=0, q2=1
+         s(1:14,1,4,2,1) = (/ css, z,   tss, z,   z,   tww, 0.5*chs, 1.5*css, z,   z,   0.5*ths, z,   0.5*tws, z  /)                 	!Br2  2,1 -> q1=1, q2=0
+         s(1:14,1,4,2,2) = (/ css, z,   tss, z,   z,   tww, 0.5*chs, 1.5*css, z,   z,   0.5*ths, z,   0.5*tws, z /)                 	!Br2  2,2 -> q1=1, q2=1
          Nparam(1,4) = 14
             
          dREF(:,4,1) = dREF(:,1,4)
@@ -293,7 +310,7 @@ MODULE RNA_HB_PARAMS
 			  ! cHS_UU, cSS_UU, cWS_UU, cWW_uU, tWH_UU, tWS_UU, tWW_UU
          alpam(1:7,4,4) = (/ 1.151, -2.372, -1.079, -0.501, -0.806, -1.339, -0.438 /)
          alpbm(1:7,4,4) = (/ -2.380, -1.833, -2.169, -1.337, 0.473, -2.022, -0.516 /)
-         s(1:7,4,4,1,1) = (/ 0.5*chs, css, cws, cwwUU, twh, tws, twwUU/)        		!Br2  1,1 -> q1=0, q2=0
+         s(1:7,4,4,1,1) = (/ 0.5*chs, css, cws, cwwUU, twh, tws, tww/)        		!Br2  1,1 -> q1=0, q2=0
          s(1:7,4,4,1,2) = (/ 0.5*chs, css, cws, z,     twh, tws, z/)                	!Br2  1,2 -> q1=0, q2=1
          s(1:7,4,4,2,1) = (/ 0.5*chs, css, z,   z,     z,   z,    z/)                    	!Br2  2,1 -> q1=1, q2=0
          s(1:7,4,4,2,2) = (/ 0.5*chs, css, z,   z,     z,   z,    z/)                    	!Br2  2,2 -> q1=1, q2=1

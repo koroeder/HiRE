@@ -1,20 +1,17 @@
 Call setup for HiRE
 Finished setup
 Read coordinates
-Energy:         -1.187196
-RMS force:    0.766950    
- Ebond:          0.03911
- Eangle:         0.38055
- Etors:         50.19257
+Energy:      18783.304495
+RMS force:     121.823    
+ Ebond:          0.08100
+ Eangle:         0.13957
+ Etors:        207.44421
  Edh:            2.18703
- Ehbond:        -3.68990
- Evdw:           1.57895
- Estak:        -51.87552
+ Ehbond:       -90.58868
+ Evdw:       18755.87029
+ Estak:        -91.80711
+ Esb:           -0.02181
  Esaxs:          0.00000
  Edistr:         0.00000
  Eposr:          0.00000
- Etot:          -1.18720
- Create chain ids
- Done creating chain ids
- Create chain ids
- Done creating chain ids
+ Etot:       18783.30450

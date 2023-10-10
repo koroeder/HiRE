@@ -1,47 +1,80 @@
-   1    2.608         Bonds
-   2    2.073         Angles k R4-R1-X1
-   3    1.519         Angles k R1-G1/A1-G2/A2
-   4    2.355         Angles k P-O-C
-   5    4.190         Angles k O-C-R4
-   6    4.698         Angles k C-R4-P
-   7    4.824         Angles k R4-P-O
-   8    5.636         Angles k C-R4-R1
-   9    2.130         Angles k R1-R4-P
-  10    1.307         Torsions
-  11   15.223         EV sigmoidal steepness
-  12    1.000         !! P-P
-  13    2.800         !! Debye length
-  14    2.505         Stacking scale pyr-pur
-  15    1.826         Stacking scale pur-pur
-  16    3.932         Stacking scale pyr-pyr
-  17    4.309         Stacking distance parameter pyr-pur
-  18    4.775         Stacking distance parameter pur-pur
-  19    4.546         Stacking distance parameter pyr-pyr
-  20    2.821         Stacking width parameter pyr-pur
-  21    3.813         Stacking width parameter pur-pur
-  22    3.010         Stacking width parameter pyr-pyr
-  23    0.908         HB
-  24    3.000         !! titration cutoff for HB
-  25    4.000         !! Ehb: cos(x)**p
-  26    2.257         Ehb: gaussian width for the length part
-  27    0.480         NewPlane: gaussian width for the point-plane distance
-  28    0.500         !! Newplane: interaction scale
-  29    4.247         Torsion k R4-R1-G1/A1-G2/A2
-  30   10.816         Torsion k R4-G1/A1-G2/A2-R1
-  31   11.121         Torsion k C-R4-R1-X1
-  32    5.819         Torsion k P-R4-R1-X1
-  33    0.501         Torsion k C-R4-P-O
-  34    0.730         Torsion k R1-R4-P-O
-  35    0.331         Torsion k O-C-R4-P
-  36    0.257         Torsion k O-C-R4-R1
-  37    0.224         Torsion k P-O-C-R4
-  38    0.207         Torsion k R4-P-O-C
-  39    1.200         !! rna/dna parameter: wc coef
-  40    1.500         !! rna/dna parameter: wcCanonic coef
-  41    0.400         !! rna/dna parameter: noWc coef
-  42    1.800         !! rna parameter titration
-  43    0.800         !! rna parameter hb charged base
-  44  142.306         barrier EV
-  45    1.000         !! ratio ct2 ex V
-  46    0.000         !! SAXS
-  47    1.483         Angles
+ 1     5.40064  ! Bonds
+ 2     0.53385  ! Angle scaling
+ 3     2.40951  ! Angle type 1 
+ 4     3.99287  ! Angle type 2
+ 5     4.06621  ! Angle type 3
+ 6     5.41857  ! Angle type 4
+ 7     6.08343  ! Angle type 5
+ 8     7.80674  ! Angle type 6
+ 9     9.66041  ! Angle type 7
+10     1.23158  ! Angle type 8
+11     5.08500  ! Dihedral scale 
+12     2.05211  ! Dihedral type 1
+13     5.89642  ! Dihedral type 2
+14    14.15719  ! Dihedral type 3
+15     4.78332  ! Dihedral type 4
+16     1.24407  ! Dihedral type 5
+17     0.45479  ! Dihedral type 6
+18     1.00599  ! Dihedral type 7
+19     0.58273  ! Dihedral type 8
+20     0.70979  ! Dihedral type 9
+21     0.19212  ! Dihedral type 10
+22    14.35283  ! Excluded volume
+23   130.82441  ! Barrier
+24     1.00000  !! Ratio
+25     3.74570  ! nbct2base
+26     3.98872  ! nbct2gen
+27     4.18338  ! nbct2c4
+28     4.20932  ! nbct2cy
+29     3.36375  ! nbct2pp
+30     3.95299  ! nbradgen
+31     4.38579  ! nbradlarge
+32     1.00000  !! dielectric constant
+33     2.80000  !! Debye length
+34     2.42892  ! SK (stacking)
+35     3.26789  ! SK (stacking)
+36     4.19081  ! SK (stacking)
+37     5.03637  ! EQ (stacking)
+38     4.43916  ! EQ (stacking)
+39     4.08575  ! EQ (stacking)
+40     4.41005  ! WID (stacking)
+41     4.66777  ! WID (stacking)
+42     5.01480  ! WID (stacking)
+43     0.57294  ! Th (stacking)
+44     0.11205  ! Th (stacking)
+45     0.21732  ! Th (stacking)
+46     6.50858  ! GM (stacking)
+47     8.55747  ! GM (stacking)
+48     7.80768  ! GM (stacking)
+49     2.50189  ! EPSHB (hbonds)
+50     3.00000  !! CTIT (hbonds)
+51     4.00000  !! P (hbonds)
+52     2.11817  ! Y (hbonds)
+53     1.27515  ! GAUSSW (hbonds)
+54     0.50000  !! INTSCALE (hbonds)
+55     5.05954  ! sugar base scaling
+56     1.57833  ! ALJ12 sugar base
+57     1.82649  ! BLJ6 sugar base
+58     0.00000  !! KSAXS
+59     1.80000  !! Tit
+60     0.80000  !! noWCq 
+61     1.46174  ! trans WC bp
+62     2.18717  ! cwwAA
+63     2.41284  ! cwwAG
+64     2.18718  ! cwwAC
+65     2.19601  ! cwwAU
+66     2.64973  ! cwwGC
+67     2.71101  ! cwwGU
+68     2.55863  ! cwwCC
+69     2.30701  ! cwwCU
+70     2.33281  ! cwwUU
+71     0.50253  ! cwh
+72     1.05604  ! twh
+73     1.26444  ! cws
+74     1.16214  ! tws
+75     0.75827  ! chh
+76     0.98342  ! thh
+77     1.00867  ! chs
+78     0.97595  ! ths
+79     0.91026  ! css
+80     0.90655  ! tss
