@@ -113,7 +113,7 @@ MODULE MOD_BASESTACKING
       !> @param[out] ESTK - stacking energy for the given base pair
       !> @param[out] F - gradient from stacking interactions
       !> @param[in] STACKUNIT - output unit for debugging
-    SUBROUTINE RNA_STACKV(NOPT,I,J,TI,TJ,F,X,ESTK,STACKUNIT)
+    SUBROUTINE NA_STACKV(NOPT,I,J,TI,TJ,F,X,ESTK,STACKUNIT)
       USE VEC_UTILS
       INTEGER, INTENT(IN) :: NOPT                   !Number of degrees of freedom
       INTEGER, INTENT(IN) :: I, J                   !indices of final particle in residue
@@ -213,7 +213,7 @@ MODULE MOD_BASESTACKING
       F(j*3-8:j*3-6) = F(j*3-8:j*3-6) + Dvr - crossproduct(d, Da)
       F(j*3-5:j*3-3) = F(j*3-5:j*3-3) + Dvr - crossproduct(c-d, Da)
       F(j*3-2:j*3  ) = F(j*3-2:j*3  ) + Dvr - crossproduct(Da, c)
-    END SUBROUTINE RNA_STACKV 
+    END SUBROUTINE NA_STACKV 
     
     
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEW STAKING POTENTIAL - Vertical offset !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
@@ -231,7 +231,7 @@ MODULE MOD_BASESTACKING
       !> @param[in] X - input coordinates
       !> @param[out] ESTK - stacking energy for the given base pair
       !> @param[out] F - gradient from stacking interactions
-      SUBROUTINE RNA_STACKV2(NOPT,I,J,TI,TJ,F,X,ESTK)
+      SUBROUTINE NA_STACKV2(NOPT,I,J,TI,TJ,F,X,ESTK)
          USE VEC_UTILS
          INTEGER, INTENT(IN) :: NOPT                   !Number of degrees of freedom
          INTEGER, INTENT(IN) :: I, J                   !indices of final particle in residue
@@ -346,6 +346,6 @@ MODULE MOD_BASESTACKING
          F(j*3-2:j*3  ) = F(j*3-2:j*3  ) + Dvr - Dsp*DJs   - Estkrs*(Dva1+Dva2)*DJv
       
       
-      END SUBROUTINE RNA_STACKV2 
+      END SUBROUTINE NA_STACKV2 
     
 END MODULE MOD_BASESTACKING
