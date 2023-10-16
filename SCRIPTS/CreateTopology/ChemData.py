@@ -6,8 +6,6 @@
 # The way these fucntions work is identical for all three in the algorithmic approach
 # The functions for the bonding are annotated in detail
 
-import RNA_params
-import DNA_params
 import NucleicAcidData
 
 # @brief Function to obtain type from atom names
@@ -28,6 +26,14 @@ def get_angletype(mol, at1, at2, at3):
                 return angle.get_typeid()
     return 0
 
+# @brief Function to obtain angle type from atom names
+def get_dihtype(mol, at1, at2, at3, at4):
+    types = list()
+    for dih in NucleicAcidData.NA_angles:
+        if mol==dih[0][0:3]:
+            if dih.iscorrectangle(at1, at2, at3, at4):
+                types.append(dih.get_typeid())
+    return types
 
 # @brief Obtain bond information for topology
 #
@@ -112,10 +118,9 @@ def get_bonds(nmol, termini, CG_partnames):
 # @param[in] bonds - list of bonded atoms as tuple
 # @param[in] bondtype - list of bond types for each bond
 # @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1)) to parse correct data
-def get_bondinfo(bonds,bondtype,moltype):
+def get_bondinfo(bonds,bondtype):
     # Introduce bond types to track which ones we have already encountered
-    bondtypes_used = [False, False, False, False, False, False, 
-                      False, False, False, False, False]
+    bondtypes_used = [False for _ in range(len(NucleicAcidData.NA_bonds))] 
     nbonds = len(bondtype)
     btypemap = dict()
     req = list()
@@ -238,8 +243,7 @@ def get_angle_list(CG_partnames, RNAorDNA):
 # @param[in] angletype - list of bond angle types for each bond angle
 # @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1)) to parse correct data
 def get_angleinfo(angles,angletype):
-    angletypes_used = [False, False, False, False, False, False, 
-                       False, False, False, False, False, False]
+    angletypes_used = [False for _ in range(len(NucleicAcidData.NA_angles))]
     nangles = len(angletype)
     atypemap = dict()
     teq = list()
@@ -316,136 +320,106 @@ def get_angles(nmol, termini, CG_partnames, moltype):
 def get_dih_list(CG_partnames, RNAorDNA):
     dih_ids = list()
     dih_type = list()
-    library = list()
 
+    if RNAorDNA==0:
+        moltype = "RNA"
+    elif RNAorDNA==1:
+        moltype = "DNA"
     for idx,name in enumerate(CG_partnames):
-        if name == "P": #P-O5-C5-C4 dih
-            dih_ids.append((idx,idx+1,idx+2,idx+3))
-            dih_type.append(21)
-            library.append(RNAorDNA) 
-            dih_ids.append((idx,idx+1,idx+2,idx+3))
-            dih_type.append(22) 
-            library.append(RNAorDNA) 
-            dih_ids.append((idx,idx+1,idx+2,idx+3))
-            dih_type.append(23)  
-            library.append(RNAorDNA) 
-            if CG_partnames[idx-2] == "A1": #P-R4-R1-B1 dih
-                dih_ids.append((idx,idx-4,idx-3,idx-2))
-                dih_type.append(13)
-                library.append(RNAorDNA) 
-            if CG_partnames[idx-1] == "C1":
-                dih_ids.append((idx,idx-3,idx-2,idx-1))
-                dih_type.append(15)  
-                library.append(RNAorDNA) 
-            if CG_partnames[idx-2] == "G1":
-                dih_ids.append((idx,idx-4,idx-3,idx-2))
-                dih_type.append(14)
-                library.append(RNAorDNA) 
-            if CG_partnames[idx-1] == "U1":
-                dih_ids.append((idx,idx-3,idx-2,idx-1))
-                dih_type.append(16)      
-                library.append(RNAorDNA)            
-        elif name == "O": #O5-C5-C4-C1 dih
-            dih_ids.append((idx,idx+1,idx+2,idx+3))
-            dih_type.append(20)
-            library.append(RNAorDNA) 
+        if name in ["P", "O", "C"]: #P-O5-C5-C4 dih, O5-C5-C4-C1 dih, C5-C4-C1-B1 dih
+            types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+2])
+            for type in types:
+                dih_ids.append((idx,idx+1,idx+2,idx+3))
+                dih_type.append(type - 1)             
+
+        if name == "P": 
+            try:
+                if ((CG_partnames[idx-2] == "A1") or (CG_partnames[idx-2] == "G1")): #P-R4-R1-B1 dih
+                    types = get_dihtype(moltype, name, CG_partnames[idx-4], CG_partnames[idx-3], CG_partnames[idx-2])
+                    for type in types:
+                        dih_ids.append((idx,idx-4,idx-3,idx-2))
+                        dih_type.append(type - 1)
+                if ((CG_partnames[idx-1] == "C1") or (CG_partnames[idx-1] == "U1")): #P-R4-R1-B1 dih
+                    types = get_dihtype(moltype, name, CG_partnames[idx-3], CG_partnames[idx-2], CG_partnames[idx-1])
+                    for type in types:
+                        dih_ids.append((idx,idx-3,idx-2,idx-1))
+                        dih_type.append(type - 1)                    
+            except IndexError:
+                continue     
+
+        elif name == "O": 
             try:
                 if (CG_partnames[idx+5]== "P"): #O5-C5-C4-P dih
-                    dih_ids.append((idx,idx+1,idx+2,idx+5))
-                    dih_type.append(19)
-                    library.append(RNAorDNA) 
+                    types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+5])
+                    for type in types:
+                        dih_ids.append((idx,idx+1,idx+2,idx+5))
+                        dih_type.append(type - 1)
                 elif (CG_partnames[idx+6]== "P"):
-                    dih_ids.append((idx,idx+1,idx+2,idx+6))
-                    dih_type.append(19)
-                    library.append(RNAorDNA) 
+                    types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+6])
+                    for type in types:
+                        dih_ids.append((idx,idx+1,idx+2,idx+6))
+                        dih_type.append(type - 1)                    
             except IndexError:
                 continue
-        elif name == "C":
-            #C5-C4-C1-B1 dih
-            if (CG_partnames[idx+3] == "A1"):
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_ids.append((idx,idx+1,idx+2,idx+3))
-                dih_type.append(6)
-                library.append(RNAorDNA) 
-                dih_type.append(7)
-                library.append(RNAorDNA) 
-            elif (CG_partnames[idx+3] == "C1"):
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_ids.append((idx,idx+1,idx+2,idx+3))
-                dih_type.append(9)
-                library.append(RNAorDNA) 
-                dih_type.append(10)
-                library.append(RNAorDNA)    
-            elif (CG_partnames[idx+3] == "G1"):
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(8)
-                library.append(RNAorDNA) 
-            elif (CG_partnames[idx+3] == "U1"):
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_ids.append((idx,idx+1,idx+2,idx+3))
-                dih_type.append(11)
-                library.append(RNAorDNA) 
-                dih_type.append(12)      
-                library.append(RNAorDNA)                          
+
+        elif name == "C":                        
             try:
                 if (CG_partnames[idx+4]== "P"): #C5-C4-P-O dih
-                    dih_ids.append((idx,idx+1,idx+4,idx+5))
-                    dih_type.append(17)
-                    library.append(RNAorDNA) 
+                    types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+4], CG_partnames[idx+5])
+                    for type in types:
+                        dih_ids.append((idx,idx+1,idx+4,idx+5))
+                        dih_type.append(type - 1)                    
                 elif (CG_partnames[idx+5]== "P"):
-                    dih_ids.append((idx,idx+1,idx+5,idx+6))
-                    dih_type.append(17)
-                    library.append(RNAorDNA) 
+                    types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+5], CG_partnames[idx+6])
+                    for type in types:
+                        dih_ids.append((idx,idx+1,idx+5,idx+6))
+                        dih_type.append(type - 1)                     
             except IndexError:
                 continue
+
         elif name == "R4":          
-            if CG_partnames[idx+2] == "A1": #R4-R1-B1-B2 dihs 
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(2)
-                library.append(RNAorDNA) 
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(3)
-                library.append(RNAorDNA) 
-                dih_ids.append((idx,idx+2,idx+3,idx+1))
-                dih_type.append(4)
-                library.append(RNAorDNA) 
-            elif CG_partnames[idx+2] == "G1": #R4-R1-B1-B2 dihs 
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(0)
-                library.append(RNAorDNA) 
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(1)
-                library.append(RNAorDNA) 
-                dih_ids.append((idx,idx+2,idx+3,idx+1))
-                dih_type.append(5)
-                library.append(RNAorDNA) 
+            if ((CG_partnames[idx+2] == "A1") or (CG_partnames[idx+2] == "G1")): #R4-R1-B1-B2 dihs 
+                types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+3])
+                for type in types:
+                    dih_ids.append((idx,idx+1,idx+2,idx+3))
+                    dih_type.append(type - 1)
+                types = get_dihtype(moltype, name, CG_partnames[idx+2], CG_partnames[idx+3], CG_partnames[idx+1])
+                for type in types:
+                    dih_ids.append((idx,idx+2,idx+3,idx+1))
+                    dih_type.append(type - 1)      
+
             try:
                 if CG_partnames[idx+3] == "P": #R4-P-O dih
-                    dih_ids.append((idx,idx+3,idx+4,idx+5))
-                    dih_type.append(24)
-                    library.append(RNAorDNA) 
+                    types = get_dihtype(moltype, name, CG_partnames[idx+3], CG_partnames[idx+4], CG_partnames[idx+5])
+                    for type in types:
+                        dih_ids.append((idx,idx+3,idx+4,idx+5))
+                        dih_type.append(type - 1)                    
                 elif CG_partnames[idx+4] == "P": #R4-P-O dih
-                    dih_ids.append((idx,idx+4,idx+5,idx+6))
-                    dih_type.append(24)
-                    library.append(RNAorDNA) 
+                    types = get_dihtype(moltype, name, CG_partnames[idx+4], CG_partnames[idx+5], CG_partnames[idx+6])
+                    for type in types:
+                        dih_ids.append((idx,idx+4,idx+5,idx+6))
+                        dih_type.append(type - 1)                      
             except IndexError:
                 continue
+
         elif name == "R1" or name == "S1":
             try:
                 if CG_partnames[idx+2] == "P": #R1-R4-P-O dih
-                    dih_ids.append((idx,idx-1,idx+2,idx+3))
-                    dih_type.append(18)
-                    library.append(RNAorDNA) 
+                    types = get_dihtype(moltype, name, CG_partnames[idx-1], CG_partnames[idx+2], CG_partnames[idx+3])
+                    for type in types:
+                        dih_ids.append((idx,idx-1,idx+2,idx+3))
+                        dih_type.append(type - 1)
                 elif CG_partnames[idx+3] == "P":
-                    dih_ids.append((idx,idx-1,idx+3,idx+4))
-                    dih_type.append(18)
-                    library.append(RNAorDNA) 
+                    types = get_dihtype(moltype, name, CG_partnames[idx-1], CG_partnames[idx+3], CG_partnames[idx+4])
+                    for type in types:
+                        dih_ids.append((idx,idx-1,idx+3,idx+4))
+                        dih_type.append(type - 1)                    
             except IndexError:
                 continue           
         else:
             continue
      
-    return dih_ids, dih_type, library
+    return dih_ids, dih_type
 
 
 
@@ -461,12 +435,8 @@ def get_dih_list(CG_partnames, RNAorDNA):
 # @param[in] dihtype - list of dihedral types for each dihedral
 # @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1)) to parse correct data
 
-def get_dihinfo(dihs,dihtype,moltype):
-    dihtypes_used = [False, False, False, False, False,
-                     False, False, False, False, False, 
-                     False, False, False, False, False,
-                     False, False, False, False, False,
-                     False, False, False, False, False]
+def get_dihinfo(dihs,dihtype):
+    dihtypes_used = [False for _ in range(len(NucleicAcidData.NA_dihs))]
     ndihs = len(dihtype)
     atypemap = dict()
     phi = list()
@@ -480,19 +450,13 @@ def get_dihinfo(dihs,dihtype,moltype):
             this_toptype = atypemap[this_type]
             dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], 3*dih[3], this_toptype]
         else:
-            thisdih_mol = moltype[idx]
             dihtypes_used[this_type] = True
             ntorstypes += 1
             atypemap[this_type] = ntorstypes
             this_toptype = ntorstypes
-            if thisdih_mol == 0:
-                phi.append(RNA_params.RNA_dihs[this_type].dih/180.0*3.1415926535897)
-                pk.append(RNA_params.RNA_dihs[this_type].force)
-                pn.append(RNA_params.RNA_dihs[this_type].nterm)
-            elif thisdih_mol == 1:
-                phi.append(DNA_params.DNA_dihs[this_type].dih/180.0*3.1415926535897)
-                pk.append(DNA_params.DNA_dihs[this_type].force)
-                pn.append(DNA_params.DNA_dihs[this_type].nterm)
+            phi.append(NucleicAcidData.NA_dihs[this_type].dih/180.0*3.1415926535897)
+            pk.append(NucleicAcidData.NA_dihs[this_type].force)
+            pn.append(NucleicAcidData.NA_dihs[this_type].nterm)
             dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], 3*dih[3], this_toptype]           
     return ntorstypes,pk,phi,ndihs,dihs_top,pn
 
@@ -521,9 +485,8 @@ def get_dihs(nmol, termini, CG_partnames, moltype):
         start = termini[2*molid] - 1
         end = termini[2*molid+1]
         RNAorDNA = moltype[molid]
-        angs_mol, torstype_mol, moltype_list_mol = get_dih_list(CG_partnames[start:end],RNAorDNA)
+        angs_mol, torstype_mol = get_dih_list(CG_partnames[start:end],RNAorDNA)
         torstype += torstype_mol
-        moltype_list += moltype_list_mol
         if offset == 0:
             dihs += angs_mol           
         else:
@@ -534,4 +497,4 @@ def get_dihs(nmol, termini, CG_partnames, moltype):
                 at4 = ang[3]
                 dihs.append((at1+offset, at2+offset, at3+offset, at4+offset))
     
-    return dihs,torstype,moltype_list
+    return dihs,torstype
