@@ -6,15 +6,11 @@
 # The way these fucntions work is identical for all three in the algorithmic approach
 # The functions for the bonding are annotated in detail
 
-
-
 import RNA_params
 import DNA_params
 import NucleicAcidData
 
-
 # @brief Function to obtain type from atom names
-#
 #
 # Types are 1 indexed in the stored list of bonds in NucleicAcidData.
 # If the type is used for the lookup later, -1 needs to be applied to each type index to get the correct zero-index.
@@ -24,7 +20,16 @@ def get_bondtype(at1,at2):
             return bond.get_type()
     return 0
 
-## @brief Obtain bond information for topology
+# @brief Function to obtain angle type from atom names
+def get_angletype(mol, at1, at2, at3):
+    for angle in NucleicAcidData.NA_angles:
+        if mol==angle[0][0:3]:
+            if angle.iscorrectangle(at1, at2, at3):
+                return angle.get_typeid()
+    return 0
+
+
+# @brief Obtain bond information for topology
 #
 # Function obtains list of bonds, assuming it is a single molecule that is considered.\n
 # We iterate over all particle names
@@ -40,14 +45,15 @@ def get_bondtype(at1,at2):
 def get_bond_list(CG_partnames):
     bond_ids = list()
     bond_type = list()
-    library = list()
 
     for idx,name in enumerate(CG_partnames):
         if name in ["P", "O", "C", "R4", "R1", "S1", "A1", "A2"]: #P-O5 bond, O5-C5 bond, C5-C4 bond, R4-R1 bond and R4-S1 bond, R1/S1-A/C/GU/T1 bond, A1-A2 and G1-G2 bond
             type = get_bondtype(name, CG_partnames[idx+1])
             if type > 0:
                 bond_ids.append((idx,idx+1))
-                bond_type.append(type - 1) 
+                bond_type.append(type - 1)
+            else:
+                raise ValueError("Error: Cannot find type for bond: ", name, CG_partnames[idx+1])
             if name == "R4":
                 try:
                     if (CG_partnames[idx+3]) == "P": #R4-P bond
@@ -60,7 +66,7 @@ def get_bond_list(CG_partnames):
                     continue
         else:
             continue
-    return bond_ids, bond_type, library
+    return bond_ids, bond_type
 
 ## @brief get bonding information for all molecules
 #
@@ -156,69 +162,69 @@ def get_bondinfo(bonds,bondtype,moltype):
 def get_angle_list(CG_partnames, RNAorDNA):
     angle_ids = list()
     angle_type = list()
-    library = list()
-    
+    if RNAorDNA==0:
+        moltype = "RNA"
+    elif RNAorDNA==1:
+        moltype = "DNA"
     for idx,name in enumerate(CG_partnames):
-        if name == "P": #P-O5-C5 angle
-            angle_ids.append((idx,idx+1,idx+2))
-            angle_type.append(6)
-        elif name == "O": #O5-C5-C4 angle
-            angle_ids.append((idx,idx+1,idx+2))
-            angle_type.append(7)
-        elif name == "C": 
-            angle_ids.append((idx,idx+1,idx+2)) #C5-C4-C1 angle
-            angle_type.append(10)
-            try:
-                if (CG_partnames[idx+4]== "P"): #C5-C4-P angle
-                    angle_ids.append((idx,idx+1,idx+4))
-                    angle_type.append(8)
-                elif (CG_partnames[idx+5]== "P"):
-                    angle_ids.append((idx,idx+1,idx+5))
-                    angle_type.append(8)
-            except IndexError:
-                continue
-        elif name == "R4":
-            angle_ids.append((idx,idx+1,idx+2)) #R4-R1-B1 bond           
-            if CG_partnames[idx+2] == "A1":
-                angle_type.append(0)
-            elif CG_partnames[idx+2] == "C1":
-                angle_type.append(3)
-            elif CG_partnames[idx+2] == "G1":
-                angle_type.append(2)
-            elif CG_partnames[idx+2] == "U1":
-                angle_type.append(1) 
-            try:
-                if CG_partnames[idx+3] == "P": #R4-P-O angle
-                    angle_ids.append((idx,idx+3,idx+4))
-                    angle_type.append(9)
-                elif CG_partnames[idx+4] == "P": #R4-P-O angle
-                    angle_ids.append((idx,idx+4,idx+5))
-                    angle_type.append(9)
-            except IndexError:
-                continue
+        if name in ["P", "O", "C", "R4"]: #P-O5-C5 angle, O5-C5-C4 angle, C5-C4-C1 angle, R4-R1-B1 angle 
+            type = get_angletype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2])
+            if type > 0:
+                angle_ids.append((idx,idx+1,idx+2))
+                angle_type.append(type - 1)             
+            else:
+                raise ValueError("Error: Cannot find type for bond: ", name, CG_partnames[idx+1])
+
+            if name == "C": 
+                try:
+                    if (CG_partnames[idx+4]== "P"): #C5-C4-P angle
+                        angle_ids.append((idx,idx+1,idx+4))
+                        type = get_angletype(moltype,"C", "R4", "P")
+                        angle_type.append(type - 1)
+                    elif (CG_partnames[idx+5]== "P"):
+                        angle_ids.append((idx,idx+1,idx+5))
+                        type = get_angletype(moltype,"C", "R4", "P")
+                        angle_type.append(type - 1)
+                except IndexError:
+                    continue
+
+            elif name == "R4":
+                try:
+                    if CG_partnames[idx+3] == "P": #R4-P-O angle
+                        angle_ids.append((idx,idx+3,idx+4))
+                        type = get_angletype(moltype,"R4", "P", "O")
+                        angle_type.append(type - 1)
+                    elif CG_partnames[idx+4] == "P": #R4-P-O angle
+                        angle_ids.append((idx,idx+4,idx+5))
+                        type = get_angletype(moltype,"R4", "P", "O")
+                        angle_type.append(type - 1)
+                except IndexError:
+                    continue
+    
         elif name == "R1" or name == "S1":
             if CG_partnames[idx+1] == "A1": #R1-B1-B2 angle
                 angle_ids.append((idx,idx+1,idx+2))
-                angle_type.append(4)
+                type = get_angletype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2])
+                angle_type.append(type - 1)
             elif CG_partnames[idx+1] == "G1":
                 angle_ids.append((idx,idx+1,idx+2))
-                angle_type.append(5)
+                type = get_angletype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2])
+                angle_type.append(type - 1)
             try:
                 if CG_partnames[idx+2] == "P": #R1-R4-P angle
                     angle_ids.append((idx,idx-1,idx+2))
-                    angle_type.append(11)
+                    type = get_angletype(moltype, "R1", "R4", "P")
+                    angle_type.append(type - 1)
                 elif CG_partnames[idx+3] == "P":
                     angle_ids.append((idx,idx-1,idx+3))
-                    angle_type.append(11)
+                    type = get_angletype(moltype, "R1", "R4", "P")
+                    angle_type.append(type - 1)
             except IndexError:
                 continue
-            
         else:
             continue
 
-        if len(angle_ids) > len(library):
-            library.append(RNAorDNA)
-    return angle_ids, angle_type, library
+    return angle_ids, angle_type
 
 ## @brief Parsing bond angle information to different format
 #
@@ -231,7 +237,7 @@ def get_angle_list(CG_partnames, RNAorDNA):
 # @param[in] angles - list of atoms in angle as tuple
 # @param[in] angletype - list of bond angle types for each bond angle
 # @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1)) to parse correct data
-def get_angleinfo(angles,angletype,moltype):
+def get_angleinfo(angles,angletype):
     angletypes_used = [False, False, False, False, False, False, 
                        False, False, False, False, False, False]
     nangles = len(angletype)
@@ -247,17 +253,12 @@ def get_angleinfo(angles,angletype,moltype):
             angles_top += [3*angle[0], 3*angle[1], 3*angle[2], this_toptype]
         else:
             #retrieve type of molecule
-            thisangle_mol = moltype[idx]
             angletypes_used[this_type] = True
             nangtypes += 1
             atypemap[this_type] = nangtypes
             this_toptype = nangtypes
-            if thisangle_mol == 0:            
-                teq.append(RNA_params.RNA_angles[this_type].ang/180.0*3.1415926535897)
-                tk.append(RNA_params.RNA_angles[this_type].force)
-            elif thisangle_mol == 1:            
-                teq.append(DNA_params.DNA_angles[this_type].ang/180.0*3.1415926535897)
-                tk.append(DNA_params.DNA_angles[this_type].force)            
+            teq.append(NucleicAcidData.NA_angles[this_type].ang/180.0*3.1415926535897)
+            tk.append(NucleicAcidData.NA_angles[this_type].force)         
             angles_top += [3*angle[0], 3*angle[1], 3*angle[2], this_toptype]           
     return nangtypes,tk,teq,nangles,angles_top
 
@@ -282,15 +283,13 @@ def get_angleinfo(angles,angletype,moltype):
 def get_angles(nmol, termini, CG_partnames, moltype):
     angles = list()
     angtype = list()
-    moltype_list = list()    
     for molid in range(nmol):
         offset = termini[2*molid] - 1
         start = termini[2*molid] - 1
         end = termini[2*molid+1]
         RNAorDNA = moltype[molid]
-        angs_mol, angtype_mol, moltype_list_mol = get_angle_list(CG_partnames[start:end],RNAorDNA)
-        angtype += angtype_mol
-        moltype_list += moltype_list_mol        
+        angs_mol, angtype_mol = get_angle_list(CG_partnames[start:end],RNAorDNA)
+        angtype += angtype_mol      
         if offset == 0:
             angles += angs_mol           
         else:
@@ -299,7 +298,7 @@ def get_angles(nmol, termini, CG_partnames, moltype):
                 at2 = ang[1]
                 at3 = ang[2]
                 angles.append((at1+offset, at2+offset, at3+offset))
-    return angles,angtype,moltype_list
+    return angles,angtype
 
 ## @brief Obtain dihedral information for topology
 #
