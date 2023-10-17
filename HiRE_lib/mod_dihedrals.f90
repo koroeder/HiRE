@@ -79,10 +79,37 @@ MODULE MOD_DIHEDRALS
 
       !> Assign the dihedral type to obtain the correct CG scaling information
       SUBROUTINE ASSIGN_PHITYPE()
-         USE VAR_DEFS, ONLY: IAC   
+         USE VAR_DEFS, ONLY: IAC, RESTYPES, ATOMINRES_LOOKUP   
          IMPLICIT NONE
-         INTEGER :: JN, I3, J3, K3T, L3T, IT0, IT1, IT2, IT3
+         INTEGER :: JN, I3, J3, K3T, L3T, IT0, IT1, IT2, IT3, MOLTYPE
          
+         ! Atom types (IAC):
+         ! 1: C  2: O  3: P  4: R4  5: R1  6: S1
+         ! 7,8: G1,2  9,10: A1,2  11: U1  12: C1
+         ! 13: D 14: MG 15: NA  16:CL
+         ! RNA angle types (Phi type, angle, IACs)
+         ! 0 - R4-R1-A1/G1-A2/G2  4-5-(7/9)-(8/10)
+         ! 1 - R4-A1/G1-A2/G2-R1  4-(7/9)-(8/10)-5
+         ! 2 - C-R4-R1-X1         1-4-5-(7,9,11,12)
+         ! 3 - P-R4-R1-X1         3-4-5-(7,9,11,12)
+         ! 4 - C-R4-P-O           1-4-3-2
+         ! 5 - R1-R4-P-O          5-4-3-2
+         ! 6 - O-C-R4-P           2-1-4-3
+         ! 7 - O-C-R4-R1          2-1-4-5
+         ! 8 - P-O-C-R4           3-2-1-4
+         ! 9 - R4-P-O-C           4-3-2-1
+         ! DNA angle types (Phi type, angle, IACs)
+         !10 - R4-S1-A1/G1-A2/G2  4-6-(7/9)-(8/10)
+         !11 - R4-A1/G1-A2/G2-S1  4-(7/9)-(8/10)-6
+         !12 - C-R4-S1-X1         1-4-6-(7,9,11,12)
+         !13 - P-R4-S1-X1         3-4-6-(7,9,11,12)
+         !14 - C-R4-P-O           1-4-3-2
+         !15 - S1-R4-P-O          6-4-3-2
+         !16 - O-C-R4-P           2-1-4-3
+         !17 - O-C-R4-S1          2-1-4-6
+         !18 - P-O-C-R4           3-2-1-4
+         !19 - R4-P-O-C           4-3-2-1 
+
          DO JN=1,NDIHS
             I3 = IP(JN)/3 + 1
             J3 = JP(JN)/3 + 1
@@ -92,47 +119,87 @@ MODULE MOD_DIHEDRALS
             IT1 = IAC(J3)
             IT2 = IAC(K3T)
             IT3 = IAC(L3T)
-            !QUERY: should there be a default value here or should we raise an error?
+            ! MOLTYPE is coding for RNA (0) or DNA (1)
+            MOLTYPE = RESTYPES(ATOMINRES_LOOKUP(K3T))
+
             IF (IT0.EQ.1) THEN
-               !IT1=4 ; IT2=5 ; IT3=(6,8,10,11)
+               !IT1=4 ; IT2=5 ; IT3=(7,9,11,12)
                IF (IT2.EQ.5) THEN
                   NPHITYPE(JN) = 2
+               !IT1=4 ; IT2=6 ; IT3=(7,9,11,12) 
+               ELSE IF (IT2.EQ.6) THEN
+                  NPHITYPE(JN) = 12
                !IT1=4 ; IT2=3 ; IT3=2  
                ELSE IF (IT2.EQ.3) THEN
-                  NPHITYPE(JN) = 4
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 4
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 14
+                  END IF
                ENDIF
             ELSE IF (IT0.EQ.2) THEN
                !IT1=1 ; IT2=4 ; IT3=3
                IF (IT3.EQ.3) THEN
-                  NPHITYPE(JN) = 6
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 6
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 16
+                  END IF
                !IT1=1 ; IT2=4 ; IT3=5  
                ELSE IF (IT3.EQ.5) THEN
                   NPHITYPE(JN) = 7
+               !IT1=1 ; IT2=4 ; IT3=6  
+               ELSE IF (IT3.EQ.6) THEN
+                  NPHITYPE(JN) = 17                  
                ENDIF        
             ELSE IF (IT0.EQ.3) THEN
-               !IT1=4 ; IT2=5 ; IT3=(6,8,10,11)
+               !IT1=4 ; IT2=5 or 6 ; IT3=(7,9,11,12)
                IF (IT1.EQ.4) THEN
-                  NPHITYPE(JN) = 3
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 3
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 13
+                  END IF
                !IT1=2 ; IT2=1 ; IT3=4  
                ELSE IF (IT1.EQ.2) THEN
-                  NPHITYPE(JN) = 8
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 8
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 18
+                  END IF                  
                ENDIF         
             ELSE IF (IT0.EQ.4) THEN
-               !IT1=5 ; IT2=(6,8) ; IT3=(7,9)
+               !IT1=5 or 6 ; IT2=(7,9) ; IT3=(8,10)
                IF (IT1.EQ.5) THEN
                   NPHITYPE(JN) = 0
-               !IT1=(6,8) ; IT2=(7,9) ; IT3=5  
-               ELSE IF ((IT1.EQ.6).OR.(IT1.EQ.8)) THEN
-                  NPHITYPE(JN) = 1
+               !IT1=6 ; IT2=(7,9) ; IT3=(8,10)
+               ELSE IF (IT1.EQ.6) THEN
+                  NPHITYPE(JN) = 10               
+               !IT1=(7,9) ; IT2=(8,10) ; IT3=5 or 6  
+               ELSE IF ((IT1.EQ.7).OR.(IT1.EQ.9)) THEN
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 1
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 11
+                  END IF  
                !IT1=3 ; IT2=2 ; IT3=1  
                ELSE IF (IT1.EQ.3) THEN
-                  NPHITYPE(JN) = 9               
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 9
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 19
+                  END IF                                
                ENDIF         
             ELSE IF (IT0.EQ.5) THEN
                !IT1=4 ; IT2=3 ; IT3=2
                IF (IT1.EQ.4) THEN
                   NPHITYPE(JN) = 5         
                ENDIF
+            ELSE IF (IT0.EQ.6) THEN
+               !IT1=4 ; IT2=3 ; IT3=2
+               IF (IT1.EQ.4) THEN
+                  NPHITYPE(JN) = 15         
+               ENDIF               
             ENDIF
          ENDDO
       END SUBROUTINE ASSIGN_PHITYPE
