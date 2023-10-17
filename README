@@ -19,92 +19,113 @@ Current order of parameters:
  1 - Bonds
 
  2 - Angle scaling	
- 3 - Angle type 1 
- 4 - Angle type 2
- 5 - Angle type 3
- 6 - Angle type 4
- 7 - Angle type 5
- 8 - Angle type 6
- 9 - Angle type 7
-10 - Angle type 8
+ 3 - Angle type  1 - RNA R4-R1-X1 
+ 4 - Angle type  2 - RNA R1-A1/G1-A2/G2
+ 5 - Angle type  3 - RNA P-O-C 
+ 6 - Angle type  4 - RNA O-C-R4
+ 7 - Angle type  5 - RNA C-R4-P
+ 8 - Angle type  6 - RNA R4-P-O 
+ 9 - Angle type  7 - RNA C-R4-R1 
+10 - Angle type  8 - RNA R1-R4-P
 
-11 - dihedral scale
-12 - dihedral type 1
-13 - dihedral type 2
-14 - dihedral type 3
-15 - dihedral type 4
-16 - dihedral type 5
-17 - dihedral type 6
-18 - dihedral type 7
-19 - dihedral type 8
-20 - dihedral type 9
-21 - dihedral type 10
+11 - Angle type  9 - DNA R4-R1-X1 
+12 - Angle type 10 - DNA R1-A1/G1-A2/G2
+13 - Angle type 11 - DNA P-O-C 
+14 - Angle type 12 - DNA O-C-R4
+15 - Angle type 13 - DNA C-R4-P
+16 - Angle type 14 - DNA R4-P-O 
+17 - Angle type 15 - DNA C-R4-R1 
+18 - Angle type 16 - DNA R1-R4-P
 
-22 - Excluded volume
-23 - Barrier 
-24 - Ratio 
+19 - Dihedral scale
+20 - Dihedral type  1 - RNA R4-R1-A1/G1-A2/G2
+21 - Dihedral type  2 - RNA R4-A1/G1-A2/G2-R1
+22 - Dihedral type  3 - RNA C-R4-R1-X1
+23 - Dihedral type  4 - RNA P-R4-R1-X1
+24 - Dihedral type  5 - RNA C-R4-P-O
+25 - Dihedral type  6 - RNA R1-R4-P-O
+26 - Dihedral type  7 - RNA O-C-R4-P
+27 - Dihedral type  8 - RNA O-C-R4-R1
+28 - Dihedral type  9 - RNA P-O-C-R4
+29 - Dihedral type 10 - RNA R4-P-O-C
 
-25 - nbct2base
-26 - nbct2gen
-27 - nbct2c4
-28 - nbct2cy
-29 - nbct2pp
-30 - nbradgen
-31 - nbradlarge
+30 - Dihedral type 11 - DNA R4-S1-A1/G1-A2/G2
+31 - Dihedral type 12 - DNA R4-A1/G1-A2/G2-S1
+32 - Dihedral type 13 - DNA C-R4-S1-X1
+33 - Dihedral type 14 - DNA P-R4-S1-X1
+34 - Dihedral type 15 - DNA C-R4-P-O
+35 - Dihedral type 16 - DNA S1-R4-P-O
+36 - Dihedral type 17 - DNA O-C-R4-P
+37 - Dihedral type 18 - DNA O-C-R4-S1
+38 - Dihedral type 19 - DNA P-O-C-R4
+39 - Dihedral type 20 - DNA R4-P-O-C   
 
-32 - dielectric constant
-33 - Debye length
+40 - Excluded volume
+41 - Barrier 
+42 - Ratio 
 
-34 - SK (stacking)
-35 - SK (stacking)
-36 - SK (stacking)
-37 - EQ (stacking)
-38 - EQ (stacking)
-39 - EQ (stacking)
-40 - WID (stacking)
-41 - WID (stacking)
-42 - WID (stacking)
-43 - Th (stacking)
-44 - Th (stacking)
-45 - Th (stacking)
-46 - GM (stacking)
-47 - GM (stacking)
-48 - GM (stacking)
+43 - nbct2base
+44 - nbct2gen
+45 - nbct2c4
+46 - nbct2cy
+47 - nbct2pp
+48 - nbradgen
+49 - nbradlarge
 
-49 - EPSHB (hbonds)
-50 - CTIT (hbonds)
-51 - P (hbonds)
-52 - Y (hbonds)
-53 - GAUSSW (hbonds)
-54 - INTSCALE (hbonds)
+50 - dielectric constant
+51 - Debye length
 
-55 - sugar base scaling
-56 - ALJ12 sugar base
-57 - BLJ6 sugar base
+52 - EQ (stacking)
+53 - EQ (stacking)
+54 - EQ (stacking)
+55 - WID (stacking)
+56 - WID (stacking)
+57 - WID (stacking)
+58 - SK (stacking)
+59 - SK (stacking)
+60 - SK (stacking)
+61 - Th (stacking)
+62 - Th (stacking)
+63 - Th (stacking)
+64 - GM (stacking)
+65 - GM (stacking)
+66 - GM (stacking)
 
-58 - KSAXS
+67 - EPSHB (hbonds)
+68 - CTIT (hbonds)
+69 - P (hbonds)
+70 - Y (hbonds)
+71 - GAUSSW (hbonds)
+72 - INTSCALE (hbonds)
 
-59 - Tit
-60 - noWCq
-61 - trans WC bp
+73 - sugar base scaling
+74 - ALJ12 sugar base
+75 - BLJ6 sugar base
 
-62 - cwwAA
-63 - cwwAG
-64 - cwwAC
-65 - cwwAU
-66 - cwwGC
-67 - cwwGU
-68 - cwwCC
-69 - cwwCU
-70 - cwwUU
-71 - cwh
-72 - twh
-73 - cws
-74 - tws
-75 - chh
-76 - thh
-77 - chs
-78 - ths
-79 - css
-80 - tss
+76 - KSAXS
+
+77 - Tit
+78 - noWCq
+79 - trans WC bp
+
+80 - cwwAA
+81 - cwwAG
+82 - cwwAC
+83 - cwwAU
+84 - cwwGC
+85 - cwwGU
+86 - cwwCC
+87 - cwwCU
+88 - cwwUU
+89 - cwh
+90 - twh
+91 - cws
+92 - tws
+93 - chh
+94 - thh
+95 - chs
+96 - ths
+97 - css
+98 - tss
+
 
