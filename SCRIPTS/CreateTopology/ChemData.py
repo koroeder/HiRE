@@ -13,15 +13,15 @@ import NucleicAcidData
 # Types are 1 indexed in the stored list of bonds in NucleicAcidData.
 # If the type is used for the lookup later, -1 needs to be applied to each type index to get the correct zero-index.
 def get_bondtype(at1,at2):
-    for bond in NucleicAcidData.Bond_NA:
-        if bond.iscorrectbond(at1,at2):
-            return bond.get_type()
+    for bond in NucleicAcidData.NA_bonds:
+        if bond.iscorrectbond(at1, at2):
+            return bond.get_typeid()
     return 0
 
 # @brief Function to obtain angle type from atom names
 def get_angletype(mol, at1, at2, at3):
     for angle in NucleicAcidData.NA_angles:
-        if mol==angle[0][0:3]:
+        if mol==angle.name[0:3]:
             if angle.iscorrectangle(at1, at2, at3):
                 return angle.get_typeid()
     return 0
@@ -29,10 +29,11 @@ def get_angletype(mol, at1, at2, at3):
 # @brief Function to obtain angle type from atom names
 def get_dihtype(mol, at1, at2, at3, at4):
     types = list()
-    for dih in NucleicAcidData.NA_angles:
-        if mol==dih[0][0:3]:
-            if dih.iscorrectangle(at1, at2, at3, at4):
+    for dih in NucleicAcidData.NA_dihs:
+        if mol==dih.name[0:3]:
+            if dih.iscorrectdih(at1, at2, at3, at4):
                 types.append(dih.get_typeid())
+                print(at1, at2, at3, at4)
     return types
 
 # @brief Obtain bond information for topology
@@ -53,7 +54,7 @@ def get_bond_list(CG_partnames):
     bond_type = list()
 
     for idx,name in enumerate(CG_partnames):
-        if name in ["P", "O", "C", "R4", "R1", "S1", "A1", "A2"]: #P-O5 bond, O5-C5 bond, C5-C4 bond, R4-R1 bond and R4-S1 bond, R1/S1-A/C/GU/T1 bond, A1-A2 and G1-G2 bond
+        if name in ["P", "O", "C", "R4", "R1", "S1", "A1", "G1"]: #P-O5 bond, O5-C5 bond, C5-C4 bond, R4-R1 bond and R4-S1 bond, R1/S1-A/C/GU/T1 bond, A1-A2 and G1-G2 bond
             type = get_bondtype(name, CG_partnames[idx+1])
             if type > 0:
                 bond_ids.append((idx,idx+1))
@@ -327,7 +328,7 @@ def get_dih_list(CG_partnames, RNAorDNA):
         moltype = "DNA"
     for idx,name in enumerate(CG_partnames):
         if name in ["P", "O", "C"]: #P-O5-C5-C4 dih, O5-C5-C4-C1 dih, C5-C4-C1-B1 dih
-            types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+2])
+            types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+3])
             for type in types:
                 dih_ids.append((idx,idx+1,idx+2,idx+3))
                 dih_type.append(type - 1)             
@@ -479,7 +480,6 @@ def get_dihinfo(dihs,dihtype):
 def get_dihs(nmol, termini, CG_partnames, moltype):
     dihs = list()
     torstype = list()
-    moltype_list = list()    
     for molid in range(nmol):
         offset = termini[2*molid] - 1
         start = termini[2*molid] - 1
@@ -498,3 +498,38 @@ def get_dihs(nmol, termini, CG_partnames, moltype):
                 dihs.append((at1+offset, at2+offset, at3+offset, at4+offset))
     
     return dihs,torstype
+
+
+def RNA_or_DNA(CG_resnames):
+# check whether each molecule is RNA or DNA (can only be one!)
+    nmol = 0
+    termini_res = list()
+    for idx,res in enumerate(CG_resnames):
+        if res[-1] == "5":
+            nmol += 1
+            termini_res.append(idx)
+        elif res[-1] == "3":
+            termini_res.append(idx)           
+    moltype = list()
+    for mol in range(nmol):
+        start = termini_res[2*mol]
+        end = termini_res[2*mol+1]
+        DNAT = False
+        RNAT = False
+       
+        for res in CG_resnames[start:end+1]:
+            if res in ["DA", "DA3", "DA5", "DC", "DC3", "DC5",
+                       "DG", "DG3", "DG5", "DT", "DT3", "DT5"]:
+                DNAT = True
+            else:
+                RNAT = True
+        if (DNAT and RNAT):
+            raise ValueError("This molecule has RNA and DNA nucleotides")
+        elif (DNAT==0) and (RNAT==0):
+            raise ValueError("This molecule has no RNA and DNA nucleotides")
+        else:
+            if RNAT:
+                moltype.append(0)
+            elif DNAT:
+                moltype.append(1)
+    return moltype
