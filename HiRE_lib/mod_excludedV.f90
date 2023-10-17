@@ -19,9 +19,9 @@ MODULE MOD_EXCLV
          USE NAPARAMS, ONLY: SCORE_RNA
      
          !TODO: When extending to proteins make these arrays for each residue?
-         EXCL_VOL = SCORE_RNA(22)  ! steepness
-         BARRIER = SCORE_RNA(23)  ! Height = 100
-         RATIO = SCORE_RNA(24)    ! Not used with old barrier
+         EXCL_VOL = SCORE_RNA(40)  ! steepness
+         BARRIER = SCORE_RNA(41)  ! Height = 100
+         RATIO = SCORE_RNA(42)    ! Not used with old barrier
       END SUBROUTINE INIT_EXCLV
 
       !> Energy and gradient contribution for pair of CG particles

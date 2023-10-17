@@ -349,8 +349,8 @@ MODULE MOD_DIHEDRALS
             
             vDF = DF1*vFMUL
 
-            vEPW = vEPW*SCORE_RNA(11)*SCORE_RNA(12+nphitype(JN))   ! score(16) backbone k, score(17) base k
-            vDF = vDF*SCORE_RNA(11)*SCORE_RNA(12+nphitype(JN))
+            vEPW = vEPW*SCORE_RNA(19)*SCORE_RNA(20+nphitype(JN)) 
+            vDF = vDF*SCORE_RNA(19)*SCORE_RNA(20+nphitype(JN))
 
       !     END ENERGY WITH RESPECT TO COSPHI
 

@@ -9,39 +9,6 @@ MODULE MOD_BASESTACKING
    IMPLICIT NONE
 
    CONTAINS
-      !> Old stacking parameters
-      !> @brief
-      !> 
-      !> Routine returns the stacking parameters for a given base pair.\n
-      !> The subroutine differentiates between pyr-pyr, pur-pur and pyr-pur interactions.
-      !>
-      !> @param[in] TI - type of base I
-      !> @param[in] TJ - type of base J
-      !> @param[out] EQ - stacking equilibrium distance
-      !> @param[out] WID - stacking width parameter (lateral variance that still allows interactions)   
-      !> @param[out] SK - scaling of stacking interactions
-      SUBROUTINE STACKPARAMS(TI,TJ,EQ,WID,SK)
-         USE NAPARAMS, ONLY: SCORE_RNA
-         INTEGER, INTENT(IN) :: TI, TJ
-         REAL(KIND = REAL64), INTENT(OUT) :: SK, EQ, WID
-            
-         IF ((TI.LT.3.AND.TJ.GT.2).OR.(TJ.LT.3.AND.TI.GT.2)) THEN
-            !pyr-pur
-            EQ = SCORE_RNA(17)
-            WID = SCORE_RNA(20)
-            SK = SCORE_RNA(14)
-         ELSE IF (TI.LT.3.AND.TJ.LT.3) THEN
-            !pur-pur
-            EQ = SCORE_RNA(18)
-            WID = SCORE_RNA(21)
-            SK = SCORE_RNA(15)
-         ELSE
-            !pyr-pyr
-            EQ = SCORE_RNA(19)
-            WID = SCORE_RNA(22)
-            SK = SCORE_RNA(16)       
-         ENDIF           
-      END SUBROUTINE STACKPARAMS
 
       !> New stacking parameters
       !> @brief
@@ -63,31 +30,31 @@ MODULE MOD_BASESTACKING
             
          IF ((TI.LT.3.AND.TJ.GT.2).OR.(TJ.LT.3.AND.TI.GT.2)) THEN
             !pyr-pur
-            EQ = SCORE_RNA(34)
-            WID = SCORE_RNA(37)
-            SK = SCORE_RNA(40)
+            EQ = SCORE_RNA(52)
+            WID = SCORE_RNA(55)
+            SK = SCORE_RNA(58)
         !    Th = 20 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE_RNA(43)
-            GM = SCORE_RNA(46)
+            Th = SCORE_RNA(61)
+            GM = SCORE_RNA(64)
          ELSE IF (TI.LT.3.AND.TJ.LT.3) THEN
             !pur-pur
-            EQ = SCORE_RNA(35)
-            WID = SCORE_RNA(38)
-            SK = SCORE_RNA(41)
+            EQ = SCORE_RNA(53)
+            WID = SCORE_RNA(56)
+            SK = SCORE_RNA(59)
         !    Th = 35 * 3.15159/180          ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE_RNA(44)
-            GM = SCORE_RNA(47)
+            Th = SCORE_RNA(62)
+            GM = SCORE_RNA(65)
          ELSE
             !pyr-pyr
-            EQ = SCORE_RNA(36)
-            WID = SCORE_RNA(39)
-            SK = SCORE_RNA(42)   
+            EQ = SCORE_RNA(54)
+            WID = SCORE_RNA(57)
+            SK = SCORE_RNA(60)   
         !    Th = 40 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE_RNA(45)
-            GM = SCORE_RNA(48)
+            Th = SCORE_RNA(63)
+            GM = SCORE_RNA(66)
          ENDIF       
       END SUBROUTINE STACKPARAMS2
     
