@@ -392,12 +392,21 @@ MODULE MOD_HBONDS
             if (use_tit .and. flag_tit .eq. 1) then
                if (abs(EHB*Enp1*Enp2) .ge. ctit) then                             
                   ! Br2 need to find a good cutoff, 2.0 is too big --> 1. need to protect more HB
-                  if (s(par,tya,tyb,1,qj+1) .ne. s(par,tya,tyb,2,qj+1)) then
-                     bocc(bi)=1
-                  endif
-                  if (s(par,tya,tyb,qi+1,1) .ne. s(par,tya,tyb,qi+1,2)) then
-                     bocc(bj)=1
-                  endif
+                  IF ((MTYPEI.EQ.0).AND.(MTYPEJ.EQ.0)) THEN
+                     if (rs(par,tya,tyb,1,qj+1) .ne. rs(par,tya,tyb,2,qj+1)) then
+                        bocc(bi)=1
+                     endif
+                     if (rs(par,tya,tyb,qi+1,1) .ne. rs(par,tya,tyb,qi+1,2)) then
+                        bocc(bj)=1
+                     endif
+                  ELSE IF ((MTYPEI.EQ.1).AND.(MTYPEJ.EQ.1)) THEN
+                     if (rs(par,tya,tyb,1,qj+1) .ne. rs(par,tya,tyb,2,qj+1)) then
+                        bocc(bi)=1
+                     endif
+                     if (rs(par,tya,tyb,qi+1,1) .ne. rs(par,tya,tyb,qi+1,2)) then
+                        bocc(bj)=1
+                     endif
+                  END IF
                endif
             endif
             !end of titration section

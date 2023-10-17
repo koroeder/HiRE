@@ -132,18 +132,18 @@ MODULE MOD_DIHEDRALS
                !IT1=4 ; IT2=3 ; IT3=2  
                ELSE IF (IT2.EQ.3) THEN
                   IF (MOLTYPE.EQ.0) THEN
-                     NTHETATYPE(JN) = 4
+                     NPHITYPE(JN) = 4
                   ELSE IF (MOLTYPE.EQ.1) THEN
-                     NTHETATYPE(JN) = 14
+                     NPHITYPE(JN) = 14
                   END IF
                ENDIF
             ELSE IF (IT0.EQ.2) THEN
                !IT1=1 ; IT2=4 ; IT3=3
                IF (IT3.EQ.3) THEN
                   IF (MOLTYPE.EQ.0) THEN
-                     NTHETATYPE(JN) = 6
+                     NPHITYPE(JN) = 6
                   ELSE IF (MOLTYPE.EQ.1) THEN
-                     NTHETATYPE(JN) = 16
+                     NPHITYPE(JN) = 16
                   END IF
                !IT1=1 ; IT2=4 ; IT3=5  
                ELSE IF (IT3.EQ.5) THEN
@@ -156,16 +156,16 @@ MODULE MOD_DIHEDRALS
                !IT1=4 ; IT2=5 or 6 ; IT3=(7,9,11,12)
                IF (IT1.EQ.4) THEN
                   IF (MOLTYPE.EQ.0) THEN
-                     NTHETATYPE(JN) = 3
+                     NPHITYPE(JN) = 3
                   ELSE IF (MOLTYPE.EQ.1) THEN
-                     NTHETATYPE(JN) = 13
+                     NPHITYPE(JN) = 13
                   END IF
                !IT1=2 ; IT2=1 ; IT3=4  
                ELSE IF (IT1.EQ.2) THEN
                   IF (MOLTYPE.EQ.0) THEN
-                     NTHETATYPE(JN) = 8
+                     NPHITYPE(JN) = 8
                   ELSE IF (MOLTYPE.EQ.1) THEN
-                     NTHETATYPE(JN) = 18
+                     NPHITYPE(JN) = 18
                   END IF                  
                ENDIF         
             ELSE IF (IT0.EQ.4) THEN
@@ -178,16 +178,16 @@ MODULE MOD_DIHEDRALS
                !IT1=(7,9) ; IT2=(8,10) ; IT3=5 or 6  
                ELSE IF ((IT1.EQ.7).OR.(IT1.EQ.9)) THEN
                   IF (MOLTYPE.EQ.0) THEN
-                     NTHETATYPE(JN) = 1
+                     NPHITYPE(JN) = 1
                   ELSE IF (MOLTYPE.EQ.1) THEN
-                     NTHETATYPE(JN) = 11
+                     NPHITYPE(JN) = 11
                   END IF  
                !IT1=3 ; IT2=2 ; IT3=1  
                ELSE IF (IT1.EQ.3) THEN
                   IF (MOLTYPE.EQ.0) THEN
-                     NTHETATYPE(JN) = 9
+                     NPHITYPE(JN) = 9
                   ELSE IF (MOLTYPE.EQ.1) THEN
-                     NTHETATYPE(JN) = 19
+                     NPHITYPE(JN) = 19
                   END IF                                
                ENDIF         
             ELSE IF (IT0.EQ.5) THEN

@@ -131,7 +131,7 @@ MODULE MOD_INIT
          ENDDO
          ! create new array from resdiue information required elsewhere as look up
          CURRENT = 1
-         DO J=1,NATOMS
+         DO J=1,NPARTICLES
             IF (CURRENT.LT.NRES) THEN
                IF (J.EQ.RESSTART(CURRENT+1)) THEN
                   CURRENT = CURRENT + 1

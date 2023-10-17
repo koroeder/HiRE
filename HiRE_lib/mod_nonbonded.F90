@@ -94,7 +94,7 @@ MODULE MOD_NONBONDED
 
                !If restype is 0 it is RNA and if it is 1 it is DNA
                !Currently we can do RNA-RNA or DNA-DNA interactions
-               IF (((TYPEI.EQ.0).OR.(TYPEI.EQ.1)).AND.((TYPEJ.EQ.0).OR.(TYPEJ.EQ.1)) THEN
+               IF (((TYPEI.EQ.0).OR.(TYPEI.EQ.1)).AND.((TYPEJ.EQ.0).OR.(TYPEJ.EQ.1))) THEN
                   !Hydrogen bonding between nucleotides
                   CALL ENERGY_HB(I, J, TYPEI, TYPEJ, NOPT, X, F, THIS_EHB, HBEXIST)
                   EHHB = EHHB + THIS_EHB                       
