@@ -86,7 +86,7 @@ MODULE MOD_DIHEDRALS
          ! Atom types (IAC):
          ! 1: C  2: O  3: P  4: R4  5: R1  6: S1
          ! 7,8: G1,2  9,10: A1,2  11: U1  12: C1
-         ! 13: D 14: MG 15: NA  16:CL
+         ! 13: T1  14: D  15: MG  16: NA  17:CL
          ! RNA angle types (Phi type, angle, IACs)
          ! 0 - R4-R1-A1/G1-A2/G2  4-5-(7/9)-(8/10)
          ! 1 - R4-A1/G1-A2/G2-R1  4-(7/9)-(8/10)-5
@@ -101,8 +101,8 @@ MODULE MOD_DIHEDRALS
          ! DNA angle types (Phi type, angle, IACs)
          !10 - R4-S1-A1/G1-A2/G2  4-6-(7/9)-(8/10)
          !11 - R4-A1/G1-A2/G2-S1  4-(7/9)-(8/10)-6
-         !12 - C-R4-S1-X1         1-4-6-(7,9,11,12)
-         !13 - P-R4-S1-X1         3-4-6-(7,9,11,12)
+         !12 - C-R4-S1-X1         1-4-6-(7,9,12,13)
+         !13 - P-R4-S1-X1         3-4-6-(7,9,12,13)
          !14 - C-R4-P-O           1-4-3-2
          !15 - S1-R4-P-O          6-4-3-2
          !16 - O-C-R4-P           2-1-4-3
@@ -126,7 +126,7 @@ MODULE MOD_DIHEDRALS
                !IT1=4 ; IT2=5 ; IT3=(7,9,11,12)
                IF (IT2.EQ.5) THEN
                   NPHITYPE(JN) = 2
-               !IT1=4 ; IT2=6 ; IT3=(7,9,11,12) 
+               !IT1=4 ; IT2=6 ; IT3=(7,9,12,13) 
                ELSE IF (IT2.EQ.6) THEN
                   NPHITYPE(JN) = 12
                !IT1=4 ; IT2=3 ; IT3=2  
@@ -153,7 +153,7 @@ MODULE MOD_DIHEDRALS
                   NPHITYPE(JN) = 17                  
                ENDIF        
             ELSE IF (IT0.EQ.3) THEN
-               !IT1=4 ; IT2=5 or 6 ; IT3=(7,9,11,12)
+               !IT1=4 ; IT2=5 or 6 ; IT3=(7,9,11/12,12/13)
                IF (IT1.EQ.4) THEN
                   IF (MOLTYPE.EQ.0) THEN
                      NPHITYPE(JN) = 3

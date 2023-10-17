@@ -33,7 +33,6 @@ def get_dihtype(mol, at1, at2, at3, at4):
         if mol==dih.name[0:3]:
             if dih.iscorrectdih(at1, at2, at3, at4):
                 types.append(dih.get_typeid())
-                print(at1, at2, at3, at4)
     return types
 
 # @brief Obtain bond information for topology

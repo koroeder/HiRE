@@ -45,18 +45,20 @@ CG_masses = {"P": 30.970, "O": 16.000, "C": 12.010, "R4": 20.000,
              "MG": 24.305, "NA": 22.990, "CL": 35.450}
 
 ## Reside name translation - this is redundant
-CG_resnames = {"A5": "ADEi", "C5": "CYSi", "G5": "GUAi", "T5": "THYi", "U5": "URAi",
-               "A3": "ADE", "C3": "CYS", "G3": "GUA", "T3": "THY", "U3": "URA",
+CG_resnames = {"A5": "ADEi", "C5": "CYSi", "G5": "GUAi", "U5": "URAi",
+               "A3": "ADE", "C3": "CYS", "G3": "GUA", "U3": "URA",
                "A": "ADE", "C": "CYS", "G": "GUA", "U": "URA",
-               "DA": "ADE", "DC": "CYS", "DG": "GUA", "DT": "THY"}
+               "DA": "ADE", "DC": "CYS", "DG": "GUA", "DT": "THY",
+               "DA5": "ADEi", "DC5": "CYSi", "DG5": "GUAi", "DT5": "THYi",
+               "DA3": "ADE", "DC3": "CYS", "DG3": "GUA", "DT3": "THY"}
 
 ## Simplified residue names
 resnames_simple = {"A5": "A", "C5": "C", "G5": "G", "U5": "U",
                    "A3": "A", "C3": "C", "G3": "G", "U3": "U",
                    "A":  "A", "C":  "C", "G":  "G", "U":  "U",
-		           "DA5": "A", "DC5": "C", "DG5": "G", "DT5": "T",
-                   "DA3": "A", "DC3": "C", "DG3": "G", "DT3": "T",
-                   "DA": "A", "DC": "C", "DG": "G", "DT": "T"}
+		           "DA5": "DA", "DC5": "DC", "DG5": "DG", "DT5": "DT",
+                   "DA3": "DA", "DC3": "DC", "DG3": "DG", "DT3": "DT",
+                   "DA": "DA", "DC": "DC", "DG": "DG", "DT": "DT"}
 
 # 1: C5*  2: O5*  3: P  4: CA  5: CY
 # 6,7: G1,2  8,9: A1,2  10: U1  11: C1
@@ -65,7 +67,7 @@ resnames_simple = {"A5": "A", "C5": "C", "G5": "G", "U5": "U",
 ## CG particle type mapping
 CG_partype = {"C": 1, "O": 2, "P": 3, "R4": 4, "R1": 5, "S1": 6,
               "G1": 7, "G2": 8, "A1": 9, "A2": 10, "U1": 11,
-              "C1": 12, "D": 13, "MG": 14, "NA": 15, "CL": 16}
+              "C1": 12, "T1": 13, "D": 14, "MG": 15, "NA": 16, "CL": 17}
 # old mapping:
 # CG_partype = {"C": 1, "O": 2, "P": 3, "R4": 4, "R1": 5,
 #              "G1": 6, "G2": 7, "A1": 8, "A2": 9, "U1": 10,
@@ -74,4 +76,4 @@ CG_partype = {"C": 1, "O": 2, "P": 3, "R4": 4, "R1": 5, "S1": 6,
 ## CG charges mapping
 CG_charges = {"C": 0.0, "O": 0.0, "P": -1.0, "R4": 0.0, "R1": 0.0, "S1": 0.0, 
               "G1": 0.0, "G2": 0.0, "A1": 0.0, "A2": 0.0, "U1": 0.0,
-              "C1": 0.0, "D": 0.0, "MG": 2.0, "NA": 1.0, "CL": -1.0}
+              "C1": 0.0, "T1": 0.0, "D": 0.0, "MG": 2.0, "NA": 1.0, "CL": -1.0}

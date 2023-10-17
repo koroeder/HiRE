@@ -46,7 +46,7 @@ MODULE MOD_ANGLES
          ! Atom types (IAC):
          ! 1: C  2: O  3: P  4: R4  5: R1  6: S1
          ! 7,8: G1,2  9,10: A1,2  11: U1  12: C1
-         ! 13: D 14: MG 15: NA  16:CL
+         ! 13: T1  14: D  15: MG  16: NA  17:CL
          ! RNA angle types (Theta type, angle, IACs)
          ! 0 - R4-R1-X1         4-5-(7,9,11,12)
          ! 1 - R1-A1/G1-A2/G2   5-(7/9)-(8/10)
@@ -57,7 +57,7 @@ MODULE MOD_ANGLES
          ! 6 - C-R4-R1          1-4-5
          ! 7 - R1-R4-P          5-4-3
          ! DNA angle types (Theta type, angle, IACs)
-         ! 8 - R4-S1-X1         4-6-(7,9,11,12)
+         ! 8 - R4-S1-X1         4-6-(7,9,12,13)
          ! 9 - S1-A1/G1-A2/G2   6-(7/9)-(8/10)
          !10 - P-O-C            3-2-1
          !11 - O-C-R4           2-1-4
@@ -112,9 +112,10 @@ MODULE MOD_ANGLES
                   END IF                  
                ENDIF         
             ELSE IF (IT0.EQ.4) THEN
-               !IT1=5 ; IT2=(6,8,10,11)
+               !IT1=5 ; IT2=(7,9,11,12)
                IF (IT1.EQ.5) THEN
                   NTHETATYPE(JN) = 0
+               !IT1=6 ; IT2=(7,9,12,13)                 
                ELSE IF (IT1.EQ.6) THEN
                   NTHETATYPE(JN) = 8
                !IT1=3 ; IT2=2
