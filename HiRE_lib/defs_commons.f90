@@ -40,7 +40,9 @@ MODULE VAR_DEFS
   !> List of indices of final particle in residues
   INTEGER, ALLOCATABLE :: RESFINAL(:)           
   !> List of types of residue 0-RNA, 1-DNA, 2-protein, 3-other
-  INTEGER, ALLOCATABLE :: RESTYPES(:)          
+  INTEGER, ALLOCATABLE :: RESTYPES(:)   
+  !> List to look up resid by atom number
+  INTEGER, ALLOCATABLE :: ATOMINRES_LOOKUP(:)       
   !> First and last particle for each chain
   INTEGER, ALLOCATABLE :: FRAG_PAR_PTR(:,:)     
   !> First and last residue for each chain 
@@ -69,7 +71,8 @@ MODULE VAR_UTILS
        ALLOCATE(AMASS(NPARTICLES), CHATM(NPARTICLES), IAC(NPARTICLES), &
                 IGRAPH(NPARTICLES), FRAGSIZE(NCHAINS), RESNAMES(NRES), &
                 RESSIZE(NRES), RESSTART(NRES), FRAG_PAR_PTR(NCHAINS,2), &
-                FRAG_RES_PTR(NCHAINS,2), RESFINAL(NRES), RESTYPES(NRES))
+                FRAG_RES_PTR(NCHAINS,2), RESFINAL(NRES), RESTYPES(NRES), &
+                ATOMINRES_LOOKUP(NATOMS))
     END SUBROUTINE ALLOC_VARS
     
     !> Deallocation of the arrays in VAR_DEFS
@@ -85,7 +88,8 @@ MODULE VAR_UTILS
        IF (ALLOCATED(RESFINAL)) DEALLOCATE(RESFINAL)
        IF (ALLOCATED(RESTYPES)) DEALLOCATE(RESTYPES)
        IF (ALLOCATED(RESNAMES)) DEALLOCATE(RESNAMES) 
-       IF (ALLOCATED(RESSIZE)) DEALLOCATE(RESSIZE)           
+       IF (ALLOCATED(RESSIZE)) DEALLOCATE(RESSIZE)    
+       IF (ALLOCATED(ATOMINRES_LOOKUP)) DEALLOCATE(ATOMINRES_LOOKUP)       
     END SUBROUTINE DEALLOC_VARS    
     
 END MODULE VAR_UTILS

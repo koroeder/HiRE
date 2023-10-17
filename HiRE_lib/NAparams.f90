@@ -7,7 +7,7 @@ MODULE NAparams
    IMPLICIT NONE
 
    !> number of parameters given in scale.dat
-   INTEGER, PARAMETER :: SCORESIZE=80
+   INTEGER, PARAMETER :: SCORESIZE=80 ! add 8 for DNA angles 
    !> HiRE potential parameters given in scale.dat
    REAL(KIND = REAL64) :: SCORE_RNA(SCORESIZE)
    
