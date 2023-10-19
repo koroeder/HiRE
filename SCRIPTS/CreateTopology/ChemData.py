@@ -64,10 +64,12 @@ def get_bond_list(CG_partnames):
                 try:
                     if (CG_partnames[idx+3]) == "P": #R4-P bond
                         bond_ids.append((idx,idx+3))
+                        type = get_bondtype("R4", "P")
+                        bond_type.append(type - 1)
                     elif (CG_partnames[idx+4]) == "P": #R4-P bond
                         bond_ids.append((idx,idx+4))
-                    type = get_bondtype("R4", "P")
-                    bond_type.append(type - 1)
+                        type = get_bondtype("R4", "P")
+                        bond_type.append(type - 1)
                 except IndexError:
                     continue
         else:
