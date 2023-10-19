@@ -60,72 +60,73 @@ Current order of parameters:
 38 - Dihedral type 19 - DNA P-O-C-R4
 39 - Dihedral type 20 - DNA R4-P-O-C   
 
-40 - Excluded volume
-41 - Barrier 
-42 - Ratio 
+40 - Excluded volume scaling
+41 - Excluded volume steepness
+42 - Barrier 
+43 - Ratio 
 
-43 - nbct2base
-44 - nbct2gen
-45 - nbct2c4
-46 - nbct2cy
-47 - nbct2pp
-48 - nbradgen
-49 - nbradlarge
+44 - nbct2base
+45 - nbct2gen
+46 - nbct2c4
+47 - nbct2cy
+48 - nbct2pp
+49 - nbradgen
+50 - nbradlarge
 
-50 - dielectric constant
-51 - Debye length
+51 - dielectric constant
+52 - Debye length
 
-52 - EQ (stacking)
 53 - EQ (stacking)
 54 - EQ (stacking)
-55 - WID (stacking)
+55 - EQ (stacking)
 56 - WID (stacking)
 57 - WID (stacking)
-58 - SK (stacking)
+58 - WID (stacking)
 59 - SK (stacking)
 60 - SK (stacking)
-61 - Th (stacking)
+61 - SK (stacking)
 62 - Th (stacking)
 63 - Th (stacking)
-64 - GM (stacking)
+64 - Th (stacking)
 65 - GM (stacking)
 66 - GM (stacking)
+67 - GM (stacking)
 
-67 - EPSHB (hbonds)
-68 - CTIT (hbonds)
-69 - P (hbonds)
-70 - Y (hbonds)
-71 - GAUSSW (hbonds)
-72 - INTSCALE (hbonds)
+68 - EPSHB (hbonds)
+69 - CTIT (hbonds)
+70 - P (hbonds)
+71 - Y (hbonds)
+72 - GAUSSW (hbonds)
+73 - INTSCALE (hbonds)
 
-73 - sugar base scaling
-74 - ALJ12 sugar base
-75 - BLJ6 sugar base
+74 - sugar base scaling
+75 - ALJ12 sugar base
+76 - BLJ6 sugar base
 
-76 - KSAXS
+77 - KSAXS
 
-77 - Tit
-78 - noWCq
-79 - trans WC bp
+78 - Tit
+79 - noWCq
+80 - trans WC bp
 
-80 - cwwAA
-81 - cwwAG
-82 - cwwAC
-83 - cwwAU
-84 - cwwGC
-85 - cwwGU
-86 - cwwCC
-87 - cwwCU
-88 - cwwUU
-89 - cwh
-90 - twh
-91 - cws
-92 - tws
-93 - chh
-94 - thh
-95 - chs
-96 - ths
-97 - css
-98 - tss
+81 - cwwAA
+82 - cwwAG
+83 - cwwAC
+84 - cwwAU
+85 - cwwGC
+86 - cwwGU
+87 - cwwCC
+88 - cwwCU
+89 - cwwUU
+90 - cwh
+91 - twh
+92 - cws
+93 - tws
+94 - chh
+95 - thh
+96 - chs
+97 - ths
+98 - css
+99 - tss
 
 

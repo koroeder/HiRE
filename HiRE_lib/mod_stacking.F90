@@ -30,31 +30,31 @@ MODULE MOD_BASESTACKING
             
          IF ((TI.LT.3.AND.TJ.GT.2).OR.(TJ.LT.3.AND.TI.GT.2)) THEN
             !pyr-pur
-            EQ = SCORE_RNA(52)
-            WID = SCORE_RNA(55)
-            SK = SCORE_RNA(58)
-        !    Th = 20 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
-        !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
-            Th = SCORE_RNA(61)
-            GM = SCORE_RNA(64)
-         ELSE IF (TI.LT.3.AND.TJ.LT.3) THEN
-            !pur-pur
             EQ = SCORE_RNA(53)
             WID = SCORE_RNA(56)
             SK = SCORE_RNA(59)
-        !    Th = 35 * 3.15159/180          ! hard coded for testing --> to be added to SCORE_RNA
+        !    Th = 20 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
             Th = SCORE_RNA(62)
             GM = SCORE_RNA(65)
-         ELSE
-            !pyr-pyr
+         ELSE IF (TI.LT.3.AND.TJ.LT.3) THEN
+            !pur-pur
             EQ = SCORE_RNA(54)
             WID = SCORE_RNA(57)
-            SK = SCORE_RNA(60)   
-        !    Th = 40 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
+            SK = SCORE_RNA(60)
+        !    Th = 35 * 3.15159/180          ! hard coded for testing --> to be added to SCORE_RNA
         !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
             Th = SCORE_RNA(63)
             GM = SCORE_RNA(66)
+         ELSE
+            !pyr-pyr
+            EQ = SCORE_RNA(55)
+            WID = SCORE_RNA(58)
+            SK = SCORE_RNA(61)   
+        !    Th = 40 * 3.15159/180             ! hard coded for testing --> to be added to SCORE_RNA
+        !    GM = 8                            ! hard coded for testing --> to be added to SCORE_RNA
+            Th = SCORE_RNA(64)
+            GM = SCORE_RNA(67)
          ENDIF       
       END SUBROUTINE STACKPARAMS2
     
