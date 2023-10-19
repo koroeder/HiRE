@@ -41,8 +41,8 @@ MODULE MOD_EXCLV
          CT2MOD = RATIO*CT2 ! introduced by sp Apr20
          ! CT2MOD = 1.0D0/BARRIER*(LOG(0.8D0/(BARRIER-0.380)))+CT2 ! old barrier
          EXPEXCL = EXP(-EXCL_VOL*(R-CT2MOD))
-         EEXCL = BARRIER*(1-1/(1+EXPEXCL))
-         DF = -BARRIER*EXCL_VOL*EXPEXCL/(R*(1+EXPEXCL)**2)       
+         EEXCL = BARRIER*(1-1/(1+EXPEXCL))*EXCLV_SCALING
+         DF = -BARRIER*EXCL_VOL*EXPEXCL/(R*(1+EXPEXCL)**2)*EXCLV_SCALING   
 !         Eexcl = excl_vol*exp(4.0*(ct2-r))
 !         DF = -excl_vol*(4.0*exp(4.0*(ct2-r)))/r 
          IF (DA2 .GE. R2IN) CALL RNA_SWITCH_CUTOFF(DA2,EEXCL,DF,R2IN,R2OUT)
