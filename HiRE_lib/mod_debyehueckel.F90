@@ -177,7 +177,7 @@ MODULE MOD_DEBYEHUECKEL
                   DX(1:3) = DFPAIR * NB * RIJ(1:3)
                   !WRITE(*,'(2I8,4F15.7)') I, J, R, EDHPAIR, NB, EDHPAIR*NB
 #ifdef FOR_ANALYSIS
-                  WRITE(DHUNIT,'(4I6,2F7.3,4F15.7)') K, L, I, J, CHRGI, CHRGJ, R, NB, EDHPAIR, EDHPAIR*NB
+                  WRITE(DHUNIT,'(2I6,2F7.3,4F15.7)') I, J, CHRGI, CHRGJ, R, NB, EDHPAIR, EDHPAIR*NB
 #endif
                   F((I*3-2):I*3) = F((I*3-2):I*3) - DX(1:3)
                   F((J*3-2):J*3) = F((J*3-2):J*3) + DX(1:3)    
