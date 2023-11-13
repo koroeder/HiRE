@@ -43,8 +43,10 @@ MODULE MOD_SAXS
             CALC_SAXS_FORCE = .FALSE.
             KSAXS = SCORE_RNA(58)
             IF (MODULATE_SAXS_SERIAL) THEN
-               KMODUL = EXP(-(SIN(PI*SAXSOFFI)*SAXS_INVSIG)**2)
-               KDECRE = 0.5 * (1.0 + COS(PI*SAXSMODI))
+               !KMODUL = EXP(-(SIN(PI*SAXSOFFI)*SAXS_INVSIG)**2)
+               KMODUL = 1
+               !KDECRE = 0.5 * (1.0 + COS(2*PI*SAXSMODI))
+               KDECRE = COS(PI*SAXSMODI)**4
             ELSE
                KMODUL = 1
                KDECRE = 1
@@ -57,11 +59,19 @@ MODULE MOD_SAXS
             ELSE
                ESAXS = 0.0D0
             ENDIF
-            IF (SAXS_PRINT) THEN
+            IF (KMODUL * KDECRE .LE. 1.0D-10) THEN
+               CALL FCT_GENERATE_SAXS_CURVE(X, IGRAPH, LOGI, ESAXS, F)
+               ESAXS = KSAXS*ESAXS
                CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
-               WRITE(SAXSS, *) KMODUL*KDECRE, ESAXS
+               WRITE(*,*) 'SAXS score: ', ESAXS
+               ESAXS = 0.0D0
+            ENDIF
+            IF (SAXS_PRINT .AND. KMODUL * KDECRE .GE. 2.0D-2) THEN
+               !CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
+               !WRITE(SAXSS, *) KMODUL*KDECRE, ESAXS
+               WRITE(*,*) 'SAXS score: ', ESAXS, KMODUL*KDECRE
             END IF
-            WRITE(*,*) 'SAXS score: ', ESAXS
+            !WRITE(*,*) 'SAXS score: ', ESAXS, KMODUL*KDECRE
          END IF 
       END SUBROUTINE RNA_SAXS_FORCE
 
