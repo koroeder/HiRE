@@ -96,6 +96,8 @@ MODULE FILL_PARAMS
          !OPEN(UNIT=BINFOUNIT,FILE="bblist.dat",STATUS="old")   
          !READ(BINFOUNIT,*) (BLIST(I), BTYPE(I), BPROT(I), I =1, NRES)      
          !CLOSE(BINFOUNIT) 
+         !The assignment of base type is hard coded - if these assignment are changed the base pair information is incorrect
+         !DO NOT CHANGE UNLESS YOU CHANGE THE NA PARAMETER ASSIGNMENT!!!!!!!!
          BLIST(1:NRES) = RESFINAL(1:NRES)
          DO I=1,NRES
             IF ((RESNAMES(I)(1:1).EQ."G").OR.(RESNAMES(I)(1:2).EQ."DG")) THEN

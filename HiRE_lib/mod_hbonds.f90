@@ -362,6 +362,7 @@ MODULE MOD_HBONDS
             ! Exponential contribution based on base distance
             D2 = (DBA - SIGHB)/Y
             EHHA = -EPSHB * STR * EXP(-D2**2)
+
             
             ! Angular potential contribution (orientation of bases)
             ANGA = COSA*CALPA + SINA*SALPA
@@ -373,6 +374,7 @@ MODULE MOD_HBONDS
             
             !Overall energy for this set of params
             EHB = EHHA*VANGL
+            !WRITE(*,*) BI, BJ, STR, IDXA, IDXB, EHHA, EHB
             dEHB(1:3) = -2.0*EHB*D2/Y*RBA0(1:3)
             
             !first check for size of Ehb
@@ -400,10 +402,10 @@ MODULE MOD_HBONDS
                         bocc(bj)=1
                      endif
                   ELSE IF ((MTYPEI.EQ.1).AND.(MTYPEJ.EQ.1)) THEN
-                     if (rs(par,tya,tyb,1,qj+1) .ne. rs(par,tya,tyb,2,qj+1)) then
+                     if (ds(par,tya,tyb,1,qj+1) .ne. ds(par,tya,tyb,2,qj+1)) then
                         bocc(bi)=1
                      endif
-                     if (rs(par,tya,tyb,qi+1,1) .ne. rs(par,tya,tyb,qi+1,2)) then
+                     if (ds(par,tya,tyb,qi+1,1) .ne. ds(par,tya,tyb,qi+1,2)) then
                         bocc(bj)=1
                      endif
                   END IF
