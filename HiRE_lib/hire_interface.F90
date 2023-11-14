@@ -236,6 +236,20 @@ MODULE HIRE_INTERFACE
 #endif
       END SUBROUTINE SETUP_SAXS  
    
+      ! Subroutine to pass updated variables for SAXS curve modulation
+      SUBROUTINE MODULATE_SAXS(SAXSINVSIG_,SAXSWAVE_,SAXSOFFI_,SAXSMODI_)
+#ifdef __HIRE
+         USE SAXS_DEFS, ONLY: SAXSINVSIG,SAXSWAVE,SAXSOFFI,SAXSMODI
+#endif
+         REAL(KIND=R64), INTENT(IN) :: SAXSINVSIG_ , SAXSWAVE_, SAXSOFFI_, SAXSMODI_
+#ifdef __HIRE
+         SAXSINVSIG = SAXSINVSIG_
+         SAXSWAVE = SAXSWAVE_
+         SAXSOFFI  = SAXSOFFI_
+         SAXSMODI = SAXSMODI_
+#endif
+      END SUBROUTINE MODULATE_SAXS
+
       !> Routine to initialise hydrogen-bonding information 
       SUBROUTINE HIRE_HB_INIT()
 #ifdef __HIRE
