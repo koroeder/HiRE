@@ -41,7 +41,7 @@ MODULE MOD_SAXS
          
          IF (CALC_SAXS_FORCE) THEN
             CALC_SAXS_FORCE = .FALSE.
-            KSAXS = SCORE_RNA(77)
+            KSAXS = SCORE_RNA(78)
             IF (MODULATE_SAXS_SERIAL) THEN
                !KMODUL = EXP(-(SIN(PI*SAXSOFFI)*SAXS_INVSIG)**2)
                KMODUL = 1

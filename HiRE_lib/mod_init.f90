@@ -178,6 +178,7 @@ MODULE MOD_INIT
          ! USE NBDEFS, ONLY: SET_NBPARAMS
          USE NBDEFS, ONLY: SET_NBPARAMS_NEW
          USE MOD_SUGARBASE, ONLY: INIT_SUGARBASE
+         USE MOD_BASESTACKING, ONLY: INIT_STACKING
          
          CALL SET_NBPARAMS_NEW()
          ! need to fill this first to make sure we have the information whether we are looking at RNA or DNA!
@@ -191,6 +192,7 @@ MODULE MOD_INIT
          ! CALL SET_NBPARAMS()
 
          CALL INIT_SUGARBASE()
+         CALL INIT_STACKING()
       END SUBROUTINE INIT_FROM_MODS
 
       !> Routine to read constraint file
