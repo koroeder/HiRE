@@ -16,6 +16,7 @@ MODULE MCmod
       USE MOVES
       USE GROUPROTMOD
       USE BP_MOVES_MOD
+      USE HIRE_INTERFACE, ONLY: HIRE_SAXS_FORCE
       USE STOCH_FORCE_STEPS, ONLY: STOCHFORCET, GRADMOD_STEP, DOGRADMODSTEP
       USE porfuncs
 
@@ -47,6 +48,8 @@ MODULE MCmod
 
       LOGICAL             :: LOOSEFT, LOOSETT
       INTEGER             :: NUCF, NUCT
+
+      REAL(KIND = REAL64) :: SAXSSTEPSIZE, TSAXS1, TSAXS2, SAXSFORCE(3*NATOMS)
 
       IF (.NOT.ALLOCATED(BESTCOORDS)) ALLOCATE(BESTCOORDS(3*NATOMSALLOC,NPAR))
       IF (.NOT.ALLOCATED(SAVECOORDS)) ALLOCATE(SAVECOORDS(3*NATOMSALLOC))
@@ -336,6 +339,18 @@ MODULE MCmod
                CALL GRADMOD_STEP(COORDS(:,JP))
             END IF
 
+            ! k2262470> SAXS steps
+            IF (SAXSSTEPST.AND.DOSAXSSTEP) THEN
+               WRITE(MYUNIT,'(A)') " mc> Attempt SAXS force step"
+               CALL CPU_TIME(TSAXS1)
+               CALL HIRE_SAXS_FORCE(3*NATOMS,COORDS(:,JP),SAXSFORCE)
+               CALL CPU_TIME(TSAXS2)
+               WRITE(MYUNIT,*) " mc> SAXS force: ", DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS))
+               SAXSSTEPSIZE = RMSLIMITSAXS/MAX(DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS)), 1.0D-100)
+               WRITE(MYUNIT,*) " mc> SAXS step size: ", SAXSSTEPSIZE
+               WRITE(MYUNIT,*) " mc> SAXS step time: ", TSAXS2-TSAXS1
+               COORDS(:,JP) = COORDS(:,JP) + SAXSSTEPSIZE*SAXSFORCE(1:3*NATOMS)
+            END IF
             !do Cartesian steps - only if no ther move is attempted!
             IF (DOCARTSTEP) CALL CARTESIAN_SPHERE(COORDS(:,JP), STEP(JP))
 
@@ -740,6 +755,12 @@ MODULE MCmod
          DOGRADMODSTEP=.TRUE.
          DOCARTSTEP=.FALSE.
       END IF
+
+      ! SAXS force steps
+      IF (SAXSSTEPST.AND.(MOD(J1,SAXSFORCESTEPFREQ).EQ.0)) THEN
+         DOSAXSSTEP=.TRUE.
+         DOCARTSTEP=.FALSE.
+      END IF     
       RETURN
       END SUBROUTINE WHICH_MOVE
 

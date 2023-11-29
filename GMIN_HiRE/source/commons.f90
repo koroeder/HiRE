@@ -260,4 +260,10 @@
      REAL(KIND = REAL64) :: TUPPERF = 2.5D2, TLOWERF = 2.5D0   !Upper and lower limits
      REAL(KIND = REAL64) :: TADAPTSCALE = 1.1D0                !Scaling constant
      
+! SAXS force steps
+     LOGICAL :: SAXSSTEPST = .FALSE.                           !Use SAXS force to step
+     INTEGER :: SAXSFORCESTEPFREQ = 1                          !Frequency of SAXS force steps
+     REAL(KIND = REAL64) :: RMSLIMITSAXS = 5.0                 !Size of RMS force scaling, step size = RMSLIMITSAXS/RMSF
+     LOGICAL :: DOSAXSSTEP = .FALSE.                           !attempt SAXs step this BH step?
+
 END MODULE COMMONS
