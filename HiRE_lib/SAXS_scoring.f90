@@ -92,7 +92,8 @@ module SAXS_scoring
       
       QFILE=GETUNIT() !find free io unit number
       num_atoms = nparticles
-      delta_q = max_q/num_points
+!      delta_q = max_q/num_points
+      delta_q=0.002
       population_count = N_REPLICA
       max_q_point = int(saxs_max / delta_q)
 
@@ -311,17 +312,17 @@ module SAXS_scoring
         I1(:) = 10**logI(:)
       end if
 
-      do q = 1, max_q_point - 1
-         cscale_num = cscale_num + I0(q)*I1(q)
-         cscale_den = cscale_den + I1(q)*I1(q)
-      enddo
+      !do q = 1, max_q_point - 1
+      !   cscale_num = cscale_num + I0(q)*I1(q)
+      !   cscale_den = cscale_den + I1(q)*I1(q)
+      !enddo
       
       ! Compute E_saxs and F_saxs            
-      !cscale = I0(0)/I1(0)
-      cscale = cscale_num/cscale_den
+      cscale = I0(0)/I1(0)
+      !cscale = cscale_num/cscale_den
       do q = 1, max_q_point - 1
-        !qphys = q * delta_q
-        qphys = 1
+        qphys = q * delta_q
+        !qphys = 1
         E_num = E_num + ((cscale * I1(q) - I0(q)) * qphys)**2
         
        ! print *, qphys, cscale *I1(q), I0(q), ((cscale * I1(q) - I0(q)) * qphys)**2
@@ -354,7 +355,7 @@ module SAXS_scoring
 
 
       call cpu_time(time3)
-      print *, 'fct_generate_SAXS_curve : ',time2-time1, time3-time2
+     ! print *, 'fct_generate_SAXS_curve : ',time2-time1, time3-time2
 
       return
 
