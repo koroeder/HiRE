@@ -51,7 +51,7 @@ MODULE MOD_SAXS
                KMODUL = 1
                KDECRE = 1
             ENDIF
-            WRITE(*,*) "KMODUL, KDECRE ", KMODUL, KDECRE
+            ! WRITE(*,*) "KMODUL, KDECRE ", KMODUL, KDECRE
             !QUERY: Replace this magic number by a parameter or variable?
             IF (KMODUL * KDECRE .GE. 2.0D-2) THEN
                CALL FCT_GENERATE_SAXS_CURVE(X, IGRAPH, LOGI, ESAXS, F)
@@ -72,7 +72,7 @@ MODULE MOD_SAXS
                !WRITE(SAXSS, *) KMODUL*KDECRE, ESAXS
                WRITE(*,*) 'SAXS score: ', ESAXS, KMODUL*KDECRE
             END IF
-            WRITE(*,*) 'SAXS score: ', ESAXS
+            !WRITE(*,*) 'SAXS score: ', ESAXS
             !WRITE(*,*) 'SAXS force: ', F
          END IF 
       END SUBROUTINE RNA_SAXS_FORCE
