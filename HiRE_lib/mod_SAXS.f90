@@ -19,20 +19,20 @@ MODULE MOD_SAXS
       !> @param[out] ESAXS - SAXS energy
       !> @param[out] F - SAXS force
       !>
-      !> @see FCT_GENERATE_SAXS_CURVE 
+      !> @see GENERATE_SAXS_CURVE 
       !> @see WRITE_SAXS_CURVE_TO_UNIT
-      SUBROUTINE RNA_SAXS_FORCE(NOPT, X, ESAXS, F)
+      SUBROUTINE RNA_SAXS_FORCE(NOPT, X, ESAXS, F, GRADT)
          USE NAPARAMS, ONLY: SCORE_RNA
          USE NUM_DEFS, ONLY: PI
-         USE VAR_DEFS, ONLY: IGRAPH
-         USE SAXS_SCORING
+         USE SAXS_CALCS
          INTEGER, INTENT(IN) :: NOPT                   !should be 3*NATOMS
          REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    !input coordinates
          REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force
          REAL(KIND = REAL64), INTENT(OUT) :: ESAXS
+         LOGICAL, INTENT(IN) :: GRADT !use SAXS force?
 
          REAL(KIND = REAL64) :: KSAXS, KDECRE, KMODUL
-         REAL(KIND = REAL64), DIMENSION(0:NUM_POINTS-1) :: LOGI
+         REAL(KIND = REAL64), DIMENSION(NQPOINTS) :: LOGI
 
          ESAXS = 0.0D0
          F(1:NOPT) = 0.0D0
@@ -54,21 +54,21 @@ MODULE MOD_SAXS
             ! WRITE(*,*) "KMODUL, KDECRE ", KMODUL, KDECRE
             !QUERY: Replace this magic number by a parameter or variable?
             IF (KMODUL * KDECRE .GE. 2.0D-2) THEN
-               CALL FCT_GENERATE_SAXS_CURVE(X, IGRAPH, LOGI, ESAXS, F)
+               CALL GENERATE_SAXS_CURVE(X, LOGI, ESAXS, F, GRADT)
                ESAXS = KSAXS*ESAXS*KMODUL*KDECRE
                F(1:NOPT) = KSAXS*KMODUL*KDECRE*F(1:NOPT)
             ELSE
                ESAXS = 0.0D0
             ENDIF
             IF (KMODUL * KDECRE .LE. 1.0D-10) THEN
-               CALL FCT_GENERATE_SAXS_CURVE(X, IGRAPH, LOGI, ESAXS, F)
+               CALL GENERATE_SAXS_CURVE(X, LOGI, ESAXS, F, GRADT)
                ESAXS = KSAXS*ESAXS
                CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
                WRITE(*,*) 'SAXS score: ', ESAXS
                ESAXS = 0.0D0
             ENDIF
             IF (SAXS_PRINT .AND. KMODUL * KDECRE .GE. 2.0D-2) THEN
-               !CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
+               CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
                !WRITE(SAXSS, *) KMODUL*KDECRE, ESAXS
                WRITE(*,*) 'SAXS score: ', ESAXS, KMODUL*KDECRE
             END IF

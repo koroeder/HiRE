@@ -236,13 +236,14 @@ MODULE MOD_INIT
       SUBROUTINE INITIALISE_SAXS()
          USE UTILS_IO, ONLY: GETUNIT
          USE SAXS_DEFS, ONLY: SAXSs, SAXSc
-         USE SAXS_SCORING, ONLY: SET_SAXS_SCORING
+         !USE SAXS_SCORING, ONLY: SET_SAXS_SCORING
+         USE SAXS_CALCS, ONLY: SAXS_SETUP
 
          SAXSs = GETUNIT()
          OPEN(SAXSs, file='SAXS_score.dat', status='unknown',action='write',position='append')
          SAXSc = GETUNIT()
          OPEN(SAXSc, file='SAXS_curve.dat', status='unknown',action='write',position='append')
-         CALL SET_SAXS_SCORING()
+         CALL SAXS_SETUP()
       END SUBROUTINE INITIALISE_SAXS
 
 END MODULE MOD_INIT 
