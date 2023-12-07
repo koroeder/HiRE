@@ -76,57 +76,58 @@ Current order of parameters:
 51 - dielectric constant
 52 - Debye length
 
-53 - EQ (stacking)
+53 - stackign scale
 54 - EQ (stacking)
 55 - EQ (stacking)
-56 - WID (stacking)
+56 - EQ (stacking)
 57 - WID (stacking)
 58 - WID (stacking)
-59 - SK (stacking)
+59 - WID (stacking)
 60 - SK (stacking)
 61 - SK (stacking)
-62 - Th (stacking)
+62 - SK (stacking)
 63 - Th (stacking)
 64 - Th (stacking)
-65 - GM (stacking)
+65 - Th (stacking)
 66 - GM (stacking)
 67 - GM (stacking)
+68 - GM (stacking)
 
-68 - EPSHB (hbonds)
-69 - CTIT (hbonds)
-70 - P (hbonds)
-71 - Y (hbonds)
-72 - GAUSSW (hbonds)
-73 - INTSCALE (hbonds)
+69 - EPSHB (hbonds)
+70 - CTIT (hbonds)
+71 - P (hbonds)
+72 - Y (hbonds)
+73 - GAUSSW (hbonds)
+74 - INTSCALE (hbonds)
 
-74 - sugar base scaling
-75 - ALJ12 sugar base
-76 - BLJ6 sugar base
+75 - sugar base scaling
+76 - ALJ12 sugar base
+77 - BLJ6 sugar base
 
-77 - KSAXS
+78 - KSAXS
 
-78 - Tit
-79 - noWCq
-80 - trans WC bp
+79 - Tit
+80 - noWCq
+81 - trans WC bp
 
-81 - cwwAA
-82 - cwwAG
-83 - cwwAC
-84 - cwwAU
-85 - cwwGC
-86 - cwwGU
-87 - cwwCC
-88 - cwwCU
-89 - cwwUU
-90 - cwh
-91 - twh
-92 - cws
-93 - tws
-94 - chh
-95 - thh
-96 - chs
-97 - ths
-98 - css
-99 - tss
+82 - cwwAA
+83 - cwwAG
+84 - cwwAC
+85 - cwwAU
+86 - cwwGC
+87 - cwwGU
+88 - cwwCC
+89 - cwwCU
+90 - cwwUU
+91 - cwh
+92 - twh
+93 - cws
+94 - tws
+95 - chh
+96 - thh
+97 - chs
+98 - ths
+99 - css
+100 - tss
 
 
