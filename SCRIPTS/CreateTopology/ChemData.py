@@ -6,10 +6,36 @@
 # The way these fucntions work is identical for all three in the algorithmic approach
 # The functions for the bonding are annotated in detail
 
-import RNA_params
-import DNA_params
+import NucleicAcidData
 
-## @brief Obtain bond information for topology
+# @brief Function to obtain type from atom names
+#
+# Types are 1 indexed in the stored list of bonds in NucleicAcidData.
+# If the type is used for the lookup later, -1 needs to be applied to each type index to get the correct zero-index.
+def get_bondtype(at1,at2):
+    for bond in NucleicAcidData.NA_bonds:
+        if bond.iscorrectbond(at1, at2):
+            return bond.get_typeid()
+    return 0
+
+# @brief Function to obtain angle type from atom names
+def get_angletype(mol, at1, at2, at3):
+    for angle in NucleicAcidData.NA_angles:
+        if mol==angle.name[0:3]:
+            if angle.iscorrectangle(at1, at2, at3):
+                return angle.get_typeid()
+    return 0
+
+# @brief Function to obtain angle type from atom names
+def get_dihtype(mol, at1, at2, at3, at4):
+    types = list()
+    for dih in NucleicAcidData.NA_dihs:
+        if mol==dih.name[0:3]:
+            if dih.iscorrectdih(at1, at2, at3, at4):
+                types.append(dih.get_typeid())
+    return types
+
+# @brief Obtain bond information for topology
 #
 # Function obtains list of bonds, assuming it is a single molecule that is considered.\n
 # We iterate over all particle names
@@ -21,48 +47,31 @@ import DNA_params
 # For each bond an entry is added to both lists.
 #
 # @param[in] CG_partnames - List of particle names for molecule
+
 def get_bond_list(CG_partnames):
     bond_ids = list()
     bond_type = list()
 
     for idx,name in enumerate(CG_partnames):
-        if name == "P": #P-O5 bond
-            bond_ids.append((idx,idx+1))
-            bond_type.append(9)
-        elif name == "O": #O5-C5 bond
-            bond_ids.append((idx,idx+1))
-            bond_type.append(10)
-        elif name == "C": #C5-C4 bond
-            bond_ids.append((idx,idx+1))
-            bond_type.append(8)
-        elif name == "R4":
-            bond_ids.append((idx,idx+1)) #R4-R1 bond
-            bond_type.append(1)
-            try:
-                if (CG_partnames[idx+3]) == "P": #R4-P bond
-                    bond_ids.append((idx,idx+3))
-                    bond_type.append(0)
-                elif (CG_partnames[idx+4]) == "P": #R4-P bond
-                    bond_ids.append((idx,idx+4))
-                    bond_type.append(0)
-            except IndexError:
-                continue
-        elif name == "R1":
-            bond_ids.append((idx,idx+1)) #R1-B1 bond
-            if CG_partnames[idx+1] == "A1":
-                bond_type.append(3)
-            elif CG_partnames[idx+1] == "C1":
-                bond_type.append(5)
-            elif CG_partnames[idx+1] == "G1":
-                bond_type.append(2)
-            elif CG_partnames[idx+1] == "U1":
-                bond_type.append(4)       
-        elif (name == "A1" or name == "G1"):
-            bond_ids.append((idx,idx+1)) #B1-B2 bond
-            if CG_partnames[idx+1] == "A2":
-                bond_type.append(7)
+        if name in ["P", "O", "C", "R4", "R1", "S1", "A1", "G1"]: #P-O5 bond, O5-C5 bond, C5-C4 bond, R4-R1 bond and R4-S1 bond, R1/S1-A/C/GU/T1 bond, A1-A2 and G1-G2 bond
+            type = get_bondtype(name, CG_partnames[idx+1])
+            if type > 0:
+                bond_ids.append((idx,idx+1))
+                bond_type.append(type - 1)
             else:
-                bond_type.append(6)
+                raise ValueError("Error: Cannot find type for bond: ", name, CG_partnames[idx+1])
+            if name == "R4":
+                try:
+                    if (CG_partnames[idx+3]) == "P": #R4-P bond
+                        bond_ids.append((idx,idx+3))
+                        type = get_bondtype("R4", "P")
+                        bond_type.append(type - 1)
+                    elif (CG_partnames[idx+4]) == "P": #R4-P bond
+                        bond_ids.append((idx,idx+4))
+                        type = get_bondtype("R4", "P")
+                        bond_type.append(type - 1)
+                except IndexError:
+                    continue
         else:
             continue
     return bond_ids, bond_type
@@ -110,10 +119,10 @@ def get_bonds(nmol, termini, CG_partnames):
 # 
 # @param[in] bonds - list of bonded atoms as tuple
 # @param[in] bondtype - list of bond types for each bond
+# @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1)) to parse correct data
 def get_bondinfo(bonds,bondtype):
     # Introduce bond types to track which ones we have already encountered
-    bondtypes_used = [False, False, False, False, False, False, 
-                      False, False, False, False, False]
+    bondtypes_used = [False for _ in range(len(NucleicAcidData.NA_bonds))] 
     nbonds = len(bondtype)
     btypemap = dict()
     req = list()
@@ -133,12 +142,13 @@ def get_bondinfo(bonds,bondtype):
         # entries to the spring constants and eq distance and 
         # change the number of bond types
         else:
+            #retrieve type of molecule
             bondtypes_used[this_type] = True
             nbondtypes += 1
             btypemap[this_type] = nbondtypes
             this_toptype = nbondtypes
-            req.append(RNA_params.RNA_bonds[this_type].dist)
-            rk.append(RNA_params.RNA_bonds[this_type].force)
+            req.append(NucleicAcidData.NA_bonds[this_type].dist)
+            rk.append(NucleicAcidData.NA_bonds[this_type].force)         
             bonds_top += [3*bond[0], 3*bond[1], this_toptype]           
     return nbondtypes,rk,req,nbonds,bonds_top
 
@@ -155,66 +165,72 @@ def get_bondinfo(bonds,bondtype):
 # For each bond an entry is added to both lists.
 #
 # @param[in] CG_partnames - List of particle names for molecule
-def get_angle_list(CG_partnames):
+# @param[in] RNAorDNA - 0 - RNA, 1 - DNA
+def get_angle_list(CG_partnames, RNAorDNA):
     angle_ids = list()
     angle_type = list()
+    if RNAorDNA==0:
+        moltype = "RNA"
+    elif RNAorDNA==1:
+        moltype = "DNA"
     for idx,name in enumerate(CG_partnames):
-        if name == "P": #P-O5-C5 angle
-            angle_ids.append((idx,idx+1,idx+2))
-            angle_type.append(6)
-        elif name == "O": #O5-C5-C4 angle
-            angle_ids.append((idx,idx+1,idx+2))
-            angle_type.append(7)
-        elif name == "C": 
-            angle_ids.append((idx,idx+1,idx+2)) #C5-C4-C1 angle
-            angle_type.append(10)
-            try:
-                if (CG_partnames[idx+4]== "P"): #C5-C4-P angle
-                    angle_ids.append((idx,idx+1,idx+4))
-                    angle_type.append(8)
-                elif (CG_partnames[idx+5]== "P"):
-                    angle_ids.append((idx,idx+1,idx+5))
-                    angle_type.append(8)
-            except IndexError:
-                continue
-        elif name == "R4":
-            angle_ids.append((idx,idx+1,idx+2)) #R4-R1-B1 bond           
-            if CG_partnames[idx+2] == "A1":
-                angle_type.append(0)
-            elif CG_partnames[idx+2] == "C1":
-                angle_type.append(3)
-            elif CG_partnames[idx+2] == "G1":
-                angle_type.append(2)
-            elif CG_partnames[idx+2] == "U1":
-                angle_type.append(1) 
-            try:
-                if CG_partnames[idx+3] == "P": #R4-P-O angle
-                    angle_ids.append((idx,idx+3,idx+4))
-                    angle_type.append(9)
-                elif CG_partnames[idx+4] == "P": #R4-P-O angle
-                    angle_ids.append((idx,idx+4,idx+5))
-                    angle_type.append(9)
-            except IndexError:
-                continue
-        elif name == "R1":
+        if name in ["P", "O", "C", "R4"]: #P-O5-C5 angle, O5-C5-C4 angle, C5-C4-C1 angle, R4-R1-B1 angle 
+            type = get_angletype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2])
+            if type > 0:
+                angle_ids.append((idx,idx+1,idx+2))
+                angle_type.append(type - 1)             
+            else:
+                raise ValueError("Error: Cannot find type for bond: ", name, CG_partnames[idx+1])
+
+            if name == "C": 
+                try:
+                    if (CG_partnames[idx+4]== "P"): #C5-C4-P angle
+                        angle_ids.append((idx,idx+1,idx+4))
+                        type = get_angletype(moltype,"C", "R4", "P")
+                        angle_type.append(type - 1)
+                    elif (CG_partnames[idx+5]== "P"):
+                        angle_ids.append((idx,idx+1,idx+5))
+                        type = get_angletype(moltype,"C", "R4", "P")
+                        angle_type.append(type - 1)
+                except IndexError:
+                    continue
+
+            elif name == "R4":
+                try:
+                    if CG_partnames[idx+3] == "P": #R4-P-O angle
+                        angle_ids.append((idx,idx+3,idx+4))
+                        type = get_angletype(moltype,"R4", "P", "O")
+                        angle_type.append(type - 1)
+                    elif CG_partnames[idx+4] == "P": #R4-P-O angle
+                        angle_ids.append((idx,idx+4,idx+5))
+                        type = get_angletype(moltype,"R4", "P", "O")
+                        angle_type.append(type - 1)
+                except IndexError:
+                    continue
+    
+        elif name == "R1" or name == "S1":
             if CG_partnames[idx+1] == "A1": #R1-B1-B2 angle
                 angle_ids.append((idx,idx+1,idx+2))
-                angle_type.append(4)
+                type = get_angletype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2])
+                angle_type.append(type - 1)
             elif CG_partnames[idx+1] == "G1":
                 angle_ids.append((idx,idx+1,idx+2))
-                angle_type.append(5)
+                type = get_angletype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2])
+                angle_type.append(type - 1)
             try:
                 if CG_partnames[idx+2] == "P": #R1-R4-P angle
                     angle_ids.append((idx,idx-1,idx+2))
-                    angle_type.append(11)
+                    type = get_angletype(moltype, "R1", "R4", "P")
+                    angle_type.append(type - 1)
                 elif CG_partnames[idx+3] == "P":
                     angle_ids.append((idx,idx-1,idx+3))
-                    angle_type.append(11)
+                    type = get_angletype(moltype, "R1", "R4", "P")
+                    angle_type.append(type - 1)
             except IndexError:
                 continue
-            
         else:
             continue
+
     return angle_ids, angle_type
 
 ## @brief Parsing bond angle information to different format
@@ -227,9 +243,9 @@ def get_angle_list(CG_partnames):
 # 
 # @param[in] angles - list of atoms in angle as tuple
 # @param[in] angletype - list of bond angle types for each bond angle
+# @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1)) to parse correct data
 def get_angleinfo(angles,angletype):
-    angletypes_used = [False, False, False, False, False, False, 
-                       False, False, False, False, False, False]
+    angletypes_used = [False for _ in range(len(NucleicAcidData.NA_angles))]
     nangles = len(angletype)
     atypemap = dict()
     teq = list()
@@ -242,12 +258,13 @@ def get_angleinfo(angles,angletype):
             this_toptype = atypemap[this_type]
             angles_top += [3*angle[0], 3*angle[1], 3*angle[2], this_toptype]
         else:
+            #retrieve type of molecule
             angletypes_used[this_type] = True
             nangtypes += 1
             atypemap[this_type] = nangtypes
             this_toptype = nangtypes
-            teq.append(RNA_params.RNA_angles[this_type].ang/180.0*3.1415926535897)
-            tk.append(RNA_params.RNA_angles[this_type].force)
+            teq.append(NucleicAcidData.NA_angles[this_type].ang/180.0*3.1415926535897)
+            tk.append(NucleicAcidData.NA_angles[this_type].force)         
             angles_top += [3*angle[0], 3*angle[1], 3*angle[2], this_toptype]           
     return nangtypes,tk,teq,nangles,angles_top
 
@@ -266,17 +283,19 @@ def get_angleinfo(angles,angletype):
 # @param[in] nmol - Number of molecules
 # @param[in] termini - list of terminal atoms, used to derive the start and end indices for each molecule
 # @param[in] CG_partnames - list of all CG particles names
+# @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1))
 #
 # @see get_angle_list
-def get_angles(nmol, termini, CG_partnames):
+def get_angles(nmol, termini, CG_partnames, moltype):
     angles = list()
     angtype = list()
     for molid in range(nmol):
         offset = termini[2*molid] - 1
         start = termini[2*molid] - 1
         end = termini[2*molid+1]
-        angs_mol, angtype_mol = get_angle_list(CG_partnames[start:end])
-        angtype += angtype_mol
+        RNAorDNA = moltype[molid]
+        angs_mol, angtype_mol = get_angle_list(CG_partnames[start:end],RNAorDNA)
+        angtype += angtype_mol      
         if offset == 0:
             angles += angs_mol           
         else:
@@ -299,106 +318,109 @@ def get_angles(nmol, termini, CG_partnames):
 # For each bond an entry is added to both lists.
 #
 # @param[in] CG_partnames - List of particle names for molecule
-def get_dih_list(CG_partnames):
+# @param[in] RNAorDNA - 0 - RNA, 1 - DNA
+def get_dih_list(CG_partnames, RNAorDNA):
     dih_ids = list()
     dih_type = list()
+
+    if RNAorDNA==0:
+        moltype = "RNA"
+    elif RNAorDNA==1:
+        moltype = "DNA"
     for idx,name in enumerate(CG_partnames):
-        if name == "P": #P-O5-C5-C4 dih
-            dih_ids.append((idx,idx+1,idx+2,idx+3))
-            dih_type.append(21)
-            dih_ids.append((idx,idx+1,idx+2,idx+3))
-            dih_type.append(22) 
-            dih_ids.append((idx,idx+1,idx+2,idx+3))
-            dih_type.append(23)  
-            if CG_partnames[idx-2] == "A1": #P-R4-R1-B1 dih
-                dih_ids.append((idx,idx-4,idx-3,idx-2))
-                dih_type.append(13)
-            if CG_partnames[idx-1] == "C1":
-                dih_ids.append((idx,idx-3,idx-2,idx-1))
-                dih_type.append(15)  
-            if CG_partnames[idx-2] == "G1":
-                dih_ids.append((idx,idx-4,idx-3,idx-2))
-                dih_type.append(14)
-            if CG_partnames[idx-1] == "U1":
-                dih_ids.append((idx,idx-3,idx-2,idx-1))
-                dih_type.append(16)                 
-        elif name == "O": #O5-C5-C4-C1 dih
-            dih_ids.append((idx,idx+1,idx+2,idx+3))
-            dih_type.append(20)
+        if name in ["P", "O", "C"]: #P-O5-C5-C4 dih, O5-C5-C4-C1 dih, C5-C4-C1-B1 dih
+            types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+3])
+            for type in types:
+                dih_ids.append((idx,idx+1,idx+2,idx+3))
+                dih_type.append(type - 1)             
+
+        if name == "P": 
+            try:
+                if ((CG_partnames[idx-2] == "A1") or (CG_partnames[idx-2] == "G1")): #P-R4-R1-B1 dih
+                    types = get_dihtype(moltype, name, CG_partnames[idx-4], CG_partnames[idx-3], CG_partnames[idx-2])
+                    for type in types:
+                        dih_ids.append((idx,idx-4,idx-3,idx-2))
+                        dih_type.append(type - 1)
+                if ((CG_partnames[idx-1] == "C1") or (CG_partnames[idx-1] == "U1")): #P-R4-R1-B1 dih
+                    types = get_dihtype(moltype, name, CG_partnames[idx-3], CG_partnames[idx-2], CG_partnames[idx-1])
+                    for type in types:
+                        dih_ids.append((idx,idx-3,idx-2,idx-1))
+                        dih_type.append(type - 1)                    
+            except IndexError:
+                continue     
+
+        elif name == "O": 
             try:
                 if (CG_partnames[idx+5]== "P"): #O5-C5-C4-P dih
-                    dih_ids.append((idx,idx+1,idx+2,idx+5))
-                    dih_type.append(19)
+                    types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+5])
+                    for type in types:
+                        dih_ids.append((idx,idx+1,idx+2,idx+5))
+                        dih_type.append(type - 1)
                 elif (CG_partnames[idx+6]== "P"):
-                    dih_ids.append((idx,idx+1,idx+2,idx+6))
-                    dih_type.append(19)
+                    types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+6])
+                    for type in types:
+                        dih_ids.append((idx,idx+1,idx+2,idx+6))
+                        dih_type.append(type - 1)                    
             except IndexError:
                 continue
-        elif name == "C":
-            #C5-C4-C1-B1 dih
-            if (CG_partnames[idx+3] == "A1"):
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_ids.append((idx,idx+1,idx+2,idx+3))
-                dih_type.append(6)
-                dih_type.append(7)
-            elif (CG_partnames[idx+3] == "C1"):
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_ids.append((idx,idx+1,idx+2,idx+3))
-                dih_type.append(9)
-                dih_type.append(10)   
-            elif (CG_partnames[idx+3] == "G1"):
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(8)
-            elif (CG_partnames[idx+3] == "U1"):
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_ids.append((idx,idx+1,idx+2,idx+3))
-                dih_type.append(11)
-                dih_type.append(12)                               
+
+        elif name == "C":                        
             try:
                 if (CG_partnames[idx+4]== "P"): #C5-C4-P-O dih
-                    dih_ids.append((idx,idx+1,idx+4,idx+5))
-                    dih_type.append(17)
+                    types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+4], CG_partnames[idx+5])
+                    for type in types:
+                        dih_ids.append((idx,idx+1,idx+4,idx+5))
+                        dih_type.append(type - 1)                    
                 elif (CG_partnames[idx+5]== "P"):
-                    dih_ids.append((idx,idx+1,idx+5,idx+6))
-                    dih_type.append(17)
+                    types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+5], CG_partnames[idx+6])
+                    for type in types:
+                        dih_ids.append((idx,idx+1,idx+5,idx+6))
+                        dih_type.append(type - 1)                     
             except IndexError:
                 continue
+
         elif name == "R4":          
-            if CG_partnames[idx+2] == "A1": #R4-R1-B1-B2 dihs 
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(2)
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(3)
-                dih_ids.append((idx,idx+2,idx+3,idx+1))
-                dih_type.append(4)
-            elif CG_partnames[idx+2] == "G1": #R4-R1-B1-B2 dihs 
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(0)
-                dih_ids.append((idx,idx+1,idx+2,idx+3)) 
-                dih_type.append(1)
-                dih_ids.append((idx,idx+2,idx+3,idx+1))
-                dih_type.append(5)
+            if ((CG_partnames[idx+2] == "A1") or (CG_partnames[idx+2] == "G1")): #R4-R1-B1-B2 dihs 
+                types = get_dihtype(moltype, name, CG_partnames[idx+1], CG_partnames[idx+2], CG_partnames[idx+3])
+                for type in types:
+                    dih_ids.append((idx,idx+1,idx+2,idx+3))
+                    dih_type.append(type - 1)
+                types = get_dihtype(moltype, name, CG_partnames[idx+2], CG_partnames[idx+3], CG_partnames[idx+1])
+                for type in types:
+                    dih_ids.append((idx,idx+2,idx+3,idx+1))
+                    dih_type.append(type - 1)      
+
             try:
                 if CG_partnames[idx+3] == "P": #R4-P-O dih
-                    dih_ids.append((idx,idx+3,idx+4,idx+5))
-                    dih_type.append(24)
+                    types = get_dihtype(moltype, name, CG_partnames[idx+3], CG_partnames[idx+4], CG_partnames[idx+5])
+                    for type in types:
+                        dih_ids.append((idx,idx+3,idx+4,idx+5))
+                        dih_type.append(type - 1)                    
                 elif CG_partnames[idx+4] == "P": #R4-P-O dih
-                    dih_ids.append((idx,idx+4,idx+5,idx+6))
-                    dih_type.append(24)
+                    types = get_dihtype(moltype, name, CG_partnames[idx+4], CG_partnames[idx+5], CG_partnames[idx+6])
+                    for type in types:
+                        dih_ids.append((idx,idx+4,idx+5,idx+6))
+                        dih_type.append(type - 1)                      
             except IndexError:
                 continue
-        elif name == "R1":
+
+        elif name == "R1" or name == "S1":
             try:
                 if CG_partnames[idx+2] == "P": #R1-R4-P-O dih
-                    dih_ids.append((idx,idx-1,idx+2,idx+3))
-                    dih_type.append(18)
+                    types = get_dihtype(moltype, name, CG_partnames[idx-1], CG_partnames[idx+2], CG_partnames[idx+3])
+                    for type in types:
+                        dih_ids.append((idx,idx-1,idx+2,idx+3))
+                        dih_type.append(type - 1)
                 elif CG_partnames[idx+3] == "P":
-                    dih_ids.append((idx,idx-1,idx+3,idx+4))
-                    dih_type.append(18)
+                    types = get_dihtype(moltype, name, CG_partnames[idx-1], CG_partnames[idx+3], CG_partnames[idx+4])
+                    for type in types:
+                        dih_ids.append((idx,idx-1,idx+3,idx+4))
+                        dih_type.append(type - 1)                    
             except IndexError:
                 continue           
         else:
             continue
+     
     return dih_ids, dih_type
 
 
@@ -413,12 +435,10 @@ def get_dih_list(CG_partnames):
 # 
 # @param[in] dihs - list of atoms in dihderals as tuples
 # @param[in] dihtype - list of dihedral types for each dihedral
+# @param[in] moltype - list of type of molecule (currently RNA (0) or DNA (1)) to parse correct data
+
 def get_dihinfo(dihs,dihtype):
-    dihtypes_used = [False, False, False, False, False,
-                     False, False, False, False, False, 
-                     False, False, False, False, False,
-                     False, False, False, False, False,
-                     False, False, False, False, False]
+    dihtypes_used = [False for _ in range(len(NucleicAcidData.NA_dihs))]
     ndihs = len(dihtype)
     atypemap = dict()
     phi = list()
@@ -436,9 +456,9 @@ def get_dihinfo(dihs,dihtype):
             ntorstypes += 1
             atypemap[this_type] = ntorstypes
             this_toptype = ntorstypes
-            phi.append(RNA_params.RNA_dihs[this_type].dih/180.0*3.1415926535897)
-            pk.append(RNA_params.RNA_dihs[this_type].force)
-            pn.append(RNA_params.RNA_dihs[this_type].nterm)
+            phi.append(NucleicAcidData.NA_dihs[this_type].dih/180.0*3.1415926535897)
+            pk.append(NucleicAcidData.NA_dihs[this_type].force)
+            pn.append(NucleicAcidData.NA_dihs[this_type].nterm)
             dihs_top += [3*dih[0], 3*dih[1], 3*dih[2], 3*dih[3], this_toptype]           
     return ntorstypes,pk,phi,ndihs,dihs_top,pn
 
@@ -458,14 +478,15 @@ def get_dihinfo(dihs,dihtype):
 # @param[in] CG_partnames - list of all CG particles names
 #
 # @see get_dih_list
-def get_dihs(nmol, termini, CG_partnames):
+def get_dihs(nmol, termini, CG_partnames, moltype):
     dihs = list()
     torstype = list()
     for molid in range(nmol):
         offset = termini[2*molid] - 1
         start = termini[2*molid] - 1
         end = termini[2*molid+1]
-        angs_mol, torstype_mol = get_dih_list(CG_partnames[start:end])
+        RNAorDNA = moltype[molid]
+        angs_mol, torstype_mol = get_dih_list(CG_partnames[start:end],RNAorDNA)
         torstype += torstype_mol
         if offset == 0:
             dihs += angs_mol           
@@ -478,3 +499,38 @@ def get_dihs(nmol, termini, CG_partnames):
                 dihs.append((at1+offset, at2+offset, at3+offset, at4+offset))
     
     return dihs,torstype
+
+
+def RNA_or_DNA(CG_resnames):
+# check whether each molecule is RNA or DNA (can only be one!)
+    nmol = 0
+    termini_res = list()
+    for idx,res in enumerate(CG_resnames):
+        if res[-1] == "5":
+            nmol += 1
+            termini_res.append(idx)
+        elif res[-1] == "3":
+            termini_res.append(idx)           
+    moltype = list()
+    for mol in range(nmol):
+        start = termini_res[2*mol]
+        end = termini_res[2*mol+1]
+        DNAT = False
+        RNAT = False
+       
+        for res in CG_resnames[start:end+1]:
+            if res in ["DA", "DA3", "DA5", "DC", "DC3", "DC5",
+                       "DG", "DG3", "DG5", "DT", "DT3", "DT5"]:
+                DNAT = True
+            else:
+                RNAT = True
+        if (DNAT and RNAT):
+            raise ValueError("This molecule has RNA and DNA nucleotides")
+        elif (DNAT==0) and (RNAT==0):
+            raise ValueError("This molecule has no RNA and DNA nucleotides")
+        else:
+            if RNAT:
+                moltype.append(0)
+            elif DNAT:
+                moltype.append(1)
+    return moltype

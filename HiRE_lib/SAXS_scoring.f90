@@ -223,12 +223,15 @@ module SAXS_scoring
       real(kind = real64), dimension(:), allocatable :: pos_SOL, pos_TOT ! TOT = SYSTEM + SOL
       real(kind = real64), dimension(:,:), allocatable :: DistanceMatrix_TOT, F_CG_TOT
       integer :: grain_i, grain_j, q, num_TOT, num_SOL
-      real(kind = real64) :: time1, time2, time3, arg
-      
+      real(kind = real64) :: time1, time2, time3, arg, t1, t2
+
+      WRITE(*,*) " "
+      WRITE(*,*) "start of routine "
+      call cpu_time(t1)
   
 
-
       if_refine_hydration_layer: if (in_solution_curve .and. refine_hydration_layer) then
+        WRITE(*,*) "Add hydration layer"
         allocate( pos_SOL(1:3*MAXSOL) )
         pos_SOL = 0.0 ! SAXS-On-The-Fly : Is the initialization necessary ?
 
@@ -267,6 +270,11 @@ module SAXS_scoring
 
       end if if_refine_hydration_layer
 
+      call cpu_time(t2)
+      WRITE(*,*) "num_TOT: ", num_TOT, " max_q_point: ", max_q_point, " num_atoms: ", num_atoms
+      WRITE(*,*) "After allocations, time taken: ", t2-t1
+      t1 = t2
+
 ! Initialize vars
       I1 = 0.0d0
       F_saxs = 0.0d0
@@ -284,6 +292,10 @@ module SAXS_scoring
         end do
       end do
 
+      call cpu_time(t2)
+      WRITE(*,*) "after qloop_0, time taken: ", t2-t1
+      t1 = t2
+
      call cpu_time(time1)
       
       q_loop: do q = 1, max_q_point - 1
@@ -299,8 +311,11 @@ module SAXS_scoring
         end do
       end do q_loop
 
+      call cpu_time(t2)
+      WRITE(*,*) "after qloop, time taken: ", t2-t1
+      t1 = t2
+
       call cpu_time(time2)
-      
       
       ! Log10 everything
       logI(:) = log10(I1(:))
@@ -311,6 +326,10 @@ module SAXS_scoring
         logI(:) = logI(:) + mean_correction_curve(:)
         I1(:) = 10**logI(:)
       end if
+
+      call cpu_time(t2)
+      WRITE(*,*) "after taking log10, time taken: ", t2-t1
+      t1 = t2
 
       !do q = 1, max_q_point - 1
       !   cscale_num = cscale_num + I0(q)*I1(q)
@@ -341,6 +360,10 @@ module SAXS_scoring
              enddo
           enddo
        enddo
+
+       call cpu_time(t2)
+       WRITE(*,*) "after force loop, time taken: ", t2-t1
+       t1 = t2
       
       !Esaxs = E_num / (max_q_point * I1(0)**2)  ! NORMALIZATION ?
       Esaxs = E_num / (max_q_point * I1(0))
@@ -353,7 +376,10 @@ module SAXS_scoring
         deallocate(F_CG_TOT, DistanceMatrix_TOT)
       end if
 
-
+      call cpu_time(t2)
+      WRITE(*,*) "end of routine, time taken: ", t2-t1
+      WRITE(*,*) "--------------------"
+      WRITE(*,*) " "
       call cpu_time(time3)
      ! print *, 'fct_generate_SAXS_curve : ',time2-time1, time3-time2
 

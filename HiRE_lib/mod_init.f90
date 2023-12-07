@@ -48,7 +48,7 @@ MODULE MOD_INIT
          USE UTILS_IO, ONLY: READLINE
          USE VAR_DEFS, ONLY: NRES, NOPT, NPARTICLES, NTYPEP, IGRAPH, RESNAMES, &
                               RESSTART, RESFINAL, FRAG_PAR_PTR, AMASS, IAC, &
-                              CHATM, NCHAINS
+                              CHATM, NCHAINS, ATOMINRES_LOOKUP
          USE VAR_UTILS, ONLY: ALLOC_VARS
          USE MOD_BONDS, ONLY: NBONDS, NUMBND, RK, REQ, IB, JB, ICB, ALLOC_BONDS 
          USE MOD_ANGLES, ONLY: NANGLES, NUMANG, TK, TEQ, &
@@ -57,7 +57,7 @@ MODULE MOD_INIT
                                  PHASE, ALLOC_DIHS
          
          INTEGER, INTENT(IN) :: TOPUNIT
-         INTEGER :: IEND, J
+         INTEGER :: IEND, J, CURRENT
          INTEGER, PARAMETER :: NWORDS = 15
          CHARACTER(LEN=30), DIMENSION(NWORDS) :: WORDSLINE
          CHARACTER(LEN=250) :: THISLINE
@@ -129,6 +129,16 @@ MODULE MOD_INIT
                               (IP(J), JP(J), KP(J), LP(J), ICP(J), J=1,NDIHS)
             END SELECT
          ENDDO
+         ! create new array from resdiue information required elsewhere as look up
+         CURRENT = 1
+         DO J=1,NPARTICLES
+            IF (CURRENT.LT.NRES) THEN
+               IF (J.EQ.RESSTART(CURRENT+1)) THEN
+                  CURRENT = CURRENT + 1
+               END IF
+            END IF
+            ATOMINRES_LOOKUP(J) = CURRENT
+         END DO
       END SUBROUTINE READ_TOPOLOGY
 
       !> Reading scale.dat file
@@ -168,7 +178,11 @@ MODULE MOD_INIT
          ! USE NBDEFS, ONLY: SET_NBPARAMS
          USE NBDEFS, ONLY: SET_NBPARAMS_NEW
          USE MOD_SUGARBASE, ONLY: INIT_SUGARBASE
+         USE MOD_BASESTACKING, ONLY: INIT_STACKING
          
+         CALL SET_NBPARAMS_NEW()
+         ! need to fill this first to make sure we have the information whether we are looking at RNA or DNA!
+         CALL FILL_HIRE_PARAMS()
          CALL INIT_DIHPAR()
          CALL ASSIGN_PHITYPE()
          CALL ASSIGN_THETATYPE()
@@ -176,9 +190,9 @@ MODULE MOD_INIT
          CALL INIT_DH()
          CALL SET_HBVARS()
          ! CALL SET_NBPARAMS()
-         CALL SET_NBPARAMS_NEW()
-         CALL FILL_HIRE_PARAMS()
+
          CALL INIT_SUGARBASE()
+         CALL INIT_STACKING()
       END SUBROUTINE INIT_FROM_MODS
 
       !> Routine to read constraint file
@@ -222,13 +236,14 @@ MODULE MOD_INIT
       SUBROUTINE INITIALISE_SAXS()
          USE UTILS_IO, ONLY: GETUNIT
          USE SAXS_DEFS, ONLY: SAXSs, SAXSc
-         USE SAXS_SCORING, ONLY: SET_SAXS_SCORING
+         !USE SAXS_SCORING, ONLY: SET_SAXS_SCORING
+         USE SAXS_CALCS, ONLY: SAXS_SETUP
 
          SAXSs = GETUNIT()
          OPEN(SAXSs, file='SAXS_score.dat', status='unknown',action='write',position='append')
          SAXSc = GETUNIT()
          OPEN(SAXSc, file='SAXS_curve.dat', status='unknown',action='write',position='append')
-         CALL SET_SAXS_SCORING()
+         CALL SAXS_SETUP()
       END SUBROUTINE INITIALISE_SAXS
 
 END MODULE MOD_INIT 

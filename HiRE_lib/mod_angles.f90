@@ -39,10 +39,35 @@ MODULE MOD_ANGLES
 
       !> Assign the angle type to obtain the correct CG scaling information
       SUBROUTINE ASSIGN_THETATYPE()
-         USE VAR_DEFS, ONLY: IAC
+         USE VAR_DEFS, ONLY: IAC, RESTYPES, ATOMINRES_LOOKUP
          IMPLICIT NONE
-         INTEGER :: JN, I3, J3, K3T, IT0, IT1, IT2
-         
+         INTEGER :: JN, I3, J3, K3T, IT0, IT1, IT2, MOLTYPE
+
+         ! Atom types (IAC):
+         ! 1: C  2: O  3: P  4: R4  5: R1  6: S1
+         ! 7,8: G1,2  9,10: A1,2  11: U1  12: C1
+         ! 13: T1  14: D  15: MG  16: NA  17:CL
+         ! RNA angle types (Theta type, angle, IACs)
+         ! 0 - R4-R1-X1         4-5-(7,9,11,12)
+         ! 1 - R1-A1/G1-A2/G2   5-(7/9)-(8/10)
+         ! 2 - P-O-C            3-2-1
+         ! 3 - O-C-R4           2-1-4
+         ! 4 - C-R4-P           1-4-3
+         ! 5 - R4-P-O           4-3-2
+         ! 6 - C-R4-R1          1-4-5
+         ! 7 - R1-R4-P          5-4-3
+         ! DNA angle types (Theta type, angle, IACs)
+         ! 8 - R4-S1-X1         4-6-(7,9,12,13)
+         ! 9 - S1-A1/G1-A2/G2   6-(7/9)-(8/10)
+         !10 - P-O-C            3-2-1
+         !11 - O-C-R4           2-1-4
+         !12 - C-R4-P           1-4-3
+         !13 - R4-P-O           4-3-2
+         !14 - C-R4-S1          1-4-6
+         !15 - S1-R4-P          6-4-3    
+         !
+         !QUERY: Potentially we could merge 2 and 10, 3 and 11, 4 and 12 and 5 and 13
+         !       Will they actually be different?     
          DO JN=1,NANGLES
             I3 = IT(JN)/3 + 1
             J3 = JT(JN)/3 + 1
@@ -50,44 +75,79 @@ MODULE MOD_ANGLES
             IT0 = IAC(I3)
             IT1 = IAC(J3)
             IT2 = IAC(K3T)
+            ! MOLTYPE is coding for RNA (0) or DNA (1)
+            MOLTYPE = RESTYPES(ATOMINRES_LOOKUP(K3T))
 
             IF (IT0.EQ.1) THEN
                !IT1=4 ; IT2=3
                IF (IT2.EQ.3) THEN
-                  NTHETATYPE(JN) = 4
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 4
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 12
+                  END IF
                !IT1=4 ; IT2=5 
-               ELSE IF (IT2.EQ.5) THEN
+               ELSE IF (IT2.EQ.5) THEN                  
                   NTHETATYPE(JN) = 6
+               !IT1=4 ; IT2=6  
+               ELSE IF (IT2.EQ.6) THEN                  
+                  NTHETATYPE(JN) = 14
                ENDIF
             ELSE IF (IT0.EQ.2) THEN
                !IT1=1 ; IT2=4
                IF (IT1.EQ.1) THEN
-                  NTHETATYPE(JN) = 3
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 3
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 11
+                  END IF
                ENDIF        
             ELSE IF (IT0.EQ.3) THEN
                !IT1=2 ; IT2=1
                IF (IT1.EQ.2) THEN
-                  NTHETATYPE(JN) = 2
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 2
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 10
+                  END IF                  
                ENDIF         
             ELSE IF (IT0.EQ.4) THEN
-               !IT1=5 ; IT2=(6,8,10,11)
+               !IT1=5 ; IT2=(7,9,11,12)
                IF (IT1.EQ.5) THEN
                   NTHETATYPE(JN) = 0
+               !IT1=6 ; IT2=(7,9,12,13)                 
+               ELSE IF (IT1.EQ.6) THEN
+                  NTHETATYPE(JN) = 8
                !IT1=3 ; IT2=2
                ELSE IF (IT1.EQ.3) THEN
-                  NTHETATYPE(JN) = 5              
+                  IF (MOLTYPE.EQ.0) THEN
+                     NTHETATYPE(JN) = 5
+                  ELSE IF (MOLTYPE.EQ.1) THEN
+                     NTHETATYPE(JN) = 13
+                  END IF           
                ENDIF         
             ELSE IF (IT0.EQ.5) THEN
-               !IT1=6 ; IT2=7
-               IF (IT1.EQ.6) THEN         
+               !IT1=7 ; IT2=8
+               IF (IT1.EQ.7) THEN         
                   NTHETATYPE(JN) = 1 
-               !IT1=8 ; IT2=9 
-               ELSE IF (IT1.EQ.8) THEN
+               !IT1=9 ; IT2=10 
+               ELSE IF (IT1.EQ.9) THEN
                   NTHETATYPE(JN) = 1 
                !IT1=4 ; IT2=3   
                ELSE IF (IT1.EQ.4) THEN
                   NTHETATYPE(JN) = 7                    
                ENDIF
+            ELSE IF (IT0.EQ.6) THEN
+               !IT1=7 ; IT2=8
+               IF (IT1.EQ.7) THEN         
+                  NTHETATYPE(JN) = 9 
+               !IT1=9 ; IT2=10 
+               ELSE IF (IT1.EQ.9) THEN
+                  NTHETATYPE(JN) = 9 
+               !IT1=4 ; IT2=3   
+               ELSE IF (IT1.EQ.4) THEN
+                  NTHETATYPE(JN) = 15                    
+               ENDIF               
             ELSE
                WRITE(*,*) " assign_thetatype> ERROR: Unkown theta type"
                STOP

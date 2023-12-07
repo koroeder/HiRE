@@ -42,8 +42,8 @@ MODULE FILL_PARAMS
 
 
 
-         TIT = SCORE_RNA(59)
-         noWCq = SCORE_RNA(60)
+         TIT = SCORE_RNA(79)
+         noWCq = SCORE_RNA(80)
 
          !twwAA = 2.00 * SCORE_RNA(61)
          !twwAC = 2.00 * SCORE_RNA(61)
@@ -65,28 +65,28 @@ MODULE FILL_PARAMS
          !twwCU = 2.00 * SCORE_RNA(61)
          !twwUU = 2.00 * SCORE_RNA(61)
          
-         tww = SCORE_RNA(61)
+         tww = SCORE_RNA(81)
          
-         cwwAA = SCORE_RNA(62)
-         cwwAG = SCORE_RNA(63)
-         cwwAC = SCORE_RNA(64)
-         cwwAU = SCORE_RNA(65)
-         cwwGC = SCORE_RNA(66)
-         cwwGU = SCORE_RNA(67)
-         cwwCC = SCORE_RNA(68)
-         cwwCU = SCORE_RNA(69)
-         cwwUU = SCORE_RNA(70)
+         cwwAA = SCORE_RNA(82)
+         cwwAG = SCORE_RNA(83)
+         cwwAC = SCORE_RNA(84)
+         cwwAU = SCORE_RNA(85)
+         cwwGC = SCORE_RNA(86)
+         cwwGU = SCORE_RNA(87)
+         cwwCC = SCORE_RNA(88)
+         cwwCU = SCORE_RNA(89)
+         cwwUU = SCORE_RNA(90)
                   
-         cwh = SCORE_RNA(71)
-         twh = SCORE_RNA(72)
-         cws = SCORE_RNA(73)
-         tws = SCORE_RNA(74)
-         chh = SCORE_RNA(75)
-         thh = SCORE_RNA(76)
-         chs = SCORE_RNA(77)
-         ths = SCORE_RNA(78)
-         css = SCORE_RNA(79)
-         tss = SCORE_RNA(80)
+         cwh = SCORE_RNA(91)
+         twh = SCORE_RNA(92)
+         cws = SCORE_RNA(93)
+         tws = SCORE_RNA(94)
+         chh = SCORE_RNA(95)
+         thh = SCORE_RNA(96)
+         chs = SCORE_RNA(97)
+         ths = SCORE_RNA(98)
+         css = SCORE_RNA(99)
+         tss = SCORE_RNA(100)
 
          !fill base information
          CALL ALLOC_NAPARAMS(NRES)
@@ -96,19 +96,23 @@ MODULE FILL_PARAMS
          !OPEN(UNIT=BINFOUNIT,FILE="bblist.dat",STATUS="old")   
          !READ(BINFOUNIT,*) (BLIST(I), BTYPE(I), BPROT(I), I =1, NRES)      
          !CLOSE(BINFOUNIT) 
+         !The assignment of base type is hard coded - if these assignment are changed the base pair information is incorrect
+         !DO NOT CHANGE UNLESS YOU CHANGE THE NA PARAMETER ASSIGNMENT!!!!!!!!
          BLIST(1:NRES) = RESFINAL(1:NRES)
          DO I=1,NRES
-            IF (RESNAMES(I)(1:1).EQ."G") THEN
+            IF ((RESNAMES(I)(1:1).EQ."G").OR.(RESNAMES(I)(1:2).EQ."DG")) THEN
                BTYPE(I) = 1
-               RESTYPES(I) = 0
-            ELSEIF (RESNAMES(I)(1:1).EQ."C") THEN 
+            ELSEIF ((RESNAMES(I)(1:1).EQ."C").OR.(RESNAMES(I)(1:2).EQ."DC")) THEN 
                BTYPE(I) = 3
-               RESTYPES(I) = 0
-            ELSEIF (RESNAMES(I)(1:1).EQ."A") THEN 
+            ELSEIF ((RESNAMES(I)(1:1).EQ."A").OR.(RESNAMES(I)(1:2).EQ."DA")) THEN 
                BTYPE(I) = 2
-               RESTYPES(I) = 0
-            ELSEIF (RESNAMES(I)(1:1).EQ."U") THEN
+            ELSEIF ((RESNAMES(I)(1:1).EQ."U").OR.(RESNAMES(I)(1:2).EQ."DT")) THEN
                BTYPE(I) = 4
+            ENDIF
+            ! set residue types (RNA or DNA)
+            IF (RESNAMES(I)(1:1).EQ."D") THEN
+               RESTYPES(I) = 1
+            ELSE 
                RESTYPES(I) = 0
             ENDIF
          ENDDO

@@ -115,7 +115,7 @@ MODULE CALCFORCES
          EVEC%ESB = THIS_E*SCALING(8)  
          !7. SAXS energy and force
          F_SAXS(1:NOPT) = 0.0D0
-         CALL RNA_SAXS_FORCE(NOPT, X, ESAXS, F_SAXS)
+         CALL RNA_SAXS_FORCE(NOPT, X, ESAXS, F_SAXS, .FALSE.)
          EVEC%ESAXS = ESAXS
          !8. Energy for any restraints
          ECONST = 0.0D0

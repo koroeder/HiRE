@@ -46,6 +46,8 @@ CG_masses = FA2CGmapper.assign_CGmasses(CG_labels)
 # get CG particle charges and types
 CG_charges, CG_partypes = FA2CGmapper.assign_par_properties(CG_labels)
 
+# extension to study DNA and RNA: assign whether we have RNA or DNA!
+moltype = ChemData.RNA_or_DNA(CG_resnames)
 
 # translate all information into topology data dictionary
 top_dict = topology.init_topology()
@@ -72,7 +74,7 @@ top_dict["rk"] = rk
 top_dict["req"] = req
 
 #angle information
-angles,angtype = ChemData.get_angles(top_dict["nmol"], CG_termini, CG_labels)
+angles,angtype = ChemData.get_angles(top_dict["nmol"], CG_termini, CG_labels, moltype)
 nangtypes,tk,teq,nangles,angles_top = ChemData.get_angleinfo(angles,angtype)
 top_dict["nangles"] = nangles
 top_dict["angs"] = angles_top
@@ -81,7 +83,7 @@ top_dict["tk"] = tk
 top_dict["teq"] = teq
 
 #dihedral information
-dihs,dihtypes = ChemData.get_dihs(top_dict["nmol"], CG_termini, CG_labels)
+dihs,dihtypes = ChemData.get_dihs(top_dict["nmol"], CG_termini, CG_labels, moltype)
 ntorstypes,pk,phi,ndihs,dihs_top,pn = ChemData.get_dihinfo(dihs,dihtypes)
 top_dict["ndihs"] = ndihs
 top_dict["dihs"] = dihs_top

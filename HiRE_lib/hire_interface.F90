@@ -218,6 +218,7 @@ MODULE HIRE_INTERFACE
 #ifdef __HIRE                        
          USE MOD_INIT, ONLY: INITIALISE_SAXS
          USE SAXS_DEFS
+         USE SAXS_CALCS, ONLY: SAXS_SETUP
 #endif
          LOGICAL, INTENT(IN) :: SAXST_, SAXSPRINT_,SAXSMODULT_,SAXSSOLT_,REFINET_
          INTEGER, INTENT(IN) :: NWATLAY_
@@ -232,7 +233,8 @@ MODULE HIRE_INTERFACE
          REFINET = REFINET_
          WATRAD = WATRAD_
          NWATLAY = NWATLAY_
-         CALL  INITIALISE_SAXS()
+         CALL INITIALISE_SAXS()
+
 #endif
       END SUBROUTINE SETUP_SAXS  
    
@@ -259,7 +261,7 @@ MODULE HIRE_INTERFACE
       !> should be 3*NATOMS as returned from HIRE_INITIALISE)
       !> @param[in] X - input coordinates
       !> @param[out] GRAD - SAXS force array (size is NOPT)
-      SUBROUTINE HIRE_SAXS_FORCE(NOPT, X, GRAD)
+      SUBROUTINE HIRE_SAXS_FORCE(NOPT, X, ESAXS, GRAD, GRADT)
 #ifdef __HIRE
          USE MOD_SAXS, ONLY: RNA_SAXS_FORCE
          USE SAXS_DEFS, ONLY: SAXSFORCET
@@ -267,14 +269,15 @@ MODULE HIRE_INTERFACE
          INTEGER, INTENT(IN) :: NOPT                    !should be 3*NATOMS
          REAL(KIND = R64), INTENT(IN) :: X(NOPT)     !input coordinates
          REAL(KIND = R64), INTENT(OUT) :: GRAD(NOPT) !gradient
-         REAL(KIND = R64) :: EDUMMY            
+         REAL(KIND = R64), INTENT(OUT) :: ESAXS     
+         LOGICAL, INTENT(IN) :: GRADT      
          GRAD(:) = 0.0D0
-         EDUMMY = 1.0D10     
+         ESAXS = 1.0D10     
 #ifdef __HIRE       
          ! set whether we calculate SAXS
          SAXSFORCET = .TRUE.
          !call subroutine to calculate force and energy
-         CALL RNA_SAXS_FORCE(NOPT, X, EDUMMY, GRAD)
+         CALL RNA_SAXS_FORCE(NOPT, X, ESAXS, GRAD, GRADT)
          GRAD(:)=-GRAD(:)
 #endif
       END SUBROUTINE HIRE_SAXS_FORCE

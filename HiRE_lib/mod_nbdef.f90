@@ -7,13 +7,13 @@ MODULE NBDEFS
    USE PREC_HIRE
    ! Non-bonded variables
    ! NTYPES is the number of particle types, found in the .top file
-   ! While the number can potentially change, we have 15 types implemented 
+   ! While the number can potentially change, we have 17 types implemented 
    ! Currently, it's taken to be :
-   ! 1: C5*  2: O5*  3: P  4: CA  5: CY
-   ! 6,7: G1,2  8,9: A1,2  10: U1  11: C1
-   ! 12: D 13: MG 14: NA  15:CL
+   ! 1: C5*  2: O5*  3: P  4: CA  5: CY (RNA), 6: CY (DNA),
+   ! 7,8: G1,2  9,10: A1,2  11: U1  12: C1, 13: T1,
+   ! 14: D 15: MG 16: NA  17: CL
    !> Number of different particles currently implemented
-   INTEGER, PARAMETER  :: NTYPES = 15              
+   INTEGER, PARAMETER  :: NTYPES = 17              
    !> Size paramters for general beads
    REAL(KIND = REAL64) :: NBCT2GEN   = 3.6D0
    !> Size paramters for C4 beads   
@@ -39,8 +39,8 @@ MODULE NBDEFS
    REAL(KIND = REAL64) :: NBSCORE(NTYPES,NTYPES)
    !> Charges of particle types, these charges should never change!
    REAL(KIND = REAL64), DIMENSION(NTYPES), PARAMETER ::  &
-                         CHRG = (/0.0, 0.0,-1.0, 0.0, 0.0, &
-                                  0.0, 0.0, 0.0, 0.0, 0.0, &
+                         CHRG = (/0.0, 0.0,-1.0, 0.0, 0.0, 0.0, &
+                                  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, &
                                   0.0, 0.0, 2.0, 1.0,-1.0 /) 
                                                
    CONTAINS
@@ -57,34 +57,36 @@ MODULE NBDEFS
          ! CY are bigger - not used
          NBCT2(5,1:NTYPES) = NBCT2CY      
          NBCT2(1:NTYPES,5) = NBCT2CY
+         NBCT2(6,1:NTYPES) = NBCT2CY      
+         NBCT2(1:NTYPES,6) = NBCT2CY      
          ! bases beads size 
-         NBCT2(6:11,6:11) = NBCT2BASE
+         NBCT2(7:13,7:13) = NBCT2BASE
          ! phosphorus size       
          NBCT2(3,3) = NBCT2PP
          ! Dummy particles
-         NBCT2(12,1:NTYPES) = NBCT2DUMMY
-         NBCT2(1:NTYPES,12) = NBCT2DUMMY
+         NBCT2(14,1:NTYPES) = NBCT2DUMMY
+         NBCT2(1:NTYPES,14) = NBCT2DUMMY
          !effective radius adjustments
          ! P-P  and Mg++, Na+ and Cl- interactions
-         NBSCORE(3,13:15) = NBRADLARGE ! P-ion interactions
-         NBSCORE(13:15,3) = NBRADLARGE ! P-ion interactions
-         NBSCORE(13,14:15) = NBRADLARGE ! Mg - Na,Cl interactions
-         NBSCORE(14:15,13) = NBRADLARGE ! Na,Cl - Mg interactions
+         NBSCORE(3,15:17) = NBRADLARGE ! P-ion interactions
+         NBSCORE(15:17,3) = NBRADLARGE ! P-ion interactions
+         NBSCORE(15,16:17) = NBRADLARGE ! Mg - Na,Cl interactions
+         NBSCORE(16:17,15) = NBRADLARGE ! Na,Cl - Mg interactions
          NBSCORE(3,3) = NBRADLARGE   ! P-P interactions 
-         NBSCORE(13,13) = NBRADLARGE ! Mg++ interactions      
+         NBSCORE(15,15) = NBRADLARGE ! Mg++ interactions      
       END SUBROUTINE SET_NBPARAMS
  
       !> Routine to populate all NB arrays
       SUBROUTINE SET_NBPARAMS_NEW()
          USE NAPARAMS, ONLY: SCORE_RNA
-         NBCT2BASE = SCORE_RNA(25)
-         NBCT2GEN = SCORE_RNA(26)
-         NBCT2C4 = SCORE_RNA(27)
-         NBCT2CY = SCORE_RNA(28)
-         NBCT2PP = SCORE_RNA(29)
+         NBCT2BASE = SCORE_RNA(44)
+         NBCT2GEN = SCORE_RNA(45)
+         NBCT2C4 = SCORE_RNA(46)
+         NBCT2CY = SCORE_RNA(47)
+         NBCT2PP = SCORE_RNA(48)
 
-         NBRADGEN = SCORE_RNA(30)
-         NBRADLARGE = SCORE_RNA(31)
+         NBRADGEN = SCORE_RNA(49)
+         NBRADLARGE = SCORE_RNA(50)
          CALL SET_NBPARAMS()
       END SUBROUTINE SET_NBPARAMS_NEW
       

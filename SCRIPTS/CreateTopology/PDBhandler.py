@@ -199,6 +199,7 @@ def parse_CGpdb(inpfile):
 
 
 
+
 # Can run this script alone to check everything is parsed correctly
 if __name__ == "__main__":
     natom,nres,atomnames,elements,res,resnames,coordsbyres,termini = parse_pdb(sys.argv[1])

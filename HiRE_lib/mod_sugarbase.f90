@@ -25,14 +25,15 @@ MODULE MOD_SUGARBASE
          INTEGER :: I, J, FIRST, LAST, IDBASE, IDSUGAR
          CHARACTER(4) :: ATNAME
 
-         SB_SCALE = SCORE_RNA(55)
-         ALJ12 = SCORE_RNA(56)
-         BLJ6 = SCORE_RNA(57)
+         SB_SCALE = SCORE_RNA(75)
+         ALJ12 = SCORE_RNA(76)
+         BLJ6 = SCORE_RNA(77)
 
          CALL DEALLOC_SB()
 
          DO I=1,NRES
             !only for RNA
+            !TODO add DNA here
             IF (RESTYPES(I).EQ.0) THEN
                FIRST = RESSTART(I)
                LAST = RESFINAL(I)
