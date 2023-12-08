@@ -714,7 +714,8 @@ MODULE MCmod
       DOTWIST = .FALSE.
       DOPULL = .FALSE.
       DOCARTSTEP = .FALSE.
-     DOGRADMODSTEP = .FALSE.
+      DOGRADMODSTEP = .FALSE.
+      DOSAXSSTEP = .FALSE.
       !largest move have highest priority
       IF (BPHINGET.AND.MOD(J1,BPHINGEFREQ).EQ.0) THEN
          DOHINGE = .TRUE.
