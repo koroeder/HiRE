@@ -1,0 +1,30 @@
+MODULE UTILS_MATHS
+   USE PREC_HIRE
+   USE NUM_DEFS
+   IMPLICIT NONE
+   REAL(KIND=REAL64), PARAMETER :: T = 1/(2.0*PI)
+   REAL(KIND=REAL64), PARAMETER :: PIHALF = 0.5*PI
+   CONTAINS
+      FUNCTION MYCOS(X) RESULT(Y)
+         REAL(KIND=REAL64), INTENT(IN) :: X
+         REAL(KIND=REAL64) :: Y, X1, X2, X3
+
+         X1 = X*T
+         X2 = X1 - 0.25 - FLOOR(X1+0.25)
+         !Y = 16*X2*(ABS(X2)-0.5)
+         X3 = 16*X2*(ABS(X2)-0.5)
+         Y = X3 +0.225*X3*(ABS(X3)-1)
+      END FUNCTION MYCOS
+
+      FUNCTION MYSIN(X) RESULT(Y)
+         REAL(KIND=REAL64), INTENT(IN) :: X
+         REAL(KIND=REAL64) :: Y, X1, X2, X3
+
+         X1 = (X-PIHALF)*T
+         X2 = X1 - 0.25 - FLOOR(X1+0.25)
+         !Y = 16*X2*(ABS(X2)-0.5)
+         X3 = 16*X2*(ABS(X2)-0.5)
+         Y = X3 +0.225*X3*(ABS(X3)-1)
+      END FUNCTION MYSIN     
+
+END MODULE UTILS_MATHS

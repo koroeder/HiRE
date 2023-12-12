@@ -113,6 +113,7 @@ MODULE SAXS_CALCS
 
       SUBROUTINE GENERATE_SAXS_CURVE(X, LOGI, ESAXS, FSAXS, GRADT)
          USE VEC_UTILS, ONLY: VEC_DIFF, NORMED_VEC
+         USE UTILS_MATHS
          IMPLICIT NONE
          REAL(KIND=REAL64), INTENT(IN) :: X(3*NPARTICLES)
          REAL(KIND=REAL64), INTENT(OUT) :: LOGI(NQPOINTS)
@@ -165,7 +166,8 @@ MODULE SAXS_CALCS
                I1Q = I1Q + SF_LOCAL(I,I)
                DO J=I+1,NPARTICLES
                   ARG = DISTMATRIX(J,I) * QPHYS
-                  I1Q = I1Q + 2*SF_LOCAL(I,J)*SIN(ARG)/ARG
+                  !I1Q = I1Q + 2*SF_LOCAL(I,J)*DSIN(ARG)/ARG
+                  I1Q = I1Q + 2*SF_LOCAL(I,J)*MYSIN(ARG)/ARG
                END DO
             END DO
             I1(Q) = I1Q
@@ -176,7 +178,7 @@ MODULE SAXS_CALCS
          !t1 = t2
 
          !apply logarithms
-         LOGI(1:NQPOINTS) = LOG10(I1(1:NQPOINTS))
+         LOGI(1:NQPOINTS) = DLOG10(I1(1:NQPOINTS))
          !Define target curve
          I0(1:NQPOINTS) = 10**TARGET_CURVE(1:NQPOINTS)
          !Use correction
@@ -207,13 +209,12 @@ MODULE SAXS_CALCS
                      JDX = 3*J
                      R(1:3) = VEC_DIFF(X(IDX-2:IDX),X(JDX-2:JDX))
                      R2 = DOT_PRODUCT(R,R)
-                     QR = QPHYS*SQRT(R2)
-                     FGRAIN = (R/R2)*SF_LOCAL(I,J)*(COS(QR)-SIN(QR)/QR)
+                     QR = QPHYS*DSQRT(R2)
+                     !FGRAIN = (R/R2)*SF_LOCAL(I,J)*(DCOS(QR)-DSIN(QR)/QR)
+                     FGRAIN = (R/R2)*SF_LOCAL(I,J)*(MYCOS(QR)-MYSIN(QR)/QR)
                      FACTING = 2*FGRAIN*F_PRE
                      FSAXS(IDX-2:IDX) = FSAXS(IDX-2:IDX) + FACTING
-                     IF (J.LT.NPARTICLES) THEN
-                        FSAXS(JDX-2:JDX) = FSAXS(JDX-2:JDX) - FACTING
-                     END IF
+                     FSAXS(JDX-2:JDX) = FSAXS(JDX-2:JDX) - FACTING
                   END DO
                END DO
             END DO
