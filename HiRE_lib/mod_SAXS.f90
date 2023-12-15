@@ -21,7 +21,7 @@ MODULE MOD_SAXS
       !>
       !> @see GENERATE_SAXS_CURVE 
       !> @see WRITE_SAXS_CURVE_TO_UNIT
-      SUBROUTINE RNA_SAXS_FORCE(NOPT, X, ESAXS, F, GRADT)
+      SUBROUTINE RNA_SAXS_FORCE(NOPT, X, ESAXS, F, GRADT, HYDRATET)
          USE NAPARAMS, ONLY: SCORE_RNA
          USE NUM_DEFS, ONLY: PI
          USE SAXS_CALCS
@@ -30,6 +30,7 @@ MODULE MOD_SAXS
          REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force
          REAL(KIND = REAL64), INTENT(OUT) :: ESAXS
          LOGICAL, INTENT(IN) :: GRADT !use SAXS force?
+         LOGICAL, INTENT(IN) :: HYDRATET !use hydration routine
 
          REAL(KIND = REAL64) :: KSAXS, KDECRE, KMODUL
          REAL(KIND = REAL64), DIMENSION(NQPOINTS) :: LOGI
@@ -54,14 +55,22 @@ MODULE MOD_SAXS
             ! WRITE(*,*) "KMODUL, KDECRE ", KMODUL, KDECRE
             !QUERY: Replace this magic number by a parameter or variable?
             IF (KMODUL * KDECRE .GE. 2.0D-2) THEN
-               CALL GENERATE_SAXS_CURVE(X, LOGI, ESAXS, F, GRADT)
+               IF (HYDRATET) THEN
+                  CALL GENERATE_SAXS_CURVE_HYDRATE(X, LOGI, ESAXS, F)
+               ELSE
+                  CALL GENERATE_SAXS_CURVE(X, LOGI, ESAXS, F, GRADT)
+               END IF
                ESAXS = KSAXS*ESAXS*KMODUL*KDECRE
                F(1:NOPT) = KSAXS*KMODUL*KDECRE*F(1:NOPT)
             ELSE
                ESAXS = 0.0D0
             ENDIF
             IF (KMODUL * KDECRE .LE. 1.0D-10) THEN
-               CALL GENERATE_SAXS_CURVE(X, LOGI, ESAXS, F, GRADT)
+               IF (HYDRATET) THEN
+                  CALL GENERATE_SAXS_CURVE_HYDRATE(X, LOGI, ESAXS, F)
+               ELSE
+                  CALL GENERATE_SAXS_CURVE(X, LOGI, ESAXS, F, GRADT)
+               END IF
                ESAXS = KSAXS*ESAXS
                CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
                WRITE(*,*) 'SAXS score: ', ESAXS

@@ -15,6 +15,8 @@ PROGRAM HIRE_CALC
    REAL(KIND = REAL64) :: E, RMS, ESAXS
    CHARACTER(LEN=12) :: DUMMY
    LOGICAL :: YESNO
+   LOGICAL :: CALC_HYDRATIONT = .FALSE. !calculate hydration
+   LOGICAL :: CALC_FORCET = .TRUE. !calculate SAXS force
    LOGICAL           :: SAXSMODULT = .FALSE.      !modulate SAXS force with decreasing and periodic factor?
    REAL(KIND=REAL64) :: SAXSINVSIG = 2.5          !broadness of the periodic modulation
    REAL(KIND=REAL64) :: SAXSWAVE = 100.0          !length of the decreasing modulation 
@@ -65,6 +67,8 @@ PROGRAM HIRE_CALC
       READ(PUNIT, *) DUMMY, REFINET
       READ(PUNIT, *) DUMMY, WATRAD
       READ(PUNIT, *) DUMMY, NWATLAY
+      READ(PUNIT, *) DUMMY, CALC_HYDRATIONT
+      READ(PUNIT, *) DUMMY, CALC_FORCET
       CLOSE(PUNIT)
    ELSE
       WRITE(STDOUT, '(A)') " Using default SAXS parameters"
@@ -77,7 +81,7 @@ PROGRAM HIRE_CALC
 #ifdef FOR_PROFILING 
    DO I=1,10
 #endif
-      CALL HIRE_SAXS_FORCE(3*NATOMS,X,ESAXS,SAXSFORCE,.TRUE.)
+      CALL HIRE_SAXS_FORCE(3*NATOMS,X,ESAXS,SAXSFORCE,CALC_FORCET,CALC_HYDRATIONT)
 #ifdef FOR_PROFILING
    END DO
 #endif
