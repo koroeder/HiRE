@@ -50,6 +50,7 @@ MODULE MCmod
       INTEGER             :: NUCF, NUCT
 
       REAL(KIND = REAL64) :: SAXSSTEPSIZE, TSAXS1, TSAXS2, ESAXS, SAXSFORCE(3*NATOMS)
+      REAL(KIND = REAL64), PARAMETER :: DECSAXSLIMIT=0.9, INCSAXSLIMIT=1.1
 
       IF (.NOT.ALLOCATED(BESTCOORDS)) ALLOCATE(BESTCOORDS(3*NATOMSALLOC,NPAR))
       IF (.NOT.ALLOCATED(SAVECOORDS)) ALLOCATE(SAVECOORDS(3*NATOMSALLOC))
@@ -343,7 +344,8 @@ MODULE MCmod
             IF (SAXSSTEPST.AND.DOSAXSSTEP) THEN
                WRITE(MYUNIT,'(A)') " mc> Attempt SAXS force step"
                CALL CPU_TIME(TSAXS1)
-               CALL HIRE_SAXS_FORCE(3*NATOMS,COORDS(:,JP),ESAXS,SAXSFORCE,.TRUE.)
+               ! get hire energy and gradient (the last trwo optiosn set force calculations to true and hydration to false)
+               CALL HIRE_SAXS_FORCE(3*NATOMS,COORDS(:,JP),ESAXS,SAXSFORCE,.TRUE.,.FALSE.)
                CALL CPU_TIME(TSAXS2)
                WRITE(MYUNIT,*) " mc> SAXS force: ", DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS))
                SAXSSTEPSIZE = RMSLIMITSAXS/MAX(DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS)), 1.0D-100)
@@ -455,6 +457,10 @@ MODULE MCmod
                EPREV(JP)=POTEL
                REJSTREAK=0
                COORDSO(1:3*NATOMS,JP)=COORDS(1:3*NATOMS,JP)
+               IF (DOSAXSSTEP) THEN
+                  RMSLIMITSAXS = RMSLIMITSAXS*INCSAXSLIMIT
+                  WRITE(*,*) " mc> Increasing SAXS step size limit to ", RMSLIMITSAXS
+               END IF
             ELSE
                NFAIL(JP)=NFAIL(JP)+1
                REJSTREAK=REJSTREAK+1
@@ -464,6 +470,10 @@ MODULE MCmod
                   WRITE(MYUNIT,36) JP,RANDOM,POTEL,EPREV(JP),NSUCCESS(JP),NFAIL(JP)
 36                FORMAT('JP,RAN,POTEL,EPREV,NSUC,NFAIL=',I2,3F15.7,2I6,' REJ')
                ENDIF
+               IF (DOSAXSSTEP) THEN
+                  RMSLIMITSAXS = RMSLIMITSAXS*DECSAXSLIMIT
+                  WRITE(*,*) " mc> Decreasing SAXS step size limit to ", RMSLIMITSAXS
+               END IF
             ENDIF
 
             ! Check the acceptance ratio. 
