@@ -222,6 +222,7 @@ MODULE SAXS_CALCS
                END DO
             END DO
          ELSE
+            CSCALE = I0(1)/I1(1)
             DO Q=2,NQPOINTS
                QPHYS = QPOINTS(Q)
                DIFF = CSCALE*I1(Q) - I0(Q)
@@ -546,7 +547,7 @@ MODULE SAXS_CALCS
          INTEGER :: NSOL ! actual number of solvent grains
          INTEGER :: CONTACT_NUM !number of contacts with grains
          REAL(KIND=REAL64) :: X, Y, Z !grid point position
-         INTEGER :: I, IDX 
+         INTEGER :: IDX 
          REAL(KIND=REAL64) :: CUTINT, CUTEXT, RIJ !grain specific cutoff and distances
 
          ! get cutoffs for all grains
@@ -573,7 +574,7 @@ MODULE SAXS_CALCS
                   Z = IZ*DX
                   CONTACT_NUM = 0 
                   ! cycle over all grains - are there clashes or good contacts?
-                  DO I=1,NPARTICLES
+                  DO IDX=1,NPARTICLES
                      CUTINT = CUTOFF_INTERNAL(IDX)
                      CUTEXT = CUTOFF_EXTERNAL(IDX)
                      IDX = 3*I

@@ -35,6 +35,8 @@ MODULE MOD_SUGARBASE
             !only for RNA
             !TODO add DNA here
             IF (RESTYPES(I).EQ.0) THEN
+               IDBASE = -1
+               IDSUGAR = -1
                FIRST = RESSTART(I)
                LAST = RESFINAL(I)
                DO J=FIRST,LAST
@@ -45,6 +47,9 @@ MODULE MOD_SUGARBASE
                      IDBASE = J
                   END IF
                END DO
+               IF ((IDBASE.EQ.-1).OR.(IDSUGAR.EQ.-1)) THEN
+                  WRITE(*,*) " init_sugarbase> Cannot find sugar and base particles, IDBASE=", IDBASE, ", IDSUGAR=",IDSUGAR
+               END IF
                NSBPAIRS = NSBPAIRS + 1
                DUMMY_PAIRS(NSBPAIRS,1) = IDSUGAR
                DUMMY_PAIRS(NSBPAIRS,2) = IDBASE

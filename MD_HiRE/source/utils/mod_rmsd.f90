@@ -81,6 +81,7 @@ MODULE MOD_RMSD
          !Eigendecomposition fo the quarternion
          CALL DSYEV('V','U',4,QMAT,4,DIAG,TEMPA,LWORK,INFO)
          MINV=1.0D100
+         JMIN=0
          DO J=1,4
             IF (DIAG(J).LT.MINV) THEN
                JMIN=J
