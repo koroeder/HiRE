@@ -112,6 +112,8 @@ MODULE FILL_PARAMS
             ! set residue types (RNA or DNA)
             IF (RESNAMES(I)(1:1).EQ."D") THEN
                RESTYPES(I) = 1
+            ELSE IF ((RESNAMES(I).EQ."MG").OR.(RESNAMES(I).EQ."CL").OR.(RESNAMES(I).EQ."NA")) THEN
+               RESTYPES(I) = 3
             ELSE 
                RESTYPES(I) = 0
             ENDIF
