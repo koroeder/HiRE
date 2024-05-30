@@ -132,11 +132,11 @@ MODULE MOD_BASESTACKING
          CosT01 = CosT*ct01 + sqrt(1-CosT*CosT)*st01
          CosT02 = CosT*ct02 + sqrt(1-CosT*CosT)*st02
 
-         Estkrs = -SK * dexp(-r2**2) * DotP * DotP
+         Estkrs = -SK * dexp(-r2**2) * DotP * DotP * SCALE_STACKING
          Estk = Estkrs*(exp(-GM*(1-CosT01))+exp(-GM*(1-CosT02)))
 !         Estkrs = 1
       
-         Dsp = -2*SK * dexp(-r2**2)  * DotP *(exp(-GM*(1-CosT01))+exp(-GM*(1-CosT02)))
+         Dsp = -2*SK * dexp(-r2**2)  * DotP *(exp(-GM*(1-CosT01))+exp(-GM*(1-CosT02))) * SCALE_STACKING
 
       ! Bypass derivatives calculation if E is very small
       ! This also prevents unstabilities arising from cos(x) ~= 0      
