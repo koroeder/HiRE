@@ -27,6 +27,14 @@ MODULE MD_SETUP
          ! allocate the relevant arrays
          CALL ALLOC_COMMONS()
 
+         ! get particle masses
+         CALL PASS_HIRE_MASSES(NATOMS,MASSES)
+         TOTALMASS = SUM(MASSES)
+         TMASSINV = 1.0D0/TOTALMASS
+         !get particle names
+         CALL PASS_PARTICLE_NAMES(NATOMS,ATNAMES)
+         !get elements
+         CALL PARTS2ELS()
 
          IF (.NOT.RESTARTSIMT) THEN
             ! get coordinates
@@ -44,14 +52,7 @@ MODULE MD_SETUP
             END IF
          END IF
 
-         ! get particle masses
-         CALL PASS_HIRE_MASSES(NATOMS,MASSES)
-         TOTALMASS = SUM(MASSES)
-         TMASSINV = 1.0D0/TOTALMASS
-         !get particle names
-         CALL PASS_PARTICLE_NAMES(NATOMS,ATNAMES)
-         !get elements
-         CALL PARTS2ELS()
+
       END SUBROUTINE SETUP_POTENTIAL
 
       SUBROUTINE PARTS2ELS()
