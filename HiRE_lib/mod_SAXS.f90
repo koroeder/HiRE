@@ -72,16 +72,18 @@ MODULE MOD_SAXS
                   CALL GENERATE_SAXS_CURVE(X, LOGI, ESAXS, F, GRADT)
                END IF
                ESAXS = KSAXS*ESAXS
-               CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
-               WRITE(*,*) 'SAXS score: ', ESAXS
+               !CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
+               !WRITE(*,*) 'SAXS score: ', ESAXS
                ESAXS = 0.0D0
             ENDIF
             IF (SAXS_PRINT .AND. KMODUL * KDECRE .GE. 2.0D-2) THEN
-               CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
+               !CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
                !WRITE(SAXSS, *) KMODUL*KDECRE, ESAXS
-               WRITE(*,*) 'SAXS score: ', ESAXS, KMODUL*KDECRE
+               WRITE(*,*) 'SAXS score: ', ESAXS, KMODUL*KDECRE, SAXS_PRINT
             END IF
-            !WRITE(*,*) 'SAXS score: ', ESAXS
+            CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
+            WRITE(*,*) 'SAXS score: ', ESAXS
+            WRITE(*,*) 'SAXS score: ', ESAXS
             !WRITE(*,*) 'SAXS force: ', F
          END IF 
       END SUBROUTINE RNA_SAXS_FORCE

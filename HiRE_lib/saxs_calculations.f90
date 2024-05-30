@@ -125,7 +125,7 @@ MODULE SAXS_CALCS
          !variables for calculation of curve
          REAL(KIND=REAL64) :: I1(NQPOINTS), I0(NQPOINTS), I1Q   !intensities
          REAL(KIND=REAL64) :: SF_LOCAL(NPARTICLES,NPARTICLES)   !structure factors for current Q
-         REAL(KIND=REAL64) :: ARG, CSCALE, FSCALE, EDUMMY, QPHYS !dummy variables for memorisation
+         REAL(KIND=REAL64) :: ARG, CSCALE, FSCALE, EDUMMY, QPHYS, WC !dummy variables for memorisation
          REAL(KIND=REAL64) :: DIFF, DIFFQ, F_PRE, R2, QR, T1, T2 !dummy variables for memorisation
          REAL(KIND=REAL64) :: R(3), FGRAIN(3), FACTING(3) ! dummy variables for memorisation
          INTEGER :: Q, I, J, IDX, JDX
@@ -199,9 +199,12 @@ MODULE SAXS_CALCS
             DO Q=2,NQPOINTS
                QPHYS = QPOINTS(Q)
                DIFF = CSCALE*I1(Q) - I0(Q)
-               DIFFQ = DIFF*QPHYS
-               EDUMMY = EDUMMY + DIFFQ**2
-               F_PRE = -2*QPHYS*DIFFQ*FSCALE
+               !DIFFQ = DIFF*QPHYS
+               WC = 0.02 + QPHYS + 5*QPHYS**2
+               !EDUMMY = EDUMMY + DIFFQ**2
+               EDUMMY = EDUMMY + (DIFF*WC)**2
+               !F_PRE = -2*QPHYS*DIFFQ*FSCALE
+               F_PRE = -2*FSCALE*DIFF*WC**2
                SF_LOCAL(:,:) = STRUCT_FACTORS_PRODS_CG(Q,:,:)
                DO I = 1,NPARTICLES
                   IDX = 3*I
@@ -232,9 +235,11 @@ MODULE SAXS_CALCS
          !t1 = t2
 
          !normalise
-         ESAXS = EDUMMY/(NQPOINTS*I1(1))
+         ESAXS = EDUMMY/(NQPOINTS*I0(1))
          DEALLOCATE(DISTMATRIX)
 
+         WRITE(*,*) "ESAXS", ESAXS
+         
          !call cpu_time(t2)
          !WRITE(*,*) "end of routine, time taken: ", t2-t1
          !WRITE(*,*) "--------------------"
