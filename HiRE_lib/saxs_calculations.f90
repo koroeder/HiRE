@@ -547,7 +547,7 @@ MODULE SAXS_CALCS
          INTEGER :: NSOL ! actual number of solvent grains
          INTEGER :: CONTACT_NUM !number of contacts with grains
          REAL(KIND=REAL64) :: X, Y, Z !grid point position
-         INTEGER :: IDX 
+         INTEGER :: I, IDX 
          REAL(KIND=REAL64) :: CUTINT, CUTEXT, RIJ !grain specific cutoff and distances
 
          ! get cutoffs for all grains
@@ -574,9 +574,9 @@ MODULE SAXS_CALCS
                   Z = IZ*DX
                   CONTACT_NUM = 0 
                   ! cycle over all grains - are there clashes or good contacts?
-                  DO IDX=1,NPARTICLES
-                     CUTINT = CUTOFF_INTERNAL(IDX)
-                     CUTEXT = CUTOFF_EXTERNAL(IDX)
+                  DO I=1,NPARTICLES
+                     CUTINT = CUTOFF_INTERNAL(I)
+                     CUTEXT = CUTOFF_EXTERNAL(I)
                      IDX = 3*I
                      !get distance between grain and grid point
                      RIJ = (XYZ(IDX-2)-X)**2 
