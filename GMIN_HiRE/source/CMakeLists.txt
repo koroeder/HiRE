@@ -125,8 +125,12 @@ set(ALL_EXTRA_SOURCES ${ALL_DUMMIES})
 ########################
 
 # Find BLAS and LAPACK libraries
-find_package(MYBLAS)
-find_package(MYLAPACK)
+find_package(BLAS)
+find_package(LAPACK)
+if(LAPACK_FOUND AND BLAS_FOUND)
+   set(lapackblas_libraries ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+endif()
+
 
 # Make an extras library for dummies, this is necessary because some of the
 # files in gminlib use modules made by extralib
@@ -134,6 +138,7 @@ add_library(extralib ${ALL_EXTRA_SOURCES})
 set_module_dir(extralib)
 set_target_properties(extralib PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(extralib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};${DUMMY_CPP_FLAGS};__SPARSE")
+target_link_libraries(extralib ${lapackblas_libraries})
 
 option(PROF_VER "Enable profiling" OFF)
 if(PROF_VER)
@@ -191,6 +196,7 @@ set_module_depends(HIREGMIN gminlib
                             hire_base)
 set_target_properties(HIREGMIN PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(HIREGMIN PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
+target_link_libraries(HIREGMIN ${lapackblas_libraries})
 target_link_libraries(HIREGMIN gminlib 
 			             hire_base
                       ${MYLAPACK_LIBS} )

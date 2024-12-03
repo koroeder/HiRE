@@ -91,11 +91,18 @@ include_directories(${CMAKE_SOURCE_DIR})
 file(GLOB HIRE_LIB_SOURCES ${GIT_ROOT}/HiRE_lib/*.f90
                            ${GIT_ROOT}/HiRE_lib/*.F90)
 
+find_package(BLAS)
+find_package(LAPACK)
+if(LAPACK_FOUND AND BLAS_FOUND)
+   set(lapackblas_libraries ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+endif()
+
 # Make a hire library
 add_library(hirelib ${HIRE_LIB_SOURCES})
 set_module_dir(hirelib)
 set_target_properties(hirelib PROPERTIES LINKER_LANGUAGE "Fortran")
 set_target_properties(hirelib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE") 
+target_link_libraries(hirelib ${lapackblas_libraries})
 
 option(ANALYSIS_VER "Enable printing for structural analysis" OFF)
 if(ANALYSIS_VER)
@@ -120,5 +127,6 @@ add_executable(HIRE main.F90)
 set_target_properties(HIRE PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(HIRE PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE")
 set_module_depends(HIRE hirelib)
+target_link_libraries(HIRE ${lapackblas_libraries})
 target_link_libraries(HIRE hirelib)
 
