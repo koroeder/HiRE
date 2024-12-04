@@ -123,13 +123,12 @@ add_library(extralib ${ALL_EXTRA_SOURCES})
 set_module_dir(extralib)
 set_target_properties(extralib PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(extralib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__SPARSE")
-target_link_libraries(extralib ${lapackblas_libraries})
 
 add_library(mdlib ${MD_SOURCES})
 set_module_dir(mdlib)
 set_module_depends(mdlib extralib)
 set_target_properties(mdlib PROPERTIES LINKER_LANGUAGE "Fortran") 
-
+target_link_libraries(mdlib ${lapackblas_libraries})
 
 # MPI flag 
 option(WITH_MPI "Enable MPI compilation" OFF)
