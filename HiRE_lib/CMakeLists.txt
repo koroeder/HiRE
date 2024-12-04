@@ -33,6 +33,12 @@ file(GLOB HIREINTERFACE ${GIT_ROOT}/HiRE_lib/hire_interface.F90)
 
 list(REMOVE_ITEM HiRE_SOURCES ${HIREINTERFACE})
 
+find_package(BLAS)
+find_package(LAPACK)
+if(LAPACK_FOUND AND BLAS_FOUND)
+   set(lapackblas_libraries ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+endif()
+
 # Build a base library
 add_library(hire_base ${HiRE_SOURCES})
 set_module_dir(hire_base)
@@ -43,4 +49,5 @@ set_module_dir(hirelib)
 set_module_depends(hirelib hire_base)
 set_target_properties(hirelib PROPERTIES LINKER_LANGUAGE "Fortran")
 set_target_properties(hirelib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE") 
+target_link_libraries(hirelib ${lapackblas_libraries})
 target_link_libraries(hirelib hire_base)
