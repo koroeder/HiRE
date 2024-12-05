@@ -135,6 +135,7 @@ option(WITH_MPI "Enable MPI compilation" OFF)
 if(WITH_MPI)
   # append -DMPI to compile definitions
   add_definitions(-DMPI) 
+  add_definitions(-fallow-argument-mismatch)
   message("building with MPI: \n  ${CMAKE_Fortran_FLAGS}")   
 endif(WITH_MPI)
 
