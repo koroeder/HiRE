@@ -16,6 +16,8 @@ MODULE MOD_HBONDS
    REAL(KIND = REAL64) :: Y
    !> Gaussian width for point-plane distance
    REAL(KIND = REAL64) :: GAUSSW
+   !> Scaling variable for new planar function
+   REAL(KIND = REAL64) :: ALPHA
    !> Interaction scaling
    REAL(KIND = REAL64) :: INTSCALE  
   
@@ -28,7 +30,8 @@ MODULE MOD_HBONDS
          CTIT = SCORE_RNA(70)
          P = INT(SCORE_RNA(71))
          Y = SCORE_RNA(72)
-         GAUSSW = SCORE_RNA(73)
+         !GAUSSW = SCORE_RNA(73)
+         ALPHA = SCORE_RNA(73)
          INTSCALE = SCORE_RNA(74)
       END SUBROUTINE SET_HBVARS 
 
@@ -91,16 +94,18 @@ MODULE MOD_HBONDS
          !ELSE IF (MTYPEI.EQ.1) THEN
          !   DISTEQ = PDEQ_DNA(TJ, 3-IDX)
          !END IF
-         CALL PlaneV(NOPT, I-B, I-A, I, JP-IDX, X, ENP1, FNP1_I(:,3), FNP1_I(:,2), FNP1_I(:,1), FTEMP_J)!, distEq)
+         ! Removing PlaneV --> 26/3/2025
+         !CALL PlaneV(NOPT, I-B, I-A, I, JP-IDX, X, ENP1, FNP1_I(:,3), FNP1_I(:,2), FNP1_I(:,1), FTEMP_J)!, distEq)
          !determine planarity for J
          !IF (MTYPEJ.EQ.0) THEN
          !   DISTEQ = PDEQ_RNA(TI, 3-IDX)
          !ELSE IF (MTYPEI.EQ.1) THEN
          !   DISTEQ = PDEQ_DNA(TI, 3-IDX)
          !END IF
-         CALL PlaneV(NOPT, JP-B, JP-A, JP, I-IDX, X, ENP2, FNP2_J(:,3), FNP2_J(:,2), FNP1_J(:,1), FTEMP_I)!, distEq)
-         FNP1_J(1:3, IDX + 1) = FNP1_J(1:3, IDX + 1) + FTEMP_J
-         FNP2_I(1:3, IDX + 1) = FNP2_I(1:3, IDX + 1) + FTEMP_I
+         ! Removing PlaneV --> 26/3/2025
+         !CALL PlaneV(NOPT, JP-B, JP-A, JP, I-IDX, X, ENP2, FNP2_J(:,3), FNP2_J(:,2), FNP1_J(:,1), FTEMP_I)!, distEq)
+         !FNP1_J(1:3, IDX + 1) = FNP1_J(1:3, IDX + 1) + FTEMP_J
+         !FNP2_I(1:3, IDX + 1) = FNP2_I(1:3, IDX + 1) + FTEMP_I
 
          CALL HBNEW(BI, BJ, MTYPEI, MTYPEJ, I, TI, J, TJ, NOPT, X, EHHB, HBEXIST, FHB_I, FHB_J, ENP1, ENP2)
 
@@ -277,6 +282,8 @@ MODULE MOD_HBONDS
          !variables in the energy and force calculations
          REAL(KIND = REAL64) :: D2, EHHA, VANGL, EHB, dEHB(3)
          REAL(KIND = REAL64) :: ANGA, ANGB, RALPA(3), RALPB(3)
+         !new term to account for planarity
+         REAL(KIND = REAL64) :: ZA, ZB, FPLAN, FPLANA(3), FPLANB(3)
          !local replacements for titration globals (TODO: titration needs to be set up properly!) 
          LOGICAL :: use_tit
          INTEGER :: flag_tit 
@@ -334,7 +341,11 @@ MODULE MOD_HBONDS
          COSB = DOT_PRODUCT(RB0, UB0)
          SINB = DOT_PRODUCT(RB0, MB0)
          
-          
+         !add planarity in
+         ZA = DOT_PRODUCT(RBA,NA0)/DBA
+         ZB = DOT_PRODUCT(RBA,NB0)/DBA
+         FPLAN = EXP(-ALPHA*ZA*ZB)
+         
          !iteration over all relevant parameters
          IF ((MTYPEI.EQ.0).AND.(MTYPEJ.EQ.0)) THEN
             NPAR = RNPARAM(TYA,TYB)
@@ -363,7 +374,6 @@ MODULE MOD_HBONDS
             D2 = (DBA - SIGHB)/Y
             EHHA = -EPSHB * STR * EXP(-D2**2)
 
-            
             ! Angular potential contribution (orientation of bases)
             ANGA = COSA*CALPA + SINA*SALPA
             ANGB = COSB*CALPB + SINB*SALPB
@@ -373,10 +383,15 @@ MODULE MOD_HBONDS
             VANGL = (ANGA*ANGB)**P
             
             !Overall energy for this set of params
-            EHB = EHHA*VANGL
+            EHB = EHHA*VANGL*FPLAN
             !WRITE(*,*) BI, BJ, STR, IDXA, IDXB, EHHA, EHB
+            !d(EHHA)/dX
             dEHB(1:3) = -2.0*EHB*D2/Y*RBA0(1:3)
-            
+
+            !d(FPLAN)/dX - are these correct? QUERY!!!
+            FPLANA(1:3) = (NA0(1:3)*DBA**2-DOT_PRODUCT(RBA,NA0))/(DBA**3)
+            FPLANB(1:3) = (NB0(1:3)*DBA**2-DOT_PRODUCT(RBA,NB0))/(DBA**3)
+
             !first check for size of Ehb
             IF (EHB .GE. REGCUT) CYCLE
             !QUERY: the potential document mentions two regularisations (p. 9, eq. 46,47),
@@ -415,12 +430,12 @@ MODULE MOD_HBONDS
             !Update energy
             EHHB = EHHB + EHB   
             !Calculate forces
-            fa(:,3) = fa(:,3) - Ehb*(p/anga) * (&
+            fa(:,3) = fa(:,3) - fplana(3)*Ehb*(p/anga) * (&
    !                   d anga / d ma0
             salpa*(crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)))/dma &
    !                   d anga / d ra0
             -(crossproduct(ralpa-ra0*anga, ua)*dot_product(-rba, na0)/dna)/dra)
-            fa(:,2) = fa(:,2)        - Ehb*(p/anga)* (&
+            fa(:,2) = fa(:,2)        - fplana(2)*Ehb*(p/anga)* (&
    !                   d anga / d ua0
             -calpa*(ra0- ua0*cosa)/dua &
    !                   d anga / d ma0
@@ -429,7 +444,7 @@ MODULE MOD_HBONDS
             crossproduct(ra0-sina*ma0, na) )/dma &
    !                   d anga / d ra0
             -(crossproduct(ua-va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)
-            fa(:,1) = fa(:,1) - dEhb - Ehb*(p/anga)* (&
+            fa(:,1) = fa(:,1) - dEhb - fplana(1)*Ehb*(p/anga)* (&
    !                   d anga / d ua0
             calpa*(ra0- ua0*cosa)/dua +&
    !                   d anga / d ma0
@@ -439,7 +454,7 @@ MODULE MOD_HBONDS
             -(ralpa-ra0*anga+crossproduct(va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)&
    !                   d angb / d rb0
             - Ehb*(p/angb)*(ralpb-rb0*angb)/drb
-            fb(:,1) = fb(:,1) + dEhb - Ehb*(p/angb)* (&
+            fb(:,1) = fb(:,1) + dEhb - fplanb(1)*Ehb*(p/angb)* (&
    !                   d angb / d ub0
             calpb*(rb0- ub0*cosb)/dub +&
    !                   d angb / d mb0
@@ -449,7 +464,7 @@ MODULE MOD_HBONDS
             -(ralpb-rb0*angb+crossproduct(vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)&
    !                   d anga / d ra0
             - Ehb*(p/anga)*(ralpa-ra0*anga)/dra
-            fb(:,2) = fb(:,2)        - Ehb*(p/angb)* (&
+            fb(:,2) = fb(:,2)        - fplanb(2)*Ehb*(p/angb)* (&
    !                   d angb / d ub0
             -calpb*(rb0- ub0*cosb)/dub &
    !                   d angb / d mb0
@@ -458,7 +473,7 @@ MODULE MOD_HBONDS
             crossproduct(rb0-sinb*mb0, nb) )/dmb &
    !                   d angb / d rb0
             -(crossproduct(ub-vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)
-            fb(:,3) = fb(:,3)        - Ehb*(p/angb)* (&
+            fb(:,3) = fb(:,3)        - fplanb(3)*Ehb*(p/angb)* (&
    !                   d angb / d mb0
             salpb*(crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)))/dmb &
    !                   d angb / d rb0
