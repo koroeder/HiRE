@@ -112,7 +112,8 @@ MODULE MOD_HBONDS
          IF (.NOT. HBEXIST) RETURN !at this stage THIS_EHB is still 0.0D0
 
          !Total energy and regularised energy
-         THIS_EHB = EHHB*(ENP1+ENP2)
+         !THIS_EHB = EHHB*(ENP1+ENP2)
+         THIS_EHB = EHHB
          REHHB = THIS_EHB/(EPSHB*INTSCALE)
          !update base pairing in BP_CURR
          IF ((ABS(THIS_EHB).GE.BPTHRESH).AND.(ABS(BI-BJ).NE.1)) THEN
@@ -121,22 +122,22 @@ MODULE MOD_HBONDS
          END IF
          
          ! Additive 
-         FIHB = FHB_I*(ENP1 + ENP2) + EHHB*(FNP1_I + FNP2_I)
-         FJHB = FHB_J*(ENP1 + ENP2) + EHHB*(FNP1_J + FNP2_J)
+         FIHB = FHB_I !*(ENP1 + ENP2) + EHHB*(FNP1_I + FNP2_I)
+         FJHB = FHB_J !*(ENP1 + ENP2) + EHHB*(FNP1_J + FNP2_J)
 
          !lm759> save Hbond pairs to hbonds.dat
-         IF (SAVE_HB) THEN
-            IF (ABS(REHHB).GE.1.0D0) THEN
-               WRITE(HBDAT, '(4i4,4f8.3)') I, JP, BI, BJ, REhhb, Ehhb, Enp1, Enp2
-            END IF
-         END IF
+         !IF (SAVE_HB) THEN
+         !   IF (ABS(REHHB).GE.1.0D0) THEN
+         !      WRITE(HBDAT, '(4i4,4f8.3)') I, JP, BI, BJ, REhhb, Ehhb, Enp1, Enp2
+         !   END IF
+         !END IF
 
          ! OLD planarity !NEW Additive
          DO IDX = 1,3
             ID = I - IDX + 1
             F((3*ID-2):(3*ID)) = F((3*ID-2):(3*ID)) + FIHB(:,IDX)
             ID = JP - IDX + 1
-            F((3*ID-2):(3*ID)) = F((3*ID-2):(3*ID)) + FJHB(:,IDX)      
+            F((3*ID-2):(3*ID)) = F((3*ID-2):(3*ID)) + FJHB(:,IDX)
          ENDDO
 
       END SUBROUTINE ENERGY_HB
@@ -261,7 +262,7 @@ MODULE MOD_HBONDS
          REAL(KIND = REAL64), INTENT(OUT) :: EHHB, FA(3,3), FB(3,3) 
          LOGICAL, INTENT(OUT) :: HBEXIST
          
-         REAL(KIND = REAL64), PARAMETER :: REGCUT = 1.0D-7  !Regularisation cutoff
+         REAL(KIND = REAL64), PARAMETER :: REGCUT = 1.0D-3  !Regularisation cutoff  D-7
          
          INTEGER :: QI, QJ        ! charges for I and J, using protonations state
          ! particle positions in A and B
@@ -278,12 +279,12 @@ MODULE MOD_HBONDS
          REAL(KIND = REAL64) :: COSA, COSB, SINA, SINB
          !local variables to save RNA HB variables from RNA_HB_PARAMS module
          REAL(KIND = REAL64) :: CALPA, SALPA, CALPB, SALPB, SIGHB, STR
-         INTEGER :: PAR, NPAR !iteration index and limit for iteration
+         INTEGER :: PAR, NPAR, I !iteration index and limit for iteration
          !variables in the energy and force calculations
          REAL(KIND = REAL64) :: D2, EHHA, VANGL, EHB, dEHB(3)
          REAL(KIND = REAL64) :: ANGA, ANGB, RALPA(3), RALPB(3)
          !new term to account for planarity
-         REAL(KIND = REAL64) :: ZA, ZB, FPLAN, FPLANA(3), FPLANB(3)
+         REAL(KIND = REAL64) :: ZA, ZB, FPLAN, DFPLAN, FPLANA(3), FPLANA1(3), FPLANA2(3), FPLANB(3),FPLANB1(3),FPLANB2(3), fanga3(3), fanga2(3), fanga1(3), fangb3(3), fangb2(3), fangb1(3)
          !local replacements for titration globals (TODO: titration needs to be set up properly!) 
          LOGICAL :: use_tit
          INTEGER :: flag_tit 
@@ -344,8 +345,22 @@ MODULE MOD_HBONDS
          !add planarity in
          ZA = DOT_PRODUCT(RBA,NA0)/DBA
          ZB = DOT_PRODUCT(RBA,NB0)/DBA
-         FPLAN = EXP(-ALPHA*ZA*ZB)
-         
+         FPLAN = EXP(-ALPHA*(ZA*ZA+ZB*ZB))
+
+         FPLANA= ZA*(NA0/DBA - RBA*ZA/(DBA**2)  - crossproduct(RBA,VA)/(DBA*DNA) - ZA*(DVA*DVA*UA - dot_product(UA,VA)*VA)/DNA**2) + ZB*(NB0/DBA - RBA*ZB/(DBA**2))
+
+         FPLANA1 =  ZA*((-crossproduct(RBA,UA) + crossproduct(RBA,VA))/(DBA*DNA) + ZA*(DVA*DVA*UA + DUA*DUA*VA - dot_product(UA,VA)*(UA+VA))/DNA**2)
+
+         FPLANA2 = ZA*(+ crossproduct(RBA,UA)/(DBA*DNA) - ZA*(DUA*DUA*VA - dot_product(UA,VA)*UA)/DNA**2)
+
+         FPLANB = ZB*(-NB0/DBA + RBA*ZB/(DBA**2)  - crossproduct(RBA,VB)/(DBA*DNB) - ZB*(DVB*DVB*UB - dot_product(UB,VB)*VB)/DNB**2) - ZA*(NA0/DBA - RBA*ZA/(DBA**2))
+
+         FPLANB1 = ZB*((-crossproduct(RBA,UB) + crossproduct(RBA,VB))/(DBA*DNB) + ZB*(DVB*DVB*UB + DUB*DUB*VB - dot_product(UB,VB)*(UB+VB))/DNB**2)
+
+         FPLANB2 = ZB*(crossproduct(RBA,UB)/(DBA*DNB) - ZB*(DUB*DUB*VB - dot_product(UB,VB)*UB)/DNB**2)
+
+
+  
          !iteration over all relevant parameters
          IF ((MTYPEI.EQ.0).AND.(MTYPEJ.EQ.0)) THEN
             NPAR = RNPARAM(TYA,TYB)
@@ -387,100 +402,144 @@ MODULE MOD_HBONDS
             !WRITE(*,*) BI, BJ, STR, IDXA, IDXB, EHHA, EHB
             !d(EHHA)/dX
             dEHB(1:3) = -2.0*EHB*D2/Y*RBA0(1:3)
-
-            !d(FPLAN)/dX - are these correct? QUERY!!!
-            FPLANA(1:3) = (NA0(1:3)*DBA**2-DOT_PRODUCT(RBA,NA0))/(DBA**3)*EHB
-            FPLANB(1:3) = (NB0(1:3)*DBA**2-DOT_PRODUCT(RBA,NB0))/(DBA**3)*EHB
+            
 
             !first check for size of Ehb
             IF (EHB .GE. REGCUT) CYCLE
-            !QUERY: the potential document mentions two regularisations (p. 9, eq. 46,47),
-            !       one at 1.0D-8 and one at 1.0D-7
-            !       I can only find two checks at  1.0D-7
-            !       This value is now saved as REGCUT, but should there be another 
-            !       check or a different value used?
-            
-            !TODO: work on titration
-            !WARNING: currently use_tit and flag_tit are set as local variables
-            !         and the following code is always skipped 
-            
-            !determine what bases are not free for protonation due to HB          ! Br3 includes planarity
-            !QUERY isn't this the wrong place to test this? isn't it EHHB outside this DO loop we want?
-            if (use_tit .and. flag_tit .eq. 1) then
-               if (abs(EHB*Enp1*Enp2) .ge. ctit) then                             
-                  ! Br2 need to find a good cutoff, 2.0 is too big --> 1. need to protect more HB
-                  IF ((MTYPEI.EQ.0).AND.(MTYPEJ.EQ.0)) THEN
-                     if (rs(par,tya,tyb,1,qj+1) .ne. rs(par,tya,tyb,2,qj+1)) then
-                        bocc(bi)=1
-                     endif
-                     if (rs(par,tya,tyb,qi+1,1) .ne. rs(par,tya,tyb,qi+1,2)) then
-                        bocc(bj)=1
-                     endif
-                  ELSE IF ((MTYPEI.EQ.1).AND.(MTYPEJ.EQ.1)) THEN
-                     if (ds(par,tya,tyb,1,qj+1) .ne. ds(par,tya,tyb,2,qj+1)) then
-                        bocc(bi)=1
-                     endif
-                     if (ds(par,tya,tyb,qi+1,1) .ne. ds(par,tya,tyb,qi+1,2)) then
-                        bocc(bj)=1
-                     endif
-                  END IF
-               endif
-            endif
-            !end of titration section
-            !Update energy
+
             EHHB = EHHB + EHB   
             !Calculate forces
-            fa(:,3) = fa(:,3) - fplana(3) - Ehb*(p/anga) * (&
-   !                   d anga / d ma0
-            salpa*(crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)))/dma &
-   !                   d anga / d ra0
-            -(crossproduct(ralpa-ra0*anga, ua)*dot_product(-rba, na0)/dna)/dra)
-            fa(:,2) = fa(:,2)        - fplana(2) - Ehb*(p/anga)* (&
-   !                   d anga / d ua0
-            -calpa*(ra0- ua0*cosa)/dua &
-   !                   d anga / d ma0
-            -salpa*( crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)) + &
-            crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + & 
-            crossproduct(ra0-sina*ma0, na) )/dma &
-   !                   d anga / d ra0
-            -(crossproduct(ua-va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)
-            fa(:,1) = fa(:,1) - dEhb - fplana(1) - Ehb*(p/anga)* (&
-   !                   d anga / d ua0
-            calpa*(ra0- ua0*cosa)/dua +&
-   !                   d anga / d ma0
-            salpa*(crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
-            crossproduct(ra0-sina*ma0, na))/dma &
-   !                   d anga / d ra0
-            -(ralpa-ra0*anga+crossproduct(va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)&
-   !                   d angb / d rb0
-            - Ehb*(p/angb)*(ralpb-rb0*angb)/drb
-            fb(:,1) = fb(:,1) + dEhb - fplanb(1) - Ehb*(p/angb)* (&
-   !                   d angb / d ub0
-            calpb*(rb0- ub0*cosb)/dub +&
-   !                   d angb / d mb0
-            salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
-            crossproduct(rb0-sinb*mb0, nb))/dmb &
-   !                   d angb / d rb0
-            -(ralpb-rb0*angb+crossproduct(vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)&
-   !                   d anga / d ra0
-            - Ehb*(p/anga)*(ralpa-ra0*anga)/dra
-            fb(:,2) = fb(:,2)        - fplanb(2) - Ehb*(p/angb)* (&
-   !                   d angb / d ub0
-            -calpb*(rb0- ub0*cosb)/dub &
-   !                   d angb / d mb0
-            -salpb*( crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)) + &
-            crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
-            crossproduct(rb0-sinb*mb0, nb) )/dmb &
-   !                   d angb / d rb0
-            -(crossproduct(ub-vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)
-            fb(:,3) = fb(:,3)        - fplanb(3) - Ehb*(p/angb)* (&
-   !                   d angb / d mb0
-            salpb*(crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)))/dmb &
-   !                   d angb / d rb0
-            -(crossproduct(ralpb-rb0*angb, ub)*dot_product(rba, nb0)/dnb)/drb)
+            
+            fa(:,3) = fa(:,3) + fplana2 *2*ALPHA *EHB
+            fa(:,2) = fa(:,2) + fplana1 *2*ALPHA *EHB
+            fa(:,1) = fa(:,1) + fplana  *2*ALPHA *EHB
+            fb(:,1) = fb(:,1) + fplanb  *2*ALPHA *EHB
+            fb(:,2) = fb(:,2) + fplanb1 *2*ALPHA *EHB
+            fb(:,3) = fb(:,3) + fplanb2 *2*ALPHA *EHB
 
-         ENDDO
-         IF (EHHB .GE. REGCUT) RETURN      !! TEST HB EXISTANCE 06-04-2012
+            do i = 1, 3
+               if (any(fplana > 500)) then
+                  print*, "Warning: fa(", i, ") fplanea!", fplana
+               endif
+               if (any(fplana1 > 500)) then
+                  print*, "Warning: fa(", i, ") fplanea1!", fplana1
+               endif
+               if (any(fplana2 > 500)) then
+                  print*, "Warning: fa(", i, ") fplanea2!", fplana2
+               endif
+               if (any(fplanb > 500)) then
+                  print*, "Warning: fa(", i, ") fplanea!", fplanb
+               endif
+               if (any(fplanb1 > 500)) then
+                  print*, "Warning: fa(", i, ") fplanea1!", fplanb1
+               endif
+               if (any(fplanb2 > 500)) then
+                  print*, "Warning: fa(", i, ") fplanea2!", fplanb2
+               endif
+            end do
+
+
+            fa(:,1) = fa(:,1) - dEhb
+            fb(:,1) = fb(:,1) + dEhb
+
+            fanga3 = - Ehb*(p/anga) * (salpa*(crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)))/dma -(crossproduct(ralpa-ra0*anga, ua)*dot_product(-rba, na0)/dna)/dra)
+            fanga2 = - Ehb*(p/anga)* (-calpa*(ra0- ua0*cosa)/dua -salpa*( crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)) + &
+                     crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + crossproduct(ra0-sina*ma0, na) )/dma -(crossproduct(ua-va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)
+            fanga1 = - Ehb*(p/anga)* (calpa*(ra0- ua0*cosa)/dua + salpa*(crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + crossproduct(ra0-sina*ma0, na))/dma &
+                     -(ralpa-ra0*anga+crossproduct(va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)- Ehb*(p/angb)*(ralpb-rb0*angb)/drb
+
+            fangb1 = - Ehb*(p/angb)* (calpb*(rb0- ub0*cosb)/dub + salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + crossproduct(rb0-sinb*mb0, nb))/dmb &
+                     -(ralpb-rb0*angb+crossproduct(vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)- Ehb*(p/anga)*(ralpa-ra0*anga)/dra
+            fangb2 = - Ehb*(p/angb)* (-calpb*(rb0- ub0*cosb)/dub -salpb*( crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)) +  crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
+                     crossproduct(rb0-sinb*mb0, nb) )/dmb -(crossproduct(ub-vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)
+            fangb3 = - Ehb*(p/angb)* (salpb*(crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)))/dmb -(crossproduct(ralpb-rb0*angb, ub)*dot_product(rba, nb0)/dnb)/drb)
+
+            fa(:,3) = fa(:,3) + fanga3
+            fa(:,2) = fa(:,2) + fanga2
+            fa(:,1) = fa(:,1) + fanga1
+            fb(:,1) = fb(:,1) + fangb1
+            fb(:,2) = fb(:,2) + fangb2
+            fb(:,3) = fb(:,3) + fangb3
+
+            
+            
+            do i = 1, 3
+               if (any(fanga1 > 500)) then
+                  print*, "Warning: fa(", i, ") fanga1!", fanga1, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+               endif
+               if (any(fanga2 > 500)) then
+                  print*, "Warning: fa(", i, ") fanga2!", fanga2, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+               endif
+               if (any(fanga3 > 500)) then
+                  print*, "Warning: fa(", i, ") fanga3!", fanga3, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+               endif
+               if (any(fangb1 > 500)) then
+                  print*, "Warning: fa(", i, ") fangb1!", fangb1, drb, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+               endif
+               if (any(fangb2 > 500)) then
+                  print*, "Warning: fa(", i, ") fangb2!", fangb2, drb, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+               endif
+               if (any(fangb3 > 500)) then
+                  print*, "Warning: fa(", i, ") fangb3!", fangb3, drb, ZA, ZB,  ZA*ZA+ZB*ZB, fplan
+               endif
+            end do
+
+!             fa(:,3) = fa(:,3)  - Ehb*(p/anga) * (&
+!    !                   d anga / d ma0
+!             salpa*(crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)))/dma &
+!    !                   d anga / d ra0
+!             -(crossproduct(ralpa-ra0*anga, ua)*dot_product(-rba, na0)/dna)/dra)
+!
+!             fa(:,2) = fa(:,2)        - Ehb*(p/anga)* (&
+!    !                   d anga / d ua0
+!             -calpa*(ra0- ua0*cosa)/dua & !
+!    !                   d anga / d ma0
+!             -salpa*( crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)) + &
+!             crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
+!             crossproduct(ra0-sina*ma0, na) )/dma &
+!    !                   d anga / d ra0
+!             -(crossproduct(ua-va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)
+!
+!             fa(:,1) = fa(:,1) - Ehb*(p/anga)* (&
+!    !                   d anga / d ua0
+!             calpa*(ra0- ua0*cosa)/dua +&
+!    !                   d anga / d ma0
+!             salpa*(crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
+!             crossproduct(ra0-sina*ma0, na))/dma &
+!    !                   d anga / d ra0
+!             -(ralpa-ra0*anga+crossproduct(va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)&
+!    !                   d angb / d rb0
+!             - Ehb*(p/angb)*(ralpb-rb0*angb)/drb
+!
+!             fb(:,1) = fb(:,1)  - Ehb*(p/angb)* (&
+!    !                   d angb / d ub0
+!             calpb*(rb0- ub0*cosb)/dub +&
+!    !                   d angb / d mb0
+!             salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
+!             crossproduct(rb0-sinb*mb0, nb))/dmb &
+!    !                   d angb / d rb0
+!             -(ralpb-rb0*angb+crossproduct(vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)&
+!    !                   d anga / d ra0
+!             - Ehb*(p/anga)*(ralpa-ra0*anga)/dra
+!
+!             fb(:,2) = fb(:,2)       - Ehb*(p/angb)* (&
+!    !                   d angb / d ub0
+!             -calpb*(rb0- ub0*cosb)/dub &
+!    !                   d angb / d mb0
+!             -salpb*( crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)) + &
+!             crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
+!             crossproduct(rb0-sinb*mb0, nb) )/dmb & !
+!    !                   d angb / d rb0
+!             -(crossproduct(ub-vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)
+!
+!             fb(:,3) = fb(:,3)        - Ehb*(p/angb)* (&
+!    !                   d angb / d mb0
+!             salpb*(crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)))/dmb &
+!    !                   d angb / d rb0
+!             -(crossproduct(ralpb-rb0*angb, ub)*dot_product(rba, nb0)/dnb)/drb)
+
+        ENDDO
+        IF (EHHB .GE. REGCUT) RETURN      !! TEST HB EXISTANCE 06-04-2012
          HBEXIST = .TRUE.
       END SUBROUTINE HBNEW
 
