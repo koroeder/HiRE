@@ -118,5 +118,21 @@ MODULE MD_COMMONS
     LOGICAL :: USEREFLCTSPHERE = .FALSE.
     ! Radius of reflective sphere
     REAL(KIND=REAL64) :: DIST2REF = 0.0D0
+    
+    !! Debugging option for high forces
+    ! Enable force writing
+    LOGICAL :: DETECTHIGHFORCES = .FALSE.
+    ! Force threshold
+    REAL(KIND = REAL64) :: FORCETHRESHOLD = 1.0D6
+    ! Writing frequency
+    INTEGER :: HIGHFINTERVAL = 10
+    ! Maximum number of frames
+    INTEGER :: HIGHFMAXFRAMES = 1000
+    ! Current number of frames
+    INTEGER :: HIGHFCURRFRAME = 0
+    ! High forces detected?
+    LOGICAL :: WRITINGHIGHFORCES = .FALSE.
+    ! Unit for writing output
+    INTEGER :: HIGHFUNIT
     SAVE
  END MODULE MD_COMMONS
