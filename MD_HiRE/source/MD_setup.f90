@@ -123,6 +123,15 @@ MODULE MD_SETUP
          IF (WORD.EQ.'COMMENT'.OR.WORD.EQ."!".OR.WORD.EQ."#") THEN
             RETURN
 
+         !Keyword for debugging
+         ELSE IF (WORD .EQ. 'HIGHFORCES') THEN
+            CALL READF(FORCETHRESHOLD)
+            CALL READI(HIGHFMAXFRAMES)
+            CALL READI(HIGHFINTERVAL)
+            DETECTHIGHFORCES = .TRUE.
+            HIGHFCURRFRAME = 0
+            WRITINGHIGHFORCES = .FALSE.
+
          !+++++++++++++++!   
          ! LETTER A      !
          !+++++++++++++++!           
