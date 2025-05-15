@@ -417,26 +417,25 @@ MODULE MOD_HBONDS
             fb(:,2) = fb(:,2) + fplanb1 *2*ALPHA *EHB
             fb(:,3) = fb(:,3) + fplanb2 *2*ALPHA *EHB
 
-            do i = 1, 3
-               if (any(fplana > 500)) then
-                  print*, "Warning: fa(", i, ") fplanea!", fplana
-               endif
-               if (any(fplana1 > 500)) then
-                  print*, "Warning: fa(", i, ") fplanea1!", fplana1
-               endif
-               if (any(fplana2 > 500)) then
-                  print*, "Warning: fa(", i, ") fplanea2!", fplana2
-               endif
-               if (any(fplanb > 500)) then
-                  print*, "Warning: fa(", i, ") fplanea!", fplanb
-               endif
-               if (any(fplanb1 > 500)) then
-                  print*, "Warning: fa(", i, ") fplanea1!", fplanb1
-               endif
-               if (any(fplanb2 > 500)) then
-                  print*, "Warning: fa(", i, ") fplanea2!", fplanb2
-               endif
-            end do
+!             do i = 1, 3
+!                if (any(fplana > 100)) then
+!                   print*, "Warning: fa(", i, ") fplanea!", bi,bj,fplana
+!                endif
+!                if (any(fplana1 > 100)) then
+!                   print*, "Warning: fa(", i, ") fplanea1!", bi,bj,fplana1
+!                endif
+!                if (any(fplana2 > 100)) then
+!                   print*, "Warning: fa(", i, ") fplanea2!", bi,bj,fplana2
+!                endif
+!                if (any(fplanb > 100)) then
+!                   print*, "Warning: fa(", i, ") fplanea!", bi,bj,fplanb
+!                endif
+!                if (any(fplanb1 > 100)) then
+!                   print*, "Warning: fa(", i, ") fplanea1!", bi,bj,fplanb1
+!                endif
+!                if (any(fplanb2 > 100)) then
+!                endif
+!             end do
 
 
             fa(:,1) = fa(:,1) - dEhb
@@ -463,80 +462,80 @@ MODULE MOD_HBONDS
 
             
             
-            do i = 1, 3
-               if (any(fanga1 > 500)) then
-                  print*, "Warning: fa(", i, ") fanga1!", fanga1, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
-               endif
-               if (any(fanga2 > 500)) then
-                  print*, "Warning: fa(", i, ") fanga2!", fanga2, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
-               endif
-               if (any(fanga3 > 500)) then
-                  print*, "Warning: fa(", i, ") fanga3!", fanga3, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
-               endif
-               if (any(fangb1 > 500)) then
-                  print*, "Warning: fa(", i, ") fangb1!", fangb1, drb, ZA, ZB, ZA*ZA+ZB*ZB, fplan
-               endif
-               if (any(fangb2 > 500)) then
-                  print*, "Warning: fa(", i, ") fangb2!", fangb2, drb, ZA, ZB, ZA*ZA+ZB*ZB, fplan
-               endif
-               if (any(fangb3 > 500)) then
-                  print*, "Warning: fa(", i, ") fangb3!", fangb3, drb, ZA, ZB,  ZA*ZA+ZB*ZB, fplan
-               endif
-            end do
+!             do i = 1, 3
+!                if (any(fanga1 > 100)) then
+!                   print*, "Warning: fa(", i, ") fanga1!", bi,bj, fanga1, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+!                endif
+!                if (any(fanga2 > 100)) then
+!                   print*, "Warning: fa(", i, ") fanga2!", bi,bj,fanga2, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+!                endif
+!                if (any(fanga3 > 100)) then
+!                   print*, "Warning: fa(", i, ") fanga3!", bi,bj,fanga3, dra, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+!                endif
+!                if (any(fangb1 > 100)) then
+!                   print*, "Warning: fa(", i, ") fangb1!", bi,bj,fangb1, drb, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+!                endif
+!                if (any(fangb2 > 100)) then
+!                   print*, "Warning: fa(", i, ") fangb2!", bi,bj,fangb2, drb, ZA, ZB, ZA*ZA+ZB*ZB, fplan
+!                endif
+!                if (any(fangb3 > 100)) then
+!                   print*, "Warning: fa(", i, ") fangb3!", bi,bj,fangb3, drb, ZA, ZB,  ZA*ZA+ZB*ZB, fplan
+!                endif
+!             end do
 
-!             fa(:,3) = fa(:,3)  - Ehb*(p/anga) * (&
-!    !                   d anga / d ma0
-!             salpa*(crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)))/dma &
-!    !                   d anga / d ra0
-!             -(crossproduct(ralpa-ra0*anga, ua)*dot_product(-rba, na0)/dna)/dra)
-!
-!             fa(:,2) = fa(:,2)        - Ehb*(p/anga)* (&
-!    !                   d anga / d ua0
-!             -calpa*(ra0- ua0*cosa)/dua & !
-!    !                   d anga / d ma0
-!             -salpa*( crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)) + &
-!             crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
-!             crossproduct(ra0-sina*ma0, na) )/dma &
-!    !                   d anga / d ra0
-!             -(crossproduct(ua-va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)
-!
-!             fa(:,1) = fa(:,1) - Ehb*(p/anga)* (&
-!    !                   d anga / d ua0
-!             calpa*(ra0- ua0*cosa)/dua +&
-!    !                   d anga / d ma0
-!             salpa*(crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
-!             crossproduct(ra0-sina*ma0, na))/dma &
-!    !                   d anga / d ra0
-!             -(ralpa-ra0*anga+crossproduct(va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)&
-!    !                   d angb / d rb0
-!             - Ehb*(p/angb)*(ralpb-rb0*angb)/drb
-!
-!             fb(:,1) = fb(:,1)  - Ehb*(p/angb)* (&
-!    !                   d angb / d ub0
-!             calpb*(rb0- ub0*cosb)/dub +&
-!    !                   d angb / d mb0
-!             salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
-!             crossproduct(rb0-sinb*mb0, nb))/dmb &
-!    !                   d angb / d rb0
-!             -(ralpb-rb0*angb+crossproduct(vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)&
-!    !                   d anga / d ra0
-!             - Ehb*(p/anga)*(ralpa-ra0*anga)/dra
-!
-!             fb(:,2) = fb(:,2)       - Ehb*(p/angb)* (&
-!    !                   d angb / d ub0
-!             -calpb*(rb0- ub0*cosb)/dub &
-!    !                   d angb / d mb0
-!             -salpb*( crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)) + &
-!             crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
-!             crossproduct(rb0-sinb*mb0, nb) )/dmb & !
-!    !                   d angb / d rb0
-!             -(crossproduct(ub-vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)
-!
-!             fb(:,3) = fb(:,3)        - Ehb*(p/angb)* (&
-!    !                   d angb / d mb0
-!             salpb*(crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)))/dmb &
-!    !                   d angb / d rb0
-!             -(crossproduct(ralpb-rb0*angb, ub)*dot_product(rba, nb0)/dnb)/drb)
+            fa(:,3) = fa(:,3)  - Ehb*(p/anga) * (&
+   !                   d anga / d ma0
+            salpa*(crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)))/dma &
+   !                   d anga / d ra0
+            -(crossproduct(ralpa-ra0*anga, ua)*dot_product(-rba, na0)/dna)/dra)
+
+            fa(:,2) = fa(:,2)        - Ehb*(p/anga)* (&
+   !                   d anga / d ua0
+            -calpa*(ra0- ua0*cosa)/dua & !
+   !                   d anga / d ma0
+            -salpa*( crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)) + &
+            crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
+            crossproduct(ra0-sina*ma0, na) )/dma &
+   !                   d anga / d ra0
+            -(crossproduct(ua-va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)
+
+            fa(:,1) = fa(:,1) - Ehb*(p/anga)* (&
+   !                   d anga / d ua0
+            calpa*(ra0- ua0*cosa)/dua +&
+   !                   d anga / d ma0
+            salpa*(crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
+            crossproduct(ra0-sina*ma0, na))/dma &
+   !                   d anga / d ra0
+            -(ralpa-ra0*anga+crossproduct(va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)&
+   !                   d angb / d rb0
+            - Ehb*(p/angb)*(ralpb-rb0*angb)/drb
+
+            fb(:,1) = fb(:,1)  - Ehb*(p/angb)* (&
+   !                   d angb / d ub0
+            calpb*(rb0- ub0*cosb)/dub +&
+   !                   d angb / d mb0
+            salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
+            crossproduct(rb0-sinb*mb0, nb))/dmb &
+   !                   d angb / d rb0
+            -(ralpb-rb0*angb+crossproduct(vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)&
+   !                   d anga / d ra0
+            - Ehb*(p/anga)*(ralpa-ra0*anga)/dra
+
+            fb(:,2) = fb(:,2)       - Ehb*(p/angb)* (&
+   !                   d angb / d ub0
+            -calpb*(rb0- ub0*cosb)/dub &
+   !                   d angb / d mb0
+            -salpb*( crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)) + &
+            crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
+            crossproduct(rb0-sinb*mb0, nb) )/dmb & !
+   !                   d angb / d rb0
+            -(crossproduct(ub-vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)
+
+            fb(:,3) = fb(:,3)        - Ehb*(p/angb)* (&
+   !                   d angb / d mb0
+            salpb*(crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)))/dmb &
+   !                   d angb / d rb0
+            -(crossproduct(ralpb-rb0*angb, ub)*dot_product(rba, nb0)/dnb)/drb)
 
         ENDDO
         IF (EHHB .GE. REGCUT) RETURN      !! TEST HB EXISTANCE 06-04-2012
