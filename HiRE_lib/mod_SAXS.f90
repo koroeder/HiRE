@@ -4,7 +4,7 @@
 !> Module contains routine to obtain the SAXS force
 MODULE MOD_SAXS
    USE PREC_HIRE
-   USE SAXS_DEFS, ONLY: SAXSFORCET, SAXSSAVET, SAXSMODI, SAXSOFFI
+   USE SAXS_DEFS, ONLY: SAXSFORCET, SAXSSAVET, SAXSMODI, SAXSOFFI, SAXSs
    IMPLICIT NONE
  
    CONTAINS
@@ -83,7 +83,7 @@ MODULE MOD_SAXS
             END IF
             CALL WRITE_SAXS_CURVE_TO_UNIT(LOGI,SAXSC)
             WRITE(*,*) 'SAXS score: ', ESAXS
-            WRITE(*,*) 'SAXS score: ', ESAXS
+            WRITE(SAXSs,'(F15.8)') ESAXS
             !WRITE(*,*) 'SAXS force: ', F
          END IF 
       END SUBROUTINE RNA_SAXS_FORCE

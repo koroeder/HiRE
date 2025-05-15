@@ -49,6 +49,8 @@ MODULE MCmod
       LOGICAL             :: LOOSEFT, LOOSETT
       INTEGER             :: NUCF, NUCT
 
+      LOGICAL             :: SAXSNOTSUCCESS
+
       REAL(KIND = REAL64) :: SAXSSTEPSIZE, TSAXS1, TSAXS2, ESAXS, SAXSFORCE(3*NATOMS)
       REAL(KIND = REAL64), PARAMETER :: DECSAXSLIMIT=0.9, INCSAXSLIMIT=1.1
 
@@ -60,6 +62,8 @@ MODULE MCmod
       IF (.NOT.ALLOCATED(OMOVE)) ALLOCATE(OMOVE(NPAR))  
       ! initialise RANDOM to 0.0D0 to avoid printing uninitialised variable 
       RANDOM=0.0D0
+
+      SAXSNOTSUCCESS = .FALSE.
 
       INQUIRE(UNIT=1,OPENED=LOPEN)
       IF (LOPEN) THEN
@@ -270,7 +274,7 @@ MODULE MCmod
    
 
             !Check which step to take
-            CALL WHICH_MOVE(J1)
+            CALL WHICH_MOVE(J1, SAXSNOTSUCCESS)
             !take grouprotation step
             IF (GROUPROTT.AND.DOGROUPROT) CALL GROUPROTSTEP(JP)   
             !rigid body steps
@@ -342,16 +346,24 @@ MODULE MCmod
 
             ! k2262470> SAXS steps
             IF (SAXSSTEPST.AND.DOSAXSSTEP) THEN
-               WRITE(MYUNIT,'(A)') " mc> Attempt SAXS force step"
-               CALL CPU_TIME(TSAXS1)
-               ! get hire energy and gradient (the last trwo optiosn set force calculations to true and hydration to false)
-               CALL HIRE_SAXS_FORCE(3*NATOMS,COORDS(:,JP),ESAXS,SAXSFORCE,.TRUE.,.FALSE.)
-               CALL CPU_TIME(TSAXS2)
-               WRITE(MYUNIT,*) " mc> SAXS force: ", DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS))
-               SAXSSTEPSIZE = RMSLIMITSAXS/MAX(DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS)), 1.0D-100)
-               WRITE(MYUNIT,*) " mc> SAXS step size: ", SAXSSTEPSIZE
-               WRITE(MYUNIT,*) " mc> SAXS step time: ", TSAXS2-TSAXS1
-               COORDS(:,JP) = COORDS(:,JP) + SAXSSTEPSIZE*SAXSFORCE(1:3*NATOMS)
+               IF (.NOT.SAXSNOTSUCCESS) THEN
+                  WRITE(MYUNIT,'(A)') " mc> Attempt SAXS force step"
+                  CALL CPU_TIME(TSAXS1)
+                  ! get hire energy and gradient (the last trwo optiosn set force calculations to true and hydration to false)
+                  CALL HIRE_SAXS_FORCE(3*NATOMS,COORDS(:,JP),ESAXS,SAXSFORCE,.TRUE.,.FALSE.)
+                  CALL CPU_TIME(TSAXS2)
+                  WRITE(MYUNIT,*) " mc> SAXS force: ", DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS))
+                  SAXSSTEPSIZE = RMSLIMITSAXS/MAX(DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS)), 1.0D-100)
+                  WRITE(MYUNIT,*) " mc> SAXS step size: ", SAXSSTEPSIZE
+                  WRITE(MYUNIT,*) " mc> SAXS step time: ", TSAXS2-TSAXS1
+                  COORDS(:,JP) = COORDS(:,JP) + SAXSSTEPSIZE*SAXSFORCE(1:3*NATOMS)
+               ELSE
+                  WRITE(MYUNIT,'(A)') " mc> Attempt SAXS force step with smaller step size"
+                  WRITE(MYUNIT,*) " mc> SAXS force: ", DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS))
+                  SAXSSTEPSIZE = RMSLIMITSAXS/MAX(DSQRT(SUM(SAXSFORCE(1:3*NATOMS)**2)/(3*NATOMS)), 1.0D-100)
+                  WRITE(MYUNIT,*) " mc> SAXS step size: ", SAXSSTEPSIZE
+                  COORDS(:,JP) = COORDS(:,JP) + SAXSSTEPSIZE*SAXSFORCE(1:3*NATOMS)
+               END IF
             END IF
             !do Cartesian steps - only if no ther move is attempted!
             IF (DOCARTSTEP) CALL CARTESIAN_SPHERE(COORDS(:,JP), STEP(JP))
@@ -460,6 +472,7 @@ MODULE MCmod
                IF (DOSAXSSTEP) THEN
                   RMSLIMITSAXS = RMSLIMITSAXS*INCSAXSLIMIT
                   WRITE(*,*) " mc> Increasing SAXS step size limit to ", RMSLIMITSAXS
+                  SAXSNOTSUCCESS = .FALSE.
                END IF
             ELSE
                NFAIL(JP)=NFAIL(JP)+1
@@ -473,6 +486,7 @@ MODULE MCmod
                IF (DOSAXSSTEP) THEN
                   RMSLIMITSAXS = RMSLIMITSAXS*DECSAXSLIMIT
                   WRITE(*,*) " mc> Decreasing SAXS step size limit to ", RMSLIMITSAXS
+                  SAXSNOTSUCCESS = .TRUE.
                END IF
             ENDIF
 
@@ -710,11 +724,12 @@ MODULE MCmod
       RETURN 
       END SUBROUTINE CANONICAL_ACC
 
-      SUBROUTINE WHICH_MOVE(J1)
+      SUBROUTINE WHICH_MOVE(J1, SAXSCURRENTAPPLIED)
       USE COMMONS
       USE STOCH_FORCE_STEPS, ONLY: GRADMODFREQ, GRADMODOFFSET, DOGRADMODSTEP, STOCHFORCET
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: J1
+      LOGICAL, INTENT(IN) :: SAXSCURRENTAPPLIED
 
       DOGROUPROT = .FALSE.
       DOROTATERIGID = .FALSE.
@@ -726,6 +741,12 @@ MODULE MCmod
       DOCARTSTEP = .FALSE.
       DOGRADMODSTEP = .FALSE.
       DOSAXSSTEP = .FALSE.
+
+      IF (SAXSCURRENTAPPLIED) THEN
+         DOSAXSSTEP = .TRUE.
+         WRITE(*,*) " which_move> Currently trying to apply SAXS step - skipping all other possible steps this time"
+         RETURN
+      END IF
       !largest move have highest priority
       IF (BPHINGET.AND.MOD(J1,BPHINGEFREQ).EQ.0) THEN
          DOHINGE = .TRUE.

@@ -200,11 +200,14 @@ MODULE SAXS_CALCS
                QPHYS = QPOINTS(Q)
                DIFF = CSCALE*I1(Q) - I0(Q)
                !DIFFQ = DIFF*QPHYS
-               WC = 0.02 + QPHYS + 5*QPHYS**2
+               !WC = 0.02 + QPHYS + 5*QPHYS**2
+               WC = EXP(10*QPHYS)
                !EDUMMY = EDUMMY + DIFFQ**2
                EDUMMY = EDUMMY + (DIFF*WC)**2
+
                !F_PRE = -2*QPHYS*DIFFQ*FSCALE
                F_PRE = -2*FSCALE*DIFF*WC**2
+
                SF_LOCAL(:,:) = STRUCT_FACTORS_PRODS_CG(Q,:,:)
                DO I = 1,NPARTICLES
                   IDX = 3*I

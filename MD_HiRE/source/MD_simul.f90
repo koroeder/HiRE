@@ -122,7 +122,8 @@ MODULE MD_SIMULATION
          USE NUMKIND
          USE MD_COMMONS, ONLY: MYUNIT, NOPT, NATOMS, NDUMPE, HDT, DT, GAMMA, GFRIC, REXT, &
                                COORDS, VEL, ACC, MASSES, EKIN, EPOT, TEMP, MDMETHOD, TEMPUNIT, &
-                               USEREFLCTSPHERE
+                               USEREFLCTSPHERE, ELEMENTS, HIGHFCURRFRAME, HIGHFINTERVAL, HIGHFMAXFRAMES, &
+                               HIGHFUNIT, WRITINGHIGHFORCES
          USE RAND_ROUTINES, ONLY: RAND_NORMAL
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          USE MOD_INTEGRATORS, ONLY: VELOCITY_VERLET, SCALEVEL, LANGEVIN_STEP
@@ -148,6 +149,23 @@ MODULE MD_SIMULATION
          ELSE  
             WRITE(MYUNIT,*) " thermalise> No valid MD steps detected"
             STOP                
+         END IF
+
+
+         IF (WRITINGHIGHFORCES) THEN
+            IF (MOD(HIGHFCURRFRAME,HIGHFINTERVAL).EQ.0) THEN
+               WRITE(HIGHFUNIT,'(I6)') NATOMS 
+               WRITE(HIGHFUNIT,*) " Step: ", CURRSTEP, "Total energy: ", EPOT+EKIN, "Temperature: ", CURRTEMP
+               DO I=1,NATOMS
+                  WRITE(HIGHFUNIT,'(A1,2X,3F15.7)') ELEMENTS(I),COORDS(3*I-2), COORDS(3*I-1), COORDS(3*I)
+               END DO
+            END IF
+            IF (HIGHFMAXFRAMES.GT.HIGHFCURRFRAME) THEN
+               WRITE(*,*) "STOP - reached maximum number of steps after high force detected"
+               CLOSE(HIGHFUNIT)
+               STOP
+            END IF
+            HIGHFCURRFRAME = HIGHFCURRFRAME + 1
          END IF
 
          !CALL REMOVE_LINMOM(COORDS,VEL,.FALSE.)

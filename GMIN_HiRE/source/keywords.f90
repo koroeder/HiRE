@@ -40,7 +40,7 @@
          FIXTEMP(JP)=.FALSE.
          FIXBOTH(JP)=.FALSE.
          TEMP(JP)=0.3D0
-         ACCRAT(JP)=0.5D0
+         ACCRAT(JP)=0.234D0
          STEP(JP)=0.3D0
          ASTEP(JP)=0.3D0
       ENDDO
