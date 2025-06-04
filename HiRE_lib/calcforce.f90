@@ -59,7 +59,7 @@ MODULE CALCFORCES
       !> @param[in] ESCALE - optional scaling parameter, currently not used
       SUBROUTINE CALCFORCE(NOPT,X,F,ETOT,ESCALE)
          USE MOD_BONDS, ONLY: ENERGY_BONDS
-         USE MOD_ANGLES, ONLY: ENERGY_ANGLES
+         USE MOD_ANGLES, ONLY: ENERGY_ALL_ANGLES
          USE MOD_DIHEDRALS, ONLY: ENERGY_DIHS
          USE MOD_DEBYEHUECKEL, ONLY: ENERGY_DH, DH_ENERGY
          USE MOD_NONBONDED, ONLY: E_NONBONDED
@@ -85,7 +85,7 @@ MODULE CALCFORCES
          F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(1)
          EVEC%EBOND = THIS_E*SCALING(1)
          !2. Bond angle terms
-         CALL ENERGY_ANGLES(NOPT, X, THIS_F, THIS_E)
+         CALL ENERGY_ALL_ANGLES(NOPT, X, THIS_F, THIS_E)
          ETOT = ETOT + THIS_E*SCALING(2)
          F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(2)
          EVEC%EANGLES = THIS_E*SCALING(2) 
@@ -215,19 +215,6 @@ MODULE CALCFORCES
       END SUBROUTINE PRINT_POT_ENE
     
 END MODULE CALCFORCES
-
-!TODO: need to add new routine/module to get Hbonds:
-
-!         !lm759> compute and save Hbonds, only 
-!         IF(do_hb.and.HBSAVET)THEN
-!            save_hb=HBSAVET
-!            ihb=ihb+1
-!            write(hbdat,*) "#",ihb
-!            write(7878,*) "#",ihb
-!            call RNA_HYDROP(scale,X,F)
-!            save_hb=.false.
-!            return
-!         ENDIF
 
 
 
