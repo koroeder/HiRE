@@ -52,7 +52,9 @@ MODULE MOD_INIT
          USE VAR_UTILS, ONLY: ALLOC_VARS
          USE MOD_BONDS, ONLY: NBONDS, NUMBND, RK, REQ, IB, JB, ICB, ALLOC_BONDS 
          USE MOD_ANGLES, ONLY: NANGLES, NUMANG, TK, TEQ, &
-                                 IT, JT, KT, ICT, ALLOC_ANGLES 
+                               IT, JT, KT, ICT, ALLOC_ANGLES &
+                               NQANGLES, NUMQANG, TKQ, REFQ, AQ, BQ, CQ, DQ, EQ, &
+                               ITQ, JTQ, KTQ, ICTQ 
          USE MOD_DIHEDRALS, ONLY: NDIHS, NPTRA, IP, JP, KP, LP, ICP, PK, PN, &
                                  PHASE, ALLOC_DIHS
          
@@ -81,7 +83,7 @@ MODULE MOD_INIT
             SELECT CASE (CATNAME)
                CASE("DEFINITIONS")
                   READ(TOPUNIT,'(12I6)') NPARTICLES, NTYPEP, NBONDS, NANGLES, &
-                                          NDIHS, NRES, NUMBND, NUMANG, NPTRA, &
+                                          NDIHS, NRES, NUMBND, NUMANG, NUMQANG, NPTRA, &
                                           NCHAINS 
                   NOPT = 3 * NPARTICLES
                   !allocation of arrays from bond, angles and dihedral modules
@@ -112,7 +114,13 @@ MODULE MOD_INIT
                CASE("ANGLE_FORCE_CONSTANT")
                   READ(TOPUNIT,'(5E16.8)') (TK(J), J=1,NUMANG)
                CASE("ANGLE_EQUIL_VALUE")
-                  READ(TOPUNIT,'(5E16.8)') (TEQ(J), J=1,NUMANG) 
+                  READ(TOPUNIT,'(5E16.8)') (TEQ(J), J=1,NUMANG)
+               CASE("QANGLE_FORCE_CONSTANT")
+                  READ(TOPUNIT,'(5E16.8)') (TKQ(J), J=1,NUMQANG)
+               CASE("QANGLE_REF_ANGLE")
+                  READ(TOPUNIT,'(5E16.8)') (REFQ(J), J=1,NUMQANG)
+               CASE("QANGLE_POT_PARAMS")
+                  READ(TOPUNIT,'(5E16.8)') (AQ(J), BQ(J), CQ(J), DQ(J), EQ(J), J=1,NUMQANG) 
                CASE("DIHEDRAL_FORCE_CONSTANT")
                   READ(TOPUNIT,'(5E16.8)') (PK(J), J=1,NPTRA) 
                CASE("DIHEDRAL_PERIODICITY")
@@ -124,6 +132,9 @@ MODULE MOD_INIT
                CASE("ANGLES")
                   READ(TOPUNIT,'(12I6)') &
                               (IT(J), JT(J), KT(J), ICT(J), J=1,NANGLES)
+               CASE("QANGLES")
+                  READ(TOPUNIT,'(12I6)') &
+                              (ITQ(J), JTQ(J), KTQ(J), ICTQ(J), J=1,NQANGLES)                  
                CASE("DIHEDRALS") 
                   READ(TOPUNIT,'(12I6)') &
                               (IP(J), JP(J), KP(J), LP(J), ICP(J), J=1,NDIHS)
@@ -169,7 +180,6 @@ MODULE MOD_INIT
 
       !> Subroutine calling all initialisation and assignment routines for the various energy modules
       SUBROUTINE INIT_FROM_MODS()
-         USE MOD_ANGLES, ONLY: ASSIGN_THETATYPE
          USE MOD_DIHEDRALS, ONLY: INIT_DIHPAR, ASSIGN_PHITYPE
          USE MOD_EXCLV, ONLY: INIT_EXCLV
          USE MOD_DEBYEHUECKEL, ONLY: INIT_DH
@@ -185,7 +195,6 @@ MODULE MOD_INIT
          CALL FILL_HIRE_PARAMS()
          CALL INIT_DIHPAR()
          CALL ASSIGN_PHITYPE()
-         CALL ASSIGN_THETATYPE()
          CALL INIT_EXCLV()
          CALL INIT_DH()
          CALL SET_HBVARS()
