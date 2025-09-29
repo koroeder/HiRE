@@ -142,7 +142,7 @@ MODULE MOD_DEBYEHUECKEL
          REAL(KIND = REAL64), INTENT(OUT) :: EDH
 
          INTEGER :: I, J, IDX, JDX
-         REAL(KIND = REAL64) :: RIJ(3), R, CHRGI, CHRGJ, EDHPAIR, DFPAIR, NB, DX(3)
+         REAL(KIND = REAL64) :: RIJ(3), R, CHRGI, CHRGJ, EDHPAIR, DFPAIR, DX(3)
 
 #if FOR_ANALYSIS
          INTEGER :: DHUNIT
@@ -171,9 +171,8 @@ MODULE MOD_DEBYEHUECKEL
                   ! get the energy for this pair
                   EDHPAIR = 0.0D0
                   DFPAIR = 0.0D0
-                  CALL DH_PAIR(R, EDHPAIR, DFPAIR, CHRGI, CHRGJ)
-                  NB = GET_NBCOEF(I,J) 
-                  EDH = EDH + EDHPAIR * NB               
+                  CALL DH_PAIR(R, EDHPAIR, DFPAIR, CHRGI, CHRGJ) 
+                  EDH = EDH + EDHPAIR              
                   DX(1:3) = DFPAIR * NB * RIJ(1:3)
                   !WRITE(*,'(2I8,4F15.7)') I, J, R, EDHPAIR, NB, EDHPAIR*NB
 #ifdef FOR_ANALYSIS

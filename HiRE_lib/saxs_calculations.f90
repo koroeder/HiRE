@@ -215,6 +215,7 @@ MODULE SAXS_CALCS
                      JDX = 3*J
                      R(1:3) = VEC_DIFF(X(IDX-2:IDX),X(JDX-2:JDX))
                      R2 = DOT_PRODUCT(R,R)
+                     !QUERY: Can we use an approximation for the square root to save time (i.e MYSQRT)? 
                      QR = QPHYS*DSQRT(R2)
                      !FGRAIN = (R/R2)*SF_LOCAL(I,J)*(DCOS(QR)-DSIN(QR)/QR)
                      FGRAIN = (R/R2)*SF_LOCAL(I,J)*(MYCOS(QR)-MYSIN(QR)/QR)

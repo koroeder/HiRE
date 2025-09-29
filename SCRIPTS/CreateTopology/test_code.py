@@ -50,8 +50,8 @@ class Testclass(unittest.TestCase):
         out_mass = [16.000,30.974,12.011,1.008,14.007,1.008,12.011,16.000] 
         var.assertListEqual(FA2CGmapper.assign_atommass(input_names),out_mass)
     def test_CG_masses(var):
-        input_names = ["O", "P", "C", "R4"]
-        var.assertListEqual(FA2CGmapper.assign_CGmasses(input_names),[16.000,36.970,12.010,20.000])
+        input_names = ["O5", "P", "O3", "R4"]
+        var.assertListEqual(FA2CGmapper.assign_CGmasses(input_names),[16.000,36.970,16.000,20.000])
     def test_CG_termini(var):
         input_res = {1: [1,20], 2: [21,31], 3: [32,41]}
         input_termini = [1,31,32,41]

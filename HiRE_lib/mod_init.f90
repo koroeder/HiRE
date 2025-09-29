@@ -185,12 +185,11 @@ MODULE MOD_INIT
          USE MOD_DEBYEHUECKEL, ONLY: INIT_DH
          USE MOD_HBONDS, ONLY: SET_HBVARS
          USE FILL_PARAMS, ONLY: FILL_HIRE_PARAMS
-         ! USE NBDEFS, ONLY: SET_NBPARAMS
-         USE NBDEFS, ONLY: SET_NBPARAMS_NEW
+         USE NBDEFS, ONLY: SET_NBPARAMS
          USE MOD_SUGARBASE, ONLY: INIT_SUGARBASE
          USE MOD_BASESTACKING, ONLY: INIT_STACKING
          
-         CALL SET_NBPARAMS_NEW()
+         CALL SET_NBPARAMS()
          ! need to fill this first to make sure we have the information whether we are looking at RNA or DNA!
          CALL FILL_HIRE_PARAMS()
          CALL INIT_DIHPAR()

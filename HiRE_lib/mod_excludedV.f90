@@ -44,16 +44,14 @@ MODULE MOD_EXCLV
          REAL(KIND = REAL64), INTENT(OUT) :: EEXCL     !energy contribution
          REAL(KIND = REAL64), INTENT(IN) :: DA2        !input squared distance between particles
          INTEGER, PARAMETER :: VPOWER = 12
-         REAL(KIND = REAL64) :: DX(3), CT2, D, DA, DINV, DF, NB
+         REAL(KIND = REAL64) :: DX(3), CT2, D, DA, DINV, DF
 
-         !QUERY: do we need the NB coefficient?? 
-         NB = GET_NBCOEF(K,L)
          CT2 = NBCT2(TI,TJ)
          DX(1:3) = X(3*I-2:3*I) - X(3*J-2:3*J)
          DA = DSQRT(DA2)
          D = DA - CT2
          DINV = 1/D
-         EEXCL = EXCLV_SCALING*(DINV**VPOWER)*NB
+         EEXCL = EXCLV_SCALING*(DINV**VPOWER)
 
          DF = -VPOWER*EEXCL*DINV/DA
 
