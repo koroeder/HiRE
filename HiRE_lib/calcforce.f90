@@ -95,7 +95,6 @@ MODULE CALCFORCES
          F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(3)
          EVEC%ETORS = THIS_E*SCALING(3)
          !4. Debye-Hueckel term
-         !CALL ENERGY_DH(NOPT, X, THIS_F, THIS_E)
          CALL DH_ENERGY(NOPT, X, THIS_F, THIS_E)          
          ETOT = ETOT + THIS_E*SCALING(4)
          F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*SCALING(4)

@@ -25,19 +25,12 @@ MODULE NAparams
    !> Matrix of base pairing
    LOGICAL, ALLOCATABLE :: BP_CURR(:,:)
    
-   !Cut off definitions
-   !> NO CUTOFF
-   REAL(KIND = REAL64), PARAMETER :: CUT   = 1.0D2
-   !> divide the 1-4 VDW interactions by 8.0
-   REAL(KIND = REAL64), PARAMETER :: SCNB  = 8.0D1 
-   !> divide the 1-4 ELEC interactions by 2.0 - QUERY this is the same as SCNB at the moment?!?
-   REAL(KIND = REAL64), PARAMETER :: SCEE  = 8.0D1 
-   !> 2.0 dielectric constant epsilon = 2r - QUERY it is zero?!?
-   REAL(KIND = REAL64), PARAMETER :: IDIEL = 0.0D0 
+   !Debye-Hueckel parameters
+   !> Debye length
+   REAL(KIND = REAL64) :: DL  
    !> Dielectric constant
-   REAL(KIND = REAL64), PARAMETER :: DIELC = 1.0D0
-   !> Zero to be used in filling parameter arrays         
-   REAL(KIND = REAL64), PARAMETER :: Z = 0.0D0
+   REAL(KIND = REAL64), PARAMETER :: DIEL = 2.8D0
+
    
    !> Possible base names
    CHARACTER(LEN=1), DIMENSION(4) :: basenum = (/'G','A','C','U'/)        !
@@ -84,25 +77,10 @@ MODULE NAparams
    !> titration start
    INTEGER, ALLOCATABLE :: fatortit(:)
    
-   !RNA cutoffs - QUERY - what are all these cutoffs?
-   !> What is this?  
-   REAL(KIND = REAL64), PARAMETER :: rcut2_caca_scsc_out = 1.44D2
-   !> What is this?
-   REAL(KIND = REAL64), PARAMETER :: rcut2_caca_scsc_in = 1.00D2
-   !> Hydrogen bonding interactions cutoff
-   REAL(KIND = REAL64), PARAMETER :: rcut2_hb_mcmc_out = 1.44D2
-   !> What is this?
-   REAL(KIND = REAL64), PARAMETER :: rcut2_hb_mcmc_in = 1.00D2
-   !> What is this?
-   REAL(KIND = REAL64), PARAMETER :: rcut2_4b_out = 1.44D2
-   !> What is this?
-   REAL(KIND = REAL64), PARAMETER :: rcut2_4b_in = 1.00D2
-   !> What is this?
-   REAL(KIND = REAL64), PARAMETER :: rcut2_lj_out = 1.44D2
-   !> What is this?
-   REAL(KIND = REAL64), PARAMETER :: rcut2_lj_in = 1.00D2
-   
-   !Additional cutoffs used for speed of computation
+   ! Cutoff for excluded volume interactions
+   REAL(KIND = REAL64), PARAMETER :: RCUT2_EXCLV = 2.25D2
+   ! Cutoff for Hbonding interaction
+   REAL(KIND = REAL64), PARAMETER :: RCUT2_HBOND = 1.44D2
    !> Cut off for DH calculations
    REAL(KIND = REAL64), PARAMETER :: DHCUT = 35.0
    !> Cut off for non-bonded interactions (square of distance)

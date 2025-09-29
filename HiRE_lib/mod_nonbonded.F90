@@ -33,8 +33,7 @@ MODULE MOD_NONBONDED
          USE MOD_HBONDS, ONLY: ENERGY_HB
          USE MOD_EXCLV, ONLY: ENERGY_EXCLV
          USE MOD_BASESTACKING, ONLY: NA_STACKV2
-         USE NAPARAMS, ONLY: BOCC, BTYPE, BLIST, &
-                              RCUT2_CACA_SCSC_IN, RCUT2_CACA_SCSC_OUT, NBCUT
+         USE NAPARAMS, ONLY: BOCC, BTYPE, BLIST, RCUT2_EXCLV, NBCUT
          USE VAR_DEFS, ONLY: NRES, RESSTART, RESFINAL, RESTYPES, IAC
          IMPLICIT NONE
       
@@ -132,14 +131,12 @@ MODULE MOD_NONBONDED
                      A(1:3) = X(3*K-2:3*K) - X(3*L-2:3*L)
                      DA2 = DOT_PRODUCT(A,A) 
                      !Skip if the distance is too large
-                     IF (DA2.GT.RCUT2_CACA_SCSC_OUT) CYCLE
+                     IF (DA2.GT.RCUT2_EXCLV) CYCLE
                      CALL ENERGY_EXV(NOPT, X, F, K, L, TK, TL, DA2, THIS_EVDW)
-                     !CALL ENERGY_EXCLV(DA2, THIS_EVDW, DF, NBCT2(TK,TL), &
-                     !         RCUT2_CACA_SCSC_IN, RCUT2_CACA_SCSC_OUT)
                       
                      EVDW = EVDW + THIS_EVDW                       
 #if FOR_ANALYSIS
-                     ! WRITE(EXCLVUNIT,'(4I6,5F15.7)') I, J , K, L, DSQRT(DA2), NBCT2(TK,TL), THIS_EVDW, DF, DF*NB
+                     WRITE(EXCLVUNIT,'(4I6,4F15.7)') I, J , K, L, DSQRT(DA2), NBCT2(TK,TL), THIS_EVDW
 #endif
    
                   ENDDO

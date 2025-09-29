@@ -241,7 +241,7 @@ MODULE MOD_HBONDS
       !> @param[in] ENP2 - energy from plane environment to be added for base 2 (or B or J)
       SUBROUTINE HBNEW(BI, BJ, MTYPEI, MTYPEJ, IDXA, TYA, IDXB, TYB, NOPT, X, EHHB, HBEXIST, &
          FA, FB, ENP1, ENP2)
-         USE NAPARAMS, ONLY: BPROT, BOCC, RCUT2_HB_MCMC_OUT
+         USE NAPARAMS, ONLY: BPROT, BOCC, RCUT2_HBOND
          USE RNA_HB_PARAMS, ONLY: RCALPAM => CALPAM, RCALPBM => CALPBM, RSALPAM => SALPAM, &
                                   RSALPBM => SALPBM, RDREF => DREF, RS => S, RNPARAM => NPARAM
          USE DNA_HB_PARAMS, ONLY: DCALPAM => CALPAM, DCALPBM => CALPBM, DSALPAM => SALPAM, &
@@ -316,7 +316,7 @@ MODULE MOD_HBONDS
 
          !check distance between A and B is not too far for HB interactions
          CALL NORMED_VEC(RBA, RBA0, DBA)
-         IF (DBA**2 .GE. RCUT2_HB_MCMC_OUT) RETURN
+         IF (DBA**2 .GE. RCUT2_HBOND) RETURN
 
          ! get norms and normed vectors for distances
          CALL NORMED_VEC(UA, UA0, DUA)
