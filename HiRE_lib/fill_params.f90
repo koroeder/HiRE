@@ -45,38 +45,47 @@ MODULE FILL_PARAMS
          TIT = SCORE_RNA(79)
          noWCq = SCORE_RNA(80)
 
-         !twwAA = 2.00 * SCORE_RNA(61)
-         !twwAC = 2.00 * SCORE_RNA(61)
-         !twwAU = 2.10 * SCORE_RNA(61)
-         !twwGG = 2.00 * SCORE_RNA(61)
-         !twwGC = 1.80 * SCORE_RNA(61)
-         !twwGU = 2.00 * SCORE_RNA(61)
-         !twwCC = 2.40 * SCORE_RNA(61)
-         !twwCU = 2.20 * SCORE_RNA(61)
-         !twwUU = 2.30 * SCORE_RNA(61)
-
-         !twwAA = 2.00 * SCORE_RNA(61)
-         !twwAC = 2.00 * SCORE_RNA(61)
-         !twwAU = 2.00 * SCORE_RNA(61)
-         !twwGG = 2.00 * SCORE_RNA(61)
-         !twwGC = 2.00 * SCORE_RNA(61)
-         !twwGU = 2.00 * SCORE_RNA(61)
-         !twwCC = 2.00 * SCORE_RNA(61)
-         !twwCU = 2.00 * SCORE_RNA(61)
-         !twwUU = 2.00 * SCORE_RNA(61)
+         !values from RNA bp database, apart from cwwCC - estimated from optimisation + fitting
+         twwAA = 14.31
+         twwAC = 16.91
+         twwAU = 14.43
+         twwGG = 26.16
+         twwGC = 15.98
+         twwGU = 16.83
+         twwCC = 13.70
+         twwCU = 12.06
+         twwUU = 10.63
          
-         tww = SCORE_RNA(81)
-         
-         cwwAA = SCORE_RNA(82)
-         cwwAG = SCORE_RNA(83)
-         cwwAC = SCORE_RNA(84)
-         cwwAU = SCORE_RNA(85)
-         cwwGC = SCORE_RNA(86)
-         cwwGU = SCORE_RNA(87)
-         cwwCC = SCORE_RNA(88)
-         cwwCU = SCORE_RNA(89)
-         cwwUU = SCORE_RNA(90)
+         cwwAA =  6.30
+         cwwAG = 19.48
+         cwwAC =  8.48
+         cwwAU = 14.59
+         cwwGC = 31.36
+         cwwGU = 16.35
+         cwwCC = 11.23
+         cwwCU = 12.31
+         cwwUU = 12.42
                   
+         !high probability non-canonical bps (probs from basepair catalogue and energy from RNA bp database)
+         twhAA = 13.54
+         twhCC = 19.76
+         twhGG = 11.02
+         thhAA = 10.88
+         cwhGG = 15.96
+         thsAA =  6.89
+         thsAG = 17.38
+         thsCC = 10.33
+         thsGG =  6.29
+         cwsAA = 15.08
+         cwsAC = 14.66
+         cwsCC =  9.22
+         cssAA = 11.22
+         cssAC =  9.92
+         tssAC =  4.00
+         tssAG =  5.40
+         tssGG = 13.20
+         twsCC = 
+
          cwh = SCORE_RNA(91)
          twh = SCORE_RNA(92)
          cws = SCORE_RNA(93)

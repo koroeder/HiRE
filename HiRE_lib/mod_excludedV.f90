@@ -8,6 +8,7 @@ MODULE MOD_EXCLV
    IMPLICIT NONE
    !> Overall scaling of the contribution
    REAL(KIND = REAL64) :: EXCLV_SCALING
+   !> OLD PARAMETERS, no longer in use.
    !> Steepness of function
    REAL(KIND = REAL64) :: EXCL_VOL
    !> Barrier height
@@ -26,6 +27,39 @@ MODULE MOD_EXCLV
          BARRIER = SCORE_RNA(42)  ! Height = 100
          RATIO = SCORE_RNA(43)    ! Not used with old barrier
       END SUBROUTINE INIT_EXCLV
+
+      !> Energy and gradient for simpler potential
+      !  X----)              (------X
+      !  <----><------------><------>
+      !   r1        d           r2
+      !  <-------------------------->
+      !          sqrt(DA2)
+
+      SUBROUTINE ENERGY_EXV(NOPT, X, F, I, J, TI, TJ, DA2, EEXCL)
+         INTEGER, INTENT(IN) :: NOPT                   !Number of degrees of freedom
+         INTEGER, INTENT(IN) :: I, J                   !indices of grains
+         INTEGER, INTENT(IN) :: TI,TJ                  !type of grains
+         REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    !input coordinates
+         REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force
+         REAL(KIND = REAL64), INTENT(OUT) :: EEXCL     !energy contribution
+         REAL(KIND = REAL64), INTENT(IN) :: DA2        !input squared distance between particles
+         INTEGER, PARAMETER :: VPOWER = 12
+         REAL(KIND = REAL64) :: DX(3), CT2, D, DA, DINV, DF, NB
+
+         !QUERY: do we need the NB coefficient?? 
+         NB = GET_NBCOEF(K,L)
+         CT2 = NBCT2(TI,TJ)
+         DX(1:3) = X(3*I-2:3*I) - X(3*J-2:3*J)
+         DA = DSQRT(DA2)
+         D = DA - CT2
+         DINV = 1/D
+         EEXCL = EXCLV_SCALING*(DINV**VPOWER)*NB
+
+         DF = -VPOWER*EEXCL*DINV/DA
+
+         F(3*I-2:3*I) = F(3*I-2:3*I) + DF*DX(1:3)
+         F(3*J-2:3*J) = F(3*J-2:3*J) - DF*DX(1:3)
+      END SUBROUTINE ENERGY_EXV
 
       !> Energy and gradient contribution for pair of CG particles
       SUBROUTINE ENERGY_EXCLV(DA2, EEXCL, DF, CT2, R2IN, R2OUT)   
