@@ -114,8 +114,6 @@ MODULE MOD_ANGLES
             RKJ0 = dot_product(RKJ, RKJ)
             RIK0 = dsqrt(RIJ0*RKJ0)
             CT0 = dot_product(RIJ, RKJ)/RIK0
-            ! QUERY: This is clearly for numerical reasons, but it feels like 
-            !        there ought to be a better solution for this using TANH?
             CT1 = MAX(-PT999,CT0)
             CT2 = MIN(PT999,CT1)
             ANT = DACOS(CT2)
@@ -171,8 +169,6 @@ MODULE MOD_ANGLES
             RKJ0 = dot_product(RKJ, RKJ)
             RIK0 = dsqrt(RIJ0*RKJ0)
             CT0 = dot_product(RIJ, RKJ)/RIK0
-            ! QUERY: This is clearly for numerical reasons, but it feels like 
-            !        there ought to be a better solution for this using TANH?
             CT1 = MAX(-PT999,CT0)
             CT2 = MIN(PT999,CT1)
             ANT = DACOS(CT2)
