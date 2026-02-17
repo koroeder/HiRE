@@ -3,7 +3,6 @@ builds/
 *.mod
 bin
 *.pdb
-*.dat
 Docs/html
 Docs/latex
 *.code-workspace
