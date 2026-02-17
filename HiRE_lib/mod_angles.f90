@@ -149,7 +149,7 @@ MODULE MOD_ANGLES
          REAL(KIND = REAL64) :: RIJ(3), RKJ(3), RIJ0, RKJ0, RIK0
          REAL(KIND = REAL64) :: RDI(3), RDJ(3), RDK(3)
          REAL(KIND = REAL64) :: CT0, CT1, CT2, ANT
-         REAL(KIND = REAL64) :: A, B, C, D, E, REF, KANG, DIFF, DIFF2, DIFF3, DIFF4, EQ, DF
+         REAL(KIND = REAL64) :: A, B, C, D, E, REF, KANG, DIFF, DIFF2, DIFF3, DIFF4, EQDUMMY, DF
          REAL(KIND = REAL64), PARAMETER :: PT999 = 0.999d0
          INTEGER :: JN, I, J, K, IC
 
@@ -187,8 +187,8 @@ MODULE MOD_ANGLES
             DIFF3 = DIFF**3
             DIFF4 = DIFF**4
 
-            EQ = KANG*(A*DIFF4 + B*DIFF3 + C*DIFF2 + D*DIFF + E)*SCORE_RNA(2)
-            EQANGLE = EQANGLE + EQ
+            EQDUMMY = KANG*(A*DIFF4 + B*DIFF3 + C*DIFF2 + D*DIFF + E)*SCORE_RNA(2)
+            EQANGLE = EQANGLE + EQDUMMY
 
             !Force
             DF = KANG*(4*A*DIFF3+3*B*DIFF2 + 2*C*DIFF + D)*SCORE_RNA(2) ! derivative of V_qangle with respect to theta
