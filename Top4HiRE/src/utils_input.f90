@@ -59,18 +59,24 @@ MODULE UTILS_IO
          CHARACTER(*), INTENT(IN) :: LINE
          INTEGER, INTENT(IN) :: NWORDS
          CHARACTER(*), DIMENSION(NWORDS), INTENT(OUT) :: WORDSOUT
-         INTEGER:: J1,START_IND,END_IND,J2
+         INTEGER :: J1,START_IND,END_IND,J2
+         INTEGER :: ASCII_CODE
+         LOGICAL :: ISSEP
          CHARACTER(35) :: WORD
+
+         WORDSOUT(1:NWORDS) = ""
          START_IND=0
          END_IND=0
          J1=1
          J2=0
          DO WHILE(J1.LE.LEN(LINE))
-            IF ((START_IND.EQ.0).AND.(LINE(J1:J1).NE.' ')) THEN
+            ASCII_CODE = IACHAR(LINE(J1:J1))
+            ISSEP = ((ASCII_CODE.EQ.9).OR.(ASCII_CODE.EQ.32))
+            IF ((START_IND.EQ.0).AND.(.NOT.ISSEP)) THEN
                START_IND=J1
             ENDIF
             IF (START_IND.GT.0) THEN
-               IF (LINE(J1:J1).EQ.' ') END_IND=J1-1
+               IF (ISSEP) END_IND=J1-1
                IF (J1.EQ.LEN(LINE)) END_IND=J1
                IF (END_IND.GT.0) THEN
                   J2=J2+1

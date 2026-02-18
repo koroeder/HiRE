@@ -1,21 +1,28 @@
 PROGRAM CREATE_TOPOLOGY
    USE TOP_GLOBALS
+   USE PARSE_FF, ONLY: PARSE_FF_FILES
    USE PARSE_AA_PDB, ONLY: PARSE_PDB_INPUT
    !USE PARSE_CG_PDB, ONLY: PARSE_CG_INPUT
    !USE PARSE_SEQ, ONLY: PARSE_FASTA_INPUT
+   USE CREATE_TOP, ONLY: WRITE_TOPOLOGY
    IMPLICIT NONE
-   INTEGER :: NARGS
+   INTEGER :: NARGS, I
    INTEGER, PARAMETER :: STDOUT = 6 
    CHARACTER(LEN=50) :: INPUTNAME      !Name of topology file 
+   INTEGER, PARAMETER :: NFF = 1
+   CHARACTER(LEN=60) :: FFFILES(NFF)
    WRITE(STDOUT,'(A)') "Creating Topology file HiRE"
    ! check number of arguments
    NARGS = COMMAND_ARGUMENT_COUNT()
    ! We expect two arguments, the input file and the file type
-   IF (NARGS.EQ.2) THEN
+   IF (NARGS.EQ.2+NFF) THEN
       CALL GET_COMMAND_ARGUMENT(1, INPUTNAME)
-      CALL GET_COMMAND_ARGUMENT(2, MODE) 
+      CALL GET_COMMAND_ARGUMENT(2, MODE)
+      DO I=1,NFF
+         CALL GET_COMMAND_ARGUMENT(I+2, FFFILES(I))
+      END DO
    ELSE
-      WRITE(STDOUT,'(A,I4)') "Expecting two arguments, but got ", NARGS
+      WRITE(STDOUT,'(A,I4)') "Expecting two+NFF arguments, but got ", NARGS
       STOP
    END IF
    ! call input parsing
@@ -32,19 +39,9 @@ PROGRAM CREATE_TOPOLOGY
       WRITE(STDOUT,*) " ERROR - Unknown input mode: ", MODE, " - Needs to be one of CG, PDB or SEQ."
       STOP
    END IF
+   !parse force field
+   CALL PARSE_FF_FILES(NFF,FFFILES)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+   CALL WRITE_TOPOLOGY()
 END PROGRAM CREATE_TOPOLOGY

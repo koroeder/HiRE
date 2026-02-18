@@ -55,9 +55,11 @@ MODULE PARSE_AA_PDB
          CALL GET_RES_DATA(AARESNAMES)
          CALL ASSIGN_GRAIN_DATA()
          CALL CREATE_CG_XYZ()
-         DO I=1,NATOMS
-            WRITE(*,'(A,3F12.7)') CGNAMES(I), XYZCG(3*I-2:3*I)
-         END DO
+         IF (DEBUGT) THEN
+            DO I=1,NATOMS
+               WRITE(*,'(A,3F12.7)') CGNAMES(I), XYZCG(3*I-2:3*I)
+            END DO
+         END IF
       END SUBROUTINE PARSE_PDB_INPUT
 
       SUBROUTINE GET_AA_NATOMS(INPUTNAME)
@@ -203,15 +205,12 @@ MODULE PARSE_AA_PDB
          INTEGER :: ATOMIDAA, ATOMIDCG
 
          DO I=1,NRES
-            WRITE(*,*) "NEXT RESIDUE: ", I
             IF (RESTYPE(I).EQ.2) THEN !ions only have one set of coordinates
                ATOMIDAA = AARESSTART(J)
                ATOMIDCG = CGSTART(J)
                CALL ASSIGN_AA_TO_CG(ATOMIDAA,ATOMIDCG)
             ELSE IF ((RESTYPE(I).EQ.0).OR.(RESTYPE(I).EQ.1)) THEN !RNA and DNA
-               WRITE(*,*) ">>> ", CGRESNAMES(I), CGSTART(I), CGFINAL(I)
-               DO J=CGSTART(I),CGFINAL(I) !!!!!!!!!! TODO check definition of CGSTART and CGFINAL
-                  WRITE(*,*) CGNAMES(J)
+               DO J=CGSTART(I),CGFINAL(I)
                   IF (CGNAMES(J).EQ."P") THEN
                      CALL GET_ATOMID("P",I,ATOMIDAA)
                      CALL ASSIGN_AA_TO_CG(ATOMIDAA,J)
@@ -309,7 +308,6 @@ MODULE PARSE_AA_PDB
       SUBROUTINE ASSIGN_AA_TO_CG(AAID,CGID)
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: AAID, CGID
-         WRITE(*,*) "AAID, CGID > ",AAID,CGID
          XYZCG(3*(CGID-1)+1) = XYZAA(3*(AAID-1)+1)
          XYZCG(3*(CGID-1)+2) = XYZAA(3*(AAID-1)+2)
          XYZCG(3*(CGID-1)+3) = XYZAA(3*(AAID-1)+3)
@@ -323,7 +321,6 @@ MODULE PARSE_AA_PDB
          CHARACTER(*), INTENT(IN) :: ATNAME
          INTEGER, INTENT(OUT) :: ATOMID
          INTEGER :: FIRST, LAST, J1
-         WRITE(*,*) " > get atomid> RES: ", RESID, ", atom name: ", ATNAME
          ATOMID = 0
          FIRST=AARESSTART(RESID)
          LAST=AARESFINAL(RESID)

@@ -2,24 +2,24 @@ MODULE FF_GLOBALS
    USE PREC_HIRE
    !custom type to store bond information
    TYPE :: BOND
-      CHARACTER(LEN=4) :: AT1, AT2
-      REAL(KIND=REAL64) :: KSPR, REQ
+      CHARACTER(LEN=4) :: AT1="X", AT2="X"
+      REAL(KIND=REAL64) :: KSPR=-1.0D0, REQ=-1.0D0
    END TYPE
    !custom type to store angle information
    TYPE :: ANGLE
-      CHARACTER(LEN=4) :: AT1, AT2, AT3
-      REAL(KIND=REAL64) :: KSPR, TEQ
+      CHARACTER(LEN=4) :: AT1="X", AT2="X", AT3="X"
+      REAL(KIND=REAL64) :: KSPR=-1.0D0, TEQ=-1.0D0
    END TYPE
    !custom type to store qangle information
    TYPE :: QANGLE
-      CHARACTER(LEN=4) :: AT1, AT2, AT3
-      REAL(KIND=REAL64) :: TTA, A1, A2, A3, A5
+      CHARACTER(LEN=4) :: AT1="X", AT2="X", AT3="X"
+      REAL(KIND=REAL64) :: TTA=-1.0D0, A1=-1.0D0, A2=-1.0D0, A3=-1.0D0, A5=-1.0D0
    END TYPE
    !custom dihedral information type
    TYPE :: DIHEDRAL
-      CHARACTER(LEN=4) :: AT1, AT2, AT3, AT4
-      REAL(KIND=REAL64) :: K, PHASE, YOFF
-      INTEGER :: PERIOD     
+      CHARACTER(LEN=4) :: AT1="X", AT2="X", AT3="X", AT4="X"
+      REAL(KIND=REAL64) :: K=0.0D0, PHASE=0.0D0, YOFF=0.0D0
+      INTEGER :: PERIOD=0     
    END TYPE
    ! number of bonds between residues
    INTEGER :: NBINTER = 0 
