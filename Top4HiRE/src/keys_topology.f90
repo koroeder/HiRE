@@ -51,4 +51,26 @@ MODULE TOP_GLOBALS
    REAL(KIND=REAL64), ALLOCATABLE :: BKSPR(:)
    !> bond equilibrium lengths
    REAL(KIND=REAL64), ALLOCATABLE :: BREQ(:)
+   !> angle information
+   INTEGER :: NANGLE = 0
+   INTEGER :: NATYPE = 0
+   !> atoms in angle
+   INTEGER, ALLOCATABLE :: ANGLES(:,:)
+   !> type for each angle
+   INTEGER, ALLOCATABLE :: ATYPE(:)
+   !> force constants
+   REAL(KIND=REAL64), ALLOCATABLE :: AKSPR(:)
+   !> equilibrium angle
+   REAL(KIND=REAL64), ALLOCATABLE :: ATEQ(:)
+   !> qangle information
+   INTEGER :: NQANGLE = 0
+   INTEGER :: NQTYPE = 0
+   !> atoms in qangle
+   INTEGER, ALLOCATABLE :: QANGLES(:,:)
+   !> type for each qangle
+   INTEGER, ALLOCATABLE :: QTYPE(:)
+   !> reference angle
+   REAL(KIND=REAL64), ALLOCATABLE :: QTTS(:)
+   !> potential parameters
+   REAL(KIND=REAL64), ALLOCATABLE :: QA1(:), QA2(:), QA3(:), QA5(:)
 END MODULE TOP_GLOBALS
