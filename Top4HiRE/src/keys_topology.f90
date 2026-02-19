@@ -40,7 +40,15 @@ MODULE TOP_GLOBALS
    REAL(KIND = REAL64), ALLOCATABLE :: CGCHARGE(:)
    !> coordinates
    REAL(KIND = REAL64), ALLOCATABLE :: XYZCG(:)
-
-
-
+   !> bond information
+   INTEGER :: NBONDS = 0
+   INTEGER :: NBTYPE = 0
+   !> bonded atoms
+   INTEGER, ALLOCATABLE :: BONDS(:,:)
+   !> type for each bond
+   INTEGER, ALLOCATABLE :: BTYPE(:)
+   !> bond force constants
+   REAL(KIND=REAL64), ALLOCATABLE :: BKSPR(:)
+   !> bond equilibrium lengths
+   REAL(KIND=REAL64), ALLOCATABLE :: BREQ(:)
 END MODULE TOP_GLOBALS
