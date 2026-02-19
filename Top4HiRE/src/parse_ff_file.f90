@@ -71,7 +71,7 @@ MODULE PARSE_FF
                   READ(INUNIT,'(A)',IOSTAT=IOSTAT) LINE
                   CALL READLINE(LINE,NENTRIES,ENTRIES)
                   READ(ENTRIES(6),'(I4)') INTDUMMY
-                  IF (INTDUMMY.EQ.1) THEN !internulceotide
+                  IF (INTDUMMY.GE.1) THEN !internulceotide
                      N1CURR = N1CURR + 1
                      BINTER(N1CURR)%AT1 = ENTRIES(2)
                      BINTER(N1CURR)%AT2 = ENTRIES(3)
@@ -93,7 +93,7 @@ MODULE PARSE_FF
                   READ(INUNIT,'(A)',IOSTAT=IOSTAT) LINE
                   CALL READLINE(LINE,NENTRIES,ENTRIES)
                   READ(ENTRIES(7),'(I4)') INTDUMMY
-                  IF (INTDUMMY.EQ.1) THEN !internulceotide
+                  IF (INTDUMMY.GE.1) THEN !internulceotide
                      N3CURR = N3CURR + 1
                      AINTER(N3CURR)%AT1 = ENTRIES(2)
                      AINTER(N3CURR)%AT2 = ENTRIES(3)
@@ -117,7 +117,7 @@ MODULE PARSE_FF
                   READ(INUNIT,'(A)',IOSTAT=IOSTAT) LINE
                   CALL READLINE(LINE,NENTRIES,ENTRIES)
                   READ(ENTRIES(10),'(I4)') INTDUMMY
-                  IF (INTDUMMY.EQ.1) THEN !internulceotide
+                  IF (INTDUMMY.GE.1) THEN !internulceotide
                      N5CURR = N5CURR + 1
                      QINTER(N5CURR)%AT1 = ENTRIES(2)
                      QINTER(N5CURR)%AT2 = ENTRIES(3)
@@ -152,7 +152,7 @@ MODULE PARSE_FF
                   CALL READLINE(LINE,NENTRIES,ENTRIES)
                   READ(ENTRIES(11),'(I4)') INTDUMMY
                   READ(ENTRIES(2),'(I4)') INTTYPE
-                  IF (INTDUMMY.EQ.1) THEN !internulceotide
+                  IF (INTDUMMY.GE.1) THEN !internulceotide
                      !first determine whether this is a new dihedral, or whether we already have some terms
                      IF (DIHTYPE(INTTYPE).EQ.-1) THEN
                         N7CURR = N7CURR + 1
