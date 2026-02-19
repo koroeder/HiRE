@@ -18,8 +18,7 @@ MODULE FF_GLOBALS
    !custom dihedral information type
    TYPE :: DIHEDRAL
       CHARACTER(LEN=4) :: AT1="X", AT2="X", AT3="X", AT4="X"
-      REAL(KIND=REAL64) :: K=0.0D0, PHASE=0.0D0, YOFF=0.0D0
-      INTEGER :: PERIOD=0     
+      REAL(KIND=REAL64) :: K=0.0D0, PHASE=0.0D0, YOFF=0.0D0, PERIOD=0.0D0     
    END TYPE
    ! number of bonds between residues
    INTEGER :: NBINTER = 0 

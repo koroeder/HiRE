@@ -188,7 +188,7 @@ MODULE PARSE_FF
                      DINTRA(DIDX,TERMIDX)%AT4 = ENTRIES(6)
                      READ(ENTRIES(7),'(F12.4)') DINTRA(DIDX,TERMIDX)%K
                      READ(ENTRIES(8),'(F12.4)') DINTRA(DIDX,TERMIDX)%PHASE
-                     READ(ENTRIES(9),'(I4)') DINTRA(DIDX,TERMIDX)%PERIOD
+                     READ(ENTRIES(9),'(F8.3)') DINTRA(DIDX,TERMIDX)%PERIOD
                      READ(ENTRIES(10),'(F12.4)') DINTRA(DIDX,TERMIDX)%YOFF
                   END IF
                END DO   

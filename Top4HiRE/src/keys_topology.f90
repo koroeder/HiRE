@@ -73,4 +73,19 @@ MODULE TOP_GLOBALS
    REAL(KIND=REAL64), ALLOCATABLE :: QTTS(:)
    !> potential parameters
    REAL(KIND=REAL64), ALLOCATABLE :: QA1(:), QA2(:), QA3(:), QA5(:)
+   !dihedral information
+   INTEGER :: NDIH = 0
+   INTEGER :: NDTYPE = 0
+   !> atoms in dihedrals
+   INTEGER, ALLOCATABLE :: DIHS(:,:)
+   !> type for each dihedral
+   INTEGER, ALLOCATABLE :: DTYPE(:)
+   !> reference angle
+   REAL(KIND=REAL64), ALLOCATABLE :: DK(:,:)
+   !> reference angle
+   REAL(KIND=REAL64), ALLOCATABLE :: DPHASE(:,:)
+   !> reference angle
+   REAL(KIND=REAL64), ALLOCATABLE :: DPERIOD(:,:)
+   !> reference angle
+   REAL(KIND=REAL64), ALLOCATABLE :: DOFFSET(:,:)
 END MODULE TOP_GLOBALS

@@ -14,12 +14,16 @@ MODULE CREATE_TOP
          CALL GET_BOND_INFO()
          CALL GET_ANGLE_INFO()
          CALL GET_QANGLE_INFO()
+         CALL GET_DIHEDRAL_INFO()
          
          TOPUNIT = GETUNIT()
          OPEN(UNIT=TOPUNIT, FILE=TOPNAME, STATUS='NEW')
 
+         !TODO: write top section with numbers of entries
+
          CALL WRITE_PARTICLE_RES_INFO(TOPUNIT)
 
+         !TODO: add dihedral stuff to output
          CALL WRITE_TYPE_DETAILS(TOPUNIT)
 
          CALL WRITE_BONDEDINTS_DETAILS(TOPUNIT)
@@ -454,6 +458,146 @@ MODULE CREATE_TOP
             END DO
          END DO
       END SUBROUTINE GET_QANGLE_INFO
+
+      !!!!!!TODO: add loop for three terms in reading? Do we actually need it as all three terms are identical for the atoms
+      SUBROUTINE GET_DIHEDRAL_INFO()
+         IMPLICIT NONE
+         INTEGER :: I,J,K,IDX1,IDX2, IDX3, IDX4
+         CHARACTER(LEN=4) :: AT1, AT2, AT3, AT4
+         LOGICAL :: TERMINALT
+         INTEGER, ALLOCATABLE :: TYPEMAP(:)
+         INTEGER, ALLOCATABLE :: DUMMYTYPE(:), DUMMYDIH(:,:)
+         NDIH = 0
+         ALLOCATE(DUMMYTYPE(NRES*(NDINTRA+NDINTER)),DUMMYDIH(NRES*(NDINTRA+NDINTER),4),TYPEMAP(NDINTER+NDINTRA))
+         !TYPEMAP stores which type each angle is: 1:NDINTRA are the intraresidue angles,
+         !NDINTRA+1:NDINTRA+NDINTER are the interresidue types
+         !NTYPE stores which type we have right now for new allocations
+         !the type mapping is saved for each angle in DUMMYTYPE
+         TYPEMAP(1:NDINTER+NDINTRA) = -1
+         NDTYPE = 0
+         DO I=1,NRES
+            !check whether this is the end of a chain
+            TERMINALT = .FALSE.
+            DO J=1,NTERMINI
+               IF (TERMINI(J,2).EQ.I) THEN
+                  TERMINALT = .TRUE.
+                  EXIT
+               END IF
+            END DO
+            !now go over intraresidue angles
+            DO K=1,NDINTRA
+               !check whether the type of this bond matches the res type
+               IF (.NOT.(DINTRATYPE(K).EQ.RESTYPE(I))) CONTINUE
+               !get grain names
+               AT1=DINTRA(K,1)%AT1
+               AT2=DINTRA(K,1)%AT2
+               AT3=DINTRA(K,1)%AT3
+               AT4=DINTRA(K,1)%AT4
+               !get their indices
+               CALL GET_CG_ID(I,AT1,IDX1)
+               CALL GET_CG_ID(I,AT2,IDX2)
+               CALL GET_CG_ID(I,AT3,IDX3)
+               CALL GET_CG_ID(I,AT4,IDX4)
+               !if either is -1, the bond does not exist
+               IF ((IDX1.EQ.-1).OR.(IDX2.EQ.-1).OR.(IDX3.EQ.-1).OR.(IDX4.EQ.-1)) THEN
+                  CONTINUE
+               ELSE
+                  !otherwise we have a new bond
+                  NDIH = NDIH + 1
+                  DUMMYDIH(NDIH,1) = IDX1
+                  DUMMYDIH(NDIH,2) = IDX2
+                  DUMMYDIH(NDIH,3) = IDX3
+                  DUMMYDIH(NDIH,4) = IDX4
+                  !get the type for the topology
+                  IF (TYPEMAP(K).EQ.-1) THEN
+                     !this is a new type
+                     NDTYPE = NDTYPE + 1
+                     TYPEMAP(K) = NDTYPE
+                  END IF
+                  DUMMYTYPE(NDIH) = TYPEMAP(K) 
+               END IF
+            END DO
+            !now do interresidue bonds 
+            IF (.NOT.TERMINALT) THEN
+               DO K=1,NDINTER
+                  !check whether the type of this bond matches the res type
+                  IF (.NOT.(DINTERTYPE(K).EQ.RESTYPE(I))) CONTINUE
+                  !get grain names
+                  AT1=DINTER(K,1)%AT1
+                  AT2=DINTER(K,1)%AT2
+                  AT3=DINTER(K,1)%AT3
+                  AT4=DINTER(K,1)%AT4
+                  !get their indices - if there is a star in the grain name, it is in the next residue
+                  IF (INDEX(AT1,"*").GT.0) THEN
+                     CALL GET_CG_ID(I+1,AT1,IDX1)                  
+                  ELSE
+                     CALL GET_CG_ID(I,AT1,IDX1)
+                  END IF
+                  IF (INDEX(AT2,"*").GT.0) THEN
+                     CALL GET_CG_ID(I+1,AT2,IDX2)
+                  ELSE
+                     CALL GET_CG_ID(I,AT2,IDX2)
+                  END IF
+                  IF (INDEX(AT3,"*").GT.0) THEN
+                     CALL GET_CG_ID(I+1,AT3,IDX3)
+                  ELSE
+                     CALL GET_CG_ID(I,AT3,IDX3)
+                  END IF
+                  IF (INDEX(AT4,"*").GT.0) THEN
+                     CALL GET_CG_ID(I+1,AT4,IDX4)
+                  ELSE
+                     CALL GET_CG_ID(I,AT4,IDX4)
+                  END IF
+                  !if either is -1, the bond does not exist
+                  IF ((IDX1.EQ.-1).OR.(IDX2.EQ.-1).OR.(IDX3.EQ.-1).OR.(IDX4.EQ.-1)) THEN
+                     CONTINUE
+                  ELSE
+                     !otherwise we have a new bond
+                     NDIH = NDIH + 1
+                     DUMMYDIH(NDIH,1) = IDX1
+                     DUMMYDIH(NDIH,2) = IDX2
+                     DUMMYDIH(NDIH,3) = IDX3
+                     DUMMYDIH(NDIH,4) = IDX4
+                     !get the type for the topology
+                     IF (TYPEMAP(NDINTRA+K).EQ.-1) THEN
+                        !this is a new type
+                        NDTYPE = NDTYPE + 1
+                        TYPEMAP(NDINTRA+K) = NDTYPE
+                     END IF
+                     DUMMYTYPE(NDIH) = TYPEMAP(NDINTRA+K) 
+                  END IF
+               END DO
+            END IF
+         END DO
+         !now allocate the actual global types and get all bonding information
+         ALLOCATE(DIHS(NDIH,3),DTYPE(NDIH),AKSPR(NDTYPE),ATEQ(NDTYPE))
+         DIHS(1:NDIH,1:3) = 3*(DUMMYDIH(1:NDIH,1:3)-1)
+         DTYPE(1:NDIH) = DUMMYTYPE(1:NDIH)
+         DO I=1,NDTYPE
+            DO K=1,NDINTRA
+               IF (TYPEMAP(K).EQ.I) THEN
+                  DO J=1,3
+                     DK(I,J) = DINTRA(K,J)%K
+                     DPHASE(I,J) = DINTRA(K,J)%PHASE
+                     DPERIOD(I,J) = DINTRA(K,J)%PERIOD
+                     DOFFSET(I,J) = DINTRA(K,J)%YOFF
+                  END DO
+                  EXIT
+               END IF
+            END DO
+            DO K=1,NDINTER
+               IF (TYPEMAP(NDINTRA+K).EQ.I) THEN
+                  DO J=1,3
+                     DK(I,J) = DINTER(K,J)%K
+                     DPHASE(I,J) = DINTER(K,J)%PHASE
+                     DPERIOD(I,J) = DINTER(K,J)%PERIOD
+                     DOFFSET(I,J) = DINTER(K,J)%YOFF
+                  END DO
+                  EXIT  
+               END IF             
+            END DO
+         END DO
+      END SUBROUTINE GET_DIHEDRAL_INFO
 
       SUBROUTINE GET_CG_ID(RESID,CGNAME,CGID)
          IMPLICIT NONE
