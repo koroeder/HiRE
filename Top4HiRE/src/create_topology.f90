@@ -19,7 +19,10 @@ MODULE CREATE_TOP
          TOPUNIT = GETUNIT()
          OPEN(UNIT=TOPUNIT, FILE=TOPNAME, STATUS='NEW')
 
-         !TODO: write top section with numbers of entries
+         WRITE(TOPUNIT,*) "Molecule"
+         WRITE(TOPUNIT,*) "SECTION DEFINITIONS"
+         WRITE(TOPUNIT,'(12I6)') NATOMS, NRES, NBONDS, NANGLE, NQANGLE, NDIH, &
+                                 NBTYPE, NATYPE, NQTYPE, NDTYPE, NTERMINI/2
 
          CALL WRITE_PARTICLE_RES_INFO(TOPUNIT)
 
@@ -83,6 +86,18 @@ MODULE CREATE_TOP
          WRITE(TOPUNIT,'(5F16.8)') QA3
          WRITE(TOPUNIT,*) "SECTION QANGLE_A5"
          WRITE(TOPUNIT,'(5F16.8)') QA5
+         ! dihedral scaling
+         WRITE(TOPUNIT,*) "SECTION DIHEDRAL_FORCE_CONSTANT"
+         WRITE(TOPUNIT,'(5F16.8)') (DK(I,1), DK(I,2), DK(I,3), I=1,NDTYPE)
+         ! dihedrla periods
+         WRITE(TOPUNIT,*) "SECTION DIHEDRAL_PERIODICITY"
+         WRITE(TOPUNIT,'(5F16.8)') (DPERIOD(I,1), DPERIOD(I,2), DPERIOD(I,3), I=1,NDTYPE)
+         ! dihedral phase
+         WRITE(TOPUNIT,*) "SECTION DIHEDRAL_PHASE"
+         WRITE(TOPUNIT,'(5F16.8)') (DPHASE(I,1), DPHASE(I,2), DPHASE(I,3), I=1,NDTYPE)
+         ! dihedral offset
+         WRITE(TOPUNIT,*) "SECTION DIHDEDRAL_OFFSET"
+         WRITE(TOPUNIT,'(5F16.8)') (DOFFSET(I,1), DOFFSET(I,2), DOFFSET(I,3), I=1,NDTYPE)
       END SUBROUTINE WRITE_TYPE_DETAILS
 
       SUBROUTINE WRITE_BONDEDINTS_DETAILS(TOPUNIT)
@@ -97,7 +112,10 @@ MODULE CREATE_TOP
          WRITE(TOPUNIT,'(12I6)') (ANGLES(I,1), ANGLES(I,2), ANGLES(I,3), ATYPE(I), I=1,NANGLE)     
          !qangle information
          WRITE(TOPUNIT,*) "SECTION QANGLES"
-         WRITE(TOPUNIT,'(12I6)') (QANGLES(I,1), QANGLES(I,2), QANGLES(I,3), QTYPE(I), I=1,NQANGLE)               
+         WRITE(TOPUNIT,'(12I6)') (QANGLES(I,1), QANGLES(I,2), QANGLES(I,3), QTYPE(I), I=1,NQANGLE)    
+         !dihedral information
+         WRITE(TOPUNIT,*) "SECTION DIHEDRALS"
+         WRITE(TOPUNIT,'(12I6)') (DIHS(I,1), DIHS(I,2), DIHS(I,3), DIHS(I,4), DTYPE(I), I=1,NDIH)         
       END SUBROUTINE WRITE_BONDEDINTS_DETAILS
 
       SUBROUTINE GET_BOND_INFO()
@@ -570,8 +588,8 @@ MODULE CREATE_TOP
             END IF
          END DO
          !now allocate the actual global types and get all bonding information
-         ALLOCATE(DIHS(NDIH,3),DTYPE(NDIH),AKSPR(NDTYPE),ATEQ(NDTYPE))
-         DIHS(1:NDIH,1:3) = 3*(DUMMYDIH(1:NDIH,1:3)-1)
+         ALLOCATE(DIHS(NDIH,4),DTYPE(NDIH),DK(NDTYPE,3),DPHASE(NDTYPE,3),DPERIOD(NDTYPE,3),DOFFSET(NDTYPE,3))
+         DIHS(1:NDIH,1:4) = 3*(DUMMYDIH(1:NDIH,1:4)-1)
          DTYPE(1:NDIH) = DUMMYTYPE(1:NDIH)
          DO I=1,NDTYPE
             DO K=1,NDINTRA
