@@ -52,8 +52,8 @@ MODULE MOD_INIT
          USE VAR_UTILS, ONLY: ALLOC_VARS
          USE MOD_BONDS, ONLY: NBONDS, NUMBND, RK, REQ, IB, JB, ICB, ALLOC_BONDS 
          USE MOD_ANGLES, ONLY: NANGLES, NUMANG, TK, TEQ, &
-                               IT, JT, KT, ICT, ALLOC_ANGLES &
-                               NQANGLES, NUMQANG, TKQ, REFQ, AQ, BQ, CQ, DQ, EQ, &
+                               IT, JT, KT, ICT, ALLOC_ANGLES, &
+                               NQANGLES, NUMQANG, TKQ, REFQ, AQ, BQ, CQ, EQ, &
                                ITQ, JTQ, KTQ, ICTQ 
          USE MOD_DIHEDRALS, ONLY: NDIHS, NPTRA, IP, JP, KP, LP, ICP, PK, PN, &
                                  PHASE, ALLOC_DIHS
@@ -94,7 +94,7 @@ MODULE MOD_INIT
                   CALL ALLOC_VARS()
                CASE("PARTICLE_NAMES")
                   READ(TOPUNIT,'(20A4)') (IGRAPH(J), J=1,NPARTICLES)
-               CASE("RESIDUE_LABELS")
+               CASE("RESIDUE_NAMES")
                   READ(TOPUNIT,'(20A4)') (RESNAMES(J), J=1,NRES)
                CASE("RESIDUE_POINTER")
                   READ(TOPUNIT,'(12I6)') (RESSTART(J),RESFINAL(J), J=1,NRES)
@@ -115,18 +115,18 @@ MODULE MOD_INIT
                   READ(TOPUNIT,'(5E16.8)') (TK(J), J=1,NUMANG)
                CASE("ANGLE_EQUIL_VALUE")
                   READ(TOPUNIT,'(5E16.8)') (TEQ(J), J=1,NUMANG)
-               CASE("QANGLE_FORCE_CONSTANT")
-                  READ(TOPUNIT,'(5E16.8)') (TKQ(J), J=1,NUMQANG)
                CASE("QANGLE_REF_ANGLE")
                   READ(TOPUNIT,'(5E16.8)') (REFQ(J), J=1,NUMQANG)
-               CASE("QANGLE_POT_PARAMS")
-                  READ(TOPUNIT,'(5E16.8)') (AQ(J), BQ(J), CQ(J), DQ(J), EQ(J), J=1,NUMQANG) 
+               CASE("QANGLE_PARAMS")
+                  READ(TOPUNIT,'(5E16.8)') (AQ(J), BQ(J), CQ(J), EQ(J), J=1,NUMQANG) 
                CASE("DIHEDRAL_FORCE_CONSTANT")
-                  READ(TOPUNIT,'(5E16.8)') (PK(J), J=1,NPTRA) 
+                  READ(TOPUNIT,'(5E16.8)') (PK(J,1), PK(J,3), PK(J,3), J=1,NPTRA) 
                CASE("DIHEDRAL_PERIODICITY")
-                  READ(TOPUNIT,'(5E16.8)') (PN(J), J=1,NPTRA) 
+                  READ(TOPUNIT,'(5E16.8)') (PN(J,1), PN(J,2), PN(J,3), J=1,NPTRA) 
                CASE("DIHEDRAL_PHASE")
-                  READ(TOPUNIT,'(5E16.8)') (PHASE(J), J=1,NPTRA) 
+                  READ(TOPUNIT,'(5E16.8)') (PHASE(J,1), PHASE(J,2), PHASE(J,3), J=1,NPTRA) 
+               CASE("DIHEDRAL_PHASE")
+                  READ(TOPUNIT,'(5E16.8)') DOFFSET
                CASE("BONDS")
                   READ(TOPUNIT,'(12I6)') (IB(J), JB(J), ICB(J), J=1,NBONDS)
                CASE("ANGLES")
