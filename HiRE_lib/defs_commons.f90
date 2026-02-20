@@ -23,9 +23,7 @@ MODULE VAR_DEFS
   !> number of CG particles
   INTEGER :: NPARTICLES 
   !> number of degrees of freedom (3*NPARTICLES)
-  INTEGER :: NOPT       
-  !> number of different particle types
-  INTEGER :: NTYPEP     
+  INTEGER :: NOPT           
   !> number of different chains (molecules)
   INTEGER :: NCHAINS    
   

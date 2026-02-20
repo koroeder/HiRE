@@ -46,7 +46,7 @@ MODULE MOD_INIT
       !> @see READLINE
       SUBROUTINE READ_TOPOLOGY(TOPUNIT)
          USE UTILS_IO, ONLY: READLINE
-         USE VAR_DEFS, ONLY: NRES, NOPT, NPARTICLES, NTYPEP, IGRAPH, RESNAMES, &
+         USE VAR_DEFS, ONLY: NRES, NOPT, NPARTICLES, IGRAPH, RESNAMES, &
                               RESSTART, RESFINAL, FRAG_PAR_PTR, AMASS, IAC, &
                               CHATM, NCHAINS, ATOMINRES_LOOKUP
          USE VAR_UTILS, ONLY: ALLOC_VARS
@@ -82,9 +82,9 @@ MODULE MOD_INIT
             CATNAME = WORDSLINE(2)
             SELECT CASE (CATNAME)
                CASE("DEFINITIONS")
-                  READ(TOPUNIT,'(12I6)') NPARTICLES, NTYPEP, NBONDS, NANGLES, &
-                                          NDIHS, NRES, NUMBND, NUMANG, NUMQANG, NPTRA, &
-                                          NCHAINS 
+                  READ(TOPUNIT,'(12I6)') NPARTICLES, NRES, NBONDS, NANGLES, NQANGLES, &
+                                         NDIHS, NRES, NUMBND, NUMANG, NUMQANG, NPTRA, &
+                                         NCHAINS 
                   NOPT = 3 * NPARTICLES
                   !allocation of arrays from bond, angles and dihedral modules
                   CALL ALLOC_BONDS()
