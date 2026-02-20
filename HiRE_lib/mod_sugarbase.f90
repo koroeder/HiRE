@@ -25,9 +25,9 @@ MODULE MOD_SUGARBASE
          INTEGER :: I, J, FIRST, LAST, IDBASE, IDSUGAR
          CHARACTER(4) :: ATNAME
 
-         SB_SCALE = SCORE_RNA(75)
-         ALJ12 = SCORE_RNA(76)
-         BLJ6 = SCORE_RNA(77)
+         SB_SCALE = SCORE_RNA(13)
+         ALJ12 = SCORE_RNA(14)
+         BLJ6 = SCORE_RNA(15)
 
          CALL DEALLOC_SB()
 

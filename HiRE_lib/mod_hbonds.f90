@@ -26,13 +26,13 @@ MODULE MOD_HBONDS
       !> Routine to set module variables based on scale.dat data
       SUBROUTINE SET_HBVARS()
          USE NAPARAMS, ONLY: SCORE_RNA
-         EPSHB = SCORE_RNA(69)     
-         CTIT = SCORE_RNA(70)
-         P = INT(SCORE_RNA(71))
-         Y = SCORE_RNA(72)
+         EPSHB = SCORE_RNA(6)     
+         CTIT = SCORE_RNA(7)
+         P = INT(SCORE_RNA(8))
+         Y = SCORE_RNA(9)
          !GAUSSW = SCORE_RNA(73)
-         ALPHA = SCORE_RNA(73)
-         INTSCALE = SCORE_RNA(74)
+         ALPHA = SCORE_RNA(10)
+         INTSCALE = SCORE_RNA(11)
       END SUBROUTINE SET_HBVARS 
 
       SUBROUTINE ENERGY_HB(BI, BJ, MTYPEI, MTYPEJ, NOPT, X, F, THIS_EHB, HBEXIST)
