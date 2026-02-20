@@ -12,19 +12,19 @@ MODULE MOD_DIHEDRALS
 
    !Dihedrals: E = PK * (1 + COS(PN * P - PHASE)) with P the current dihedral angle
    !> Torsional force constant
-   REAL(KIND = REAL64), ALLOCATABLE :: PK(:)    
+   REAL(KIND = REAL64), ALLOCATABLE :: PK(:,:)    
    !> Number of torsional equilibrium states 
-   REAL(KIND = REAL64), ALLOCATABLE :: PN(:)
+   REAL(KIND = REAL64), ALLOCATABLE :: PN(:,:)
    !> Interger value of PN    
    INTEGER, ALLOCATABLE :: IPN(:)               
    !> Torsional phase factor
-   REAL(KIND = REAL64), ALLOCATABLE :: PHASE(:) 
+   REAL(KIND = REAL64), ALLOCATABLE :: PHASE(:,:)
+   !> Torsional y-offset
+   REAL(KIND = REAL64), ALLOCATABLE :: DOFFSET(:)  
    !> Reference values for torsions (cosine)
-   REAL(KIND = REAL64), ALLOCATABLE :: GAMC(:)  
+   REAL(KIND = REAL64), ALLOCATABLE :: GAMC(:,:)  
    !> Reference values for torsions (sine)
-   REAL(KIND = REAL64), ALLOCATABLE :: GAMS(:)  
-   !> Multiplication used in determining forces for multiple equilibrium angles
-   REAL(KIND = REAL64), ALLOCATABLE :: FMN(:)   
+   REAL(KIND = REAL64), ALLOCATABLE :: GAMS(:,:)   
 
    !book-keeping for torsionals
    !> Dihedral atom1
@@ -42,9 +42,9 @@ MODULE MOD_DIHEDRALS
       !> Routine to allocate all required arrays
       SUBROUTINE ALLOC_DIHS()
          CALL DEALLOC_DIHS()
-         ALLOCATE(PK(NPTRA), PN(NPTRA), IPN(NPTRA), PHASE(NPTRA), &
+         ALLOCATE(PK(NPTRA,3), PN(NPTRA,3), IPN(NPTRA), PHASE(NPTRA,3), &
                   IP(NDIHS), JP(NDIHS), KP(NDIHS), LP(NDIHS), ICP(NDIHS), &
-                  GAMC(NPTRA), GAMS(NPTRA), FMN(NPTRA))
+                  GAMC(NPTRA,3), GAMS(NPTRA,3), DOFFSET(NPTRA))
       END SUBROUTINE ALLOC_DIHS 
 
       !> Initialise helper variables to deal with phase shifting etc.
@@ -54,23 +54,25 @@ MODULE MOD_DIHEDRALS
          REAL(KIND = REAL64) :: DUM, DUMS, DUMC
          REAL(KIND = REAL64), PARAMETER :: EPS1 = 1.0D-3
          REAL(KIND = REAL64), PARAMETER :: EPS2 = 1.0D-6
-         INTEGER :: I
+         INTEGER :: I,J
 
          DO I = 1,NPTRA
-            DUM = PHASE(I)
-            IF (DABS(DUM-PI) .LE. EPS1) DUM = SIGN(PI,DUM)
-            DUMC = DCOS(DUM)
-            DUMS = DSIN(DUM)
-            IF(DABS(DUMC) .LE. EPS2) DUMC = 0.0d0
-            IF(DABS(DUMS) .LE. EPS2) DUMS = 0.0d0
+            DO J=1,3
+               IF (PK(I,J).GT.0.0D0) THEN
+                  DUM = PHASE(I,J)
+                  IF (DABS(DUM-PI) .LE. EPS1) DUM = SIGN(PI,DUM)
+                  DUMC = DCOS(DUM)
+                  DUMS = DSIN(DUM)
+                  IF(DABS(DUMC) .LE. EPS2) DUMC = 0.0d0
+                  IF(DABS(DUMS) .LE. EPS2) DUMS = 0.0d0
 
-            GAMC(I) = DUMC*PK(I)
-            GAMS(I) = DUMS*PK(I)
-   
-            FMN(I) = 1.0d0
-            IF(PN(I) .LE. 0.0d0) FMN(I) = 0.0d0  
-            PN(I) = DABS(PN(I))
-            IPN(I) = INT(PN(I)+EPS1)      
+                  GAMC(I,J) = DUMC*PK(I,J)
+                  GAMS(I,J) = DUMS*PK(I,J)
+         
+                  PN(I,J) = DABS(PN(I,J))
+                  IPN(I) = INT(PN(I,J)+EPS1)  
+               END IF
+            END DO    
          ENDDO
       END SUBROUTINE INIT_DIHPAR
 
@@ -99,6 +101,7 @@ MODULE MOD_DIHEDRALS
          REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force from bonds
          REAL(KIND = REAL64), INTENT(OUT) :: ETORS
          !regularisation parameters     
+         REAL(KIND = REAL64), PARAMETER :: EPS0 = 1.0D-5
          REAL(KIND = REAL64), PARAMETER :: EPS_R = 1.0D-9
          REAL(KIND = REAL64), PARAMETER :: TM06 = 1.0d-06
          REAL(KIND = REAL64), PARAMETER :: EPS_Z = 1.0d-03
@@ -110,7 +113,7 @@ MODULE MOD_DIHEDRALS
          REAL(KIND = REAL64) :: rFI(3), rFJ(3), rFK(3), rFL(3) 
          REAL(KIND = REAL64) :: rDC(3), rDC2(3), rDR1(3), rDR2(3), rDR(3)
 
-         INTEGER :: JN, IC, INC
+         INTEGER :: JN, IC, INC, K
          !TODO: work out the meaning of the variables and comment as much as possible
          !numerous variables
          REAL(KIND = REAL64) :: COSNPs, SINNPs, EXPRB, vEPW, DF0, DF1 
@@ -179,68 +182,74 @@ MODULE MOD_DIHEDRALS
             ! s0eps is sin(phi_reg0)
             
             ! ----- ENERGY AND THE DERIVATIVES WITH RESPECT TO COSPHI -----
-            IC = ICP(JN)
-            INC = IPN(IC)
-            CT0 = PN(IC)*AP1
-            COSNP = DCOS(CT0)
-            SINNP = DSIN(CT0)
+            !iterate over all terms
+            DO K=1,3
+               IC = ICP(JN)
+               INC = IPN(IC)
+               IF (ABS(PK(IC,K)).GT.EPS0) THEN
+                  CT0 = PN(IC,K)*AP1
+                  COSNP = DCOS(CT0)
+                  SINNP = DSIN(CT0)
 
-            if (PN(IC).eq.12) then
-               !GAMCs=GAMC(IC)/PK(IC)
-               !GAMSs=GAMS(IC)/PK(IC)
-               COSNPs=DCOS(AP1)
-               SINNPs=DSIN(AP1)
-               EXPRB=ACOS(GAMC(IC)/PK(IC))*180.d0/PI
-   
-               vEPW=(PK(IC)*COSNPs**int(EXPRB))*vFMUL
+                  !not sure the below is needed?
+                  !if (PN(IC).eq.12) then
+                  !   !GAMCs=GAMC(IC)/PK(IC)
+                  !   !GAMSs=GAMS(IC)/PK(IC)
+                  !   COSNPs=DCOS(AP1)
+                  !   SINNPs=DSIN(AP1)
+                  !   EXPRB=ACOS(GAMC(IC)/PK(IC))*180.d0/PI
+         
+                  !   vEPW=(PK(IC)*COSNPs**int(EXPRB))*vFMUL
 
-               if (EXPRB.eq.0) then
-                  DF0=0.d0
-                  df1=0.d0
-               else
-                  DF0=PK(IC)*EXPRB*SINNPs*COSNPs**int(EXPRB-1.d0)
-                  !print*,DF0
-                  DUMS = vSPHI+SIGN(TM24,vSPHI)
-                  DFLIM = GAMC(IC)*(PN(IC)-GMUL(INC)+GMUL(INC)*vCPHI)
-               
-                  df1 = df0/dums
-                  if (tm06.gt.abs(dums)) df1 = dflim
-               endif
-               !DF0 = -PN(IC)*PK(IC)*(GAMCs*SINNP-GAMSs*COSNP)*(COSNP*GAMCs+SINNP*GAMSs)**(PN(IC)-1.d0)
-            else
-               vEPW= (PK(IC)+COSNP*GAMC(IC)+SINNP*GAMS(IC))*vFMUL !! might be revised
-               DF0 = PN(IC)*(GAMC(IC)*SINNP-GAMS(IC)*COSNP)
-               DUMS = vSPHI+SIGN(TM24,vSPHI)
-               DFLIM = GAMC(IC)*(PN(IC)-GMUL(INC)+GMUL(INC)*vCPHI)
+                  !   if (EXPRB.eq.0) then
+                  !      DF0=0.d0
+                  !      df1=0.d0
+                  !   else
+                  !      DF0=PK(IC)*EXPRB*SINNPs*COSNPs**int(EXPRB-1.d0)
+                  !      !print*,DF0
+                  !      DUMS = vSPHI+SIGN(TM24,vSPHI)
+                  !      DFLIM = GAMC(IC)*(PN(IC)-GMUL(INC)+GMUL(INC)*vCPHI)
+                  !   
+                  !      df1 = df0/dums
+                  !      if (tm06.gt.abs(dums)) df1 = dflim
+                  !   endif
+                  !   !DF0 = -PN(IC)*PK(IC)*(GAMCs*SINNP-GAMSs*COSNP)*(COSNP*GAMCs+SINNP*GAMSs)**(PN(IC)-1.d0)
+               !else
+                     vEPW= (PK(IC,K)+COSNP*GAMC(IC,K)+SINNP*GAMS(IC,K))*vFMUL !! might be revised
+                     DF0 = PN(IC,K)*(GAMC(IC,K)*SINNP-GAMS(IC,K)*COSNP)
+                     DUMS = vSPHI+SIGN(TM24,vSPHI)
+                     DFLIM = GAMC(IC,K)*(PN(IC,K)-GMUL(INC)+GMUL(INC)*vCPHI)
+                        
+                     df1 = df0/dums
+                     if(tm06.gt.abs(dums)) df1 = dflim
+                  !endif
                   
-               df1 = df0/dums
-               if(tm06.gt.abs(dums)) df1 = dflim
-            endif
-            
-            vDF = DF1*vFMUL
+                  vDF = DF1*vFMUL
 
-            vEPW = vEPW*SCORE_RNA(19) 
-            vDF = vDF*SCORE_RNA(19)
+                  vEPW = vEPW*SCORE_RNA(4) 
+                  vDF = vDF*SCORE_RNA(4)
 
-      !     END ENERGY WITH RESPECT TO COSPHI
+            !     END ENERGY WITH RESPECT TO COSPHI
 
-      !     ----- DC = FIRST DER. OF COSPHI W/RESPECT TO THE CARTESIAN DIFFERENCES T -----
-            rDC = -rG*Z12-vCPHI*rD*Z10**2
-            rDC2 = rD*Z12+vCPHI*rG*Z20**2
-      !     ----- UPDATE THE FIRST DERIVATIVE ARRAY -----
-            rDR1 = vDF*(crossproduct(rKJ,rDC))
-            rDR2 = vDF*(crossproduct(rKJ,rDC2))
-            rDR = vDF*(crossproduct(rIJ,rDC) + crossproduct(rDC2, rKL))
-            rFI = - rDR1
-            rFJ = - rDR + rDR1
-            rFK = + rDR + rDR2
-            rFL = - rDR2
+            !     ----- DC = FIRST DER. OF COSPHI W/RESPECT TO THE CARTESIAN DIFFERENCES T -----
+                  rDC = -rG*Z12-vCPHI*rD*Z10**2
+                  rDC2 = rD*Z12+vCPHI*rG*Z20**2
+            !     ----- UPDATE THE FIRST DERIVATIVE ARRAY -----
+                  rDR1 = vDF*(crossproduct(rKJ,rDC))
+                  rDR2 = vDF*(crossproduct(rKJ,rDC2))
+                  rDR = vDF*(crossproduct(rIJ,rDC) + crossproduct(rDC2, rKL))
+                  rFI = - rDR1
+                  rFJ = - rDR + rDR1
+                  rFK = + rDR + rDR2
+                  rFL = - rDR2
 
-            F(I3+1:I3+3) = F(I3+1:I3+3) + rFI
-            F(J3+1:J3+3) = F(J3+1:J3+3) + rFJ
-            F(K3+1:K3+3) = F(K3+1:K3+3) + rFK
-            F(L3+1:L3+3) = F(L3+1:L3+3) + rFL
-            ETORS = ETORS + vEPW
+                  F(I3+1:I3+3) = F(I3+1:I3+3) + rFI
+                  F(J3+1:J3+3) = F(J3+1:J3+3) + rFJ
+                  F(K3+1:K3+3) = F(K3+1:K3+3) + rFK
+                  F(L3+1:L3+3) = F(L3+1:L3+3) + rFL
+                  ETORS = ETORS + vEPW
+               END IF
+            END DO
          END DO   
       END SUBROUTINE ENERGY_DIHS
 
@@ -257,7 +266,6 @@ MODULE MOD_DIHEDRALS
          IF (ALLOCATED(ICP)) DEALLOCATE(ICP)
          IF (ALLOCATED(GAMC)) DEALLOCATE(GAMC)
          IF (ALLOCATED(GAMS)) DEALLOCATE(GAMS)
-         IF (ALLOCATED(FMN)) DEALLOCATE(FMN)
       END SUBROUTINE DEALLOC_DIHS
 
 END MODULE MOD_DIHEDRALS
