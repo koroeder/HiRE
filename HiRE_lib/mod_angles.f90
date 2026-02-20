@@ -32,8 +32,6 @@ MODULE MOD_ANGLES
    INTEGER, ALLOCATABLE :: ICT(:)  
    
    !Quartic angles
-   ! "force" constant of overall energy (effectively scaling)
-   REAL(KIND = REAL64), ALLOCATABLE :: TKQ(:)
    ! Equilibrium angles (correpsond to the maximum in the quartic potential)
    REAL(KIND = REAL64), ALLOCATABLE :: REFQ(:)
 
@@ -56,9 +54,11 @@ MODULE MOD_ANGLES
          CALL DEALLOC_ANGLES()
          ALLOCATE(TK(NUMANG), TEQ(NUMANG), IT(NANGLES), JT(NANGLES), &
                   KT(NANGLES), ICT(NANGLES))
-         ALLOCATE(TKQ(NUMQANG), REFQ(NUMQANG), AQ(NUMQANG), BQ(NUMQANG), &
+         ALLOCATE(REFQ(NUMQANG), AQ(NUMQANG), BQ(NUMQANG), &
                   CQ(NUMQANG), DQ(NUMQANG), EQ(NUMQANG), ITQ(NQANGLES), &
                   JTQ(NQANGLES), KTQ(NQANGLES), ICTQ(NQANGLES))
+         !we initialise DQ to 0 here - currently it is not use, butmight be require din the future
+         DQ = 0.0D0
       END SUBROUTINE ALLOC_ANGLES  
 
       !> Routine to get all anglar contributions
@@ -149,7 +149,7 @@ MODULE MOD_ANGLES
          REAL(KIND = REAL64) :: RIJ(3), RKJ(3), RIJ0, RKJ0, RIK0
          REAL(KIND = REAL64) :: RDI(3), RDJ(3), RDK(3)
          REAL(KIND = REAL64) :: CT0, CT1, CT2, ANT
-         REAL(KIND = REAL64) :: A, B, C, D, E, REF, KANG, DIFF, DIFF2, DIFF3, DIFF4, EQDUMMY, DF
+         REAL(KIND = REAL64) :: A, B, C, E, REF, DIFF, DIFF2, DIFF3, DIFF4, EQDUMMY, DF
          REAL(KIND = REAL64), PARAMETER :: PT999 = 0.999d0
          INTEGER :: JN, I, J, K, IC
 
@@ -177,21 +177,20 @@ MODULE MOD_ANGLES
             A = AQ(IC)
             B = BQ(IC)
             C = CQ(IC)
-            D = DQ(IC)
+            !D = DQ(IC)
             E = EQ(IC)
             REF = REFQ(IC)
-            KANG = TKQ(IC)
 
             DIFF = ANT - REF
             DIFF2 = DIFF**2
             DIFF3 = DIFF**3
             DIFF4 = DIFF**4
 
-            EQDUMMY = KANG*(A*DIFF4 + B*DIFF3 + C*DIFF2 + D*DIFF + E)*SCORE_RNA(2)
+            EQDUMMY = (A*DIFF4 + B*DIFF3 + C*DIFF2 + E)*SCORE_RNA(3)
             EQANGLE = EQANGLE + EQDUMMY
 
             !Force
-            DF = KANG*(4*A*DIFF3+3*B*DIFF2 + 2*C*DIFF + D)*SCORE_RNA(2) ! derivative of V_qangle with respect to theta
+            DF = (4*A*DIFF3+3*B*DIFF2 + 2*C*DIFF)*SCORE_RNA(3) ! derivative of V_qangle with respect to theta
             ! now need derivative of theta with repsect to x,y,z
             rDI = DF*(rKJ/RIK0-CT2*rIJ/RIJ0)
             rDK = DF*(rIJ/RIK0-CT2*rKJ/RKJ0)
@@ -210,7 +209,6 @@ MODULE MOD_ANGLES
          IF (ALLOCATED(JT)) DEALLOCATE(JT)
          IF (ALLOCATED(KT)) DEALLOCATE(KT)
          IF (ALLOCATED(ICT)) DEALLOCATE(ICT)
-         IF (ALLOCATED(TKQ)) DEALLOCATE(TKQ)
          IF (ALLOCATED(REFQ)) DEALLOCATE(REFQ)
          IF (ALLOCATED(AQ)) DEALLOCATE(AQ)
          IF (ALLOCATED(BQ)) DEALLOCATE(BQ)
