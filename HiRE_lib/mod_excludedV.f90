@@ -8,19 +8,12 @@ MODULE MOD_EXCLV
    IMPLICIT NONE
    !> Overall scaling of the contribution
    REAL(KIND = REAL64) :: EXCLV_SCALING
-   !> OLD PARAMETERS, no longer in use.
-   !> Steepness of function
-   REAL(KIND = REAL64) :: EXCL_VOL
-   !> Barrier height
-   REAL(KIND = REAL64) :: BARRIER
-   !> Ratio modifying distance penalty 
-   REAL(KIND = REAL64) :: RATIO
-  
+ 
    CONTAINS
       !> Setting the common variables to the correct values
       SUBROUTINE INIT_EXCLV()
          USE NAPARAMS, ONLY: SCORE_RNA
-         EXCLV_SCALING = SCORE_RNA(40)
+         EXCLV_SCALING = SCORE_RNA(5)
       END SUBROUTINE INIT_EXCLV
 
       !> Energy and gradient for simpler potential
