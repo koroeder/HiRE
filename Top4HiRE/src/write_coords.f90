@@ -1,0 +1,37 @@
+MODULE WRITE_COORDS
+   USE TOP_GLOBALS
+   USE PREC_HIRE
+
+   CONTAINS
+      SUBROUTINE WRITE_START()
+         USE UTILS_IO, ONLY: FILE_OPEN
+         LOGICAL :: EXISTS
+         INTEGER :: XUNIT
+
+         INQUIRE(FILE="start",EXIST=EXISTS)
+         IF (EXISTS) THEN
+            CALL EXECUTE_COMMAND_LINE("mv start start.old")
+         END IF
+         CALL FILE_OPEN("start",XUNIT,.TRUE.)
+         WRITE(XUNIT,'(3F15.8)') XYZCG
+         CLOSE(XUNIT)
+      END SUBROUTINE WRITE_START
+
+      SUBROUTINE WRITE_XYZ()
+         USE UTILS_IO, ONLY: FILE_OPEN
+         LOGICAL :: EXISTS
+         INTEGER :: XUNIT, I
+
+         INQUIRE(FILE="start.xyz",EXIST=EXISTS)
+         IF (EXISTS) THEN
+            CALL EXECUTE_COMMAND_LINE("mv start.xyz start.xyz.old")
+         END IF
+         CALL FILE_OPEN("start.xyz",XUNIT,.TRUE.)
+         WRITE(XUNIT,'(I8)') NATOMS
+         WRITE(XUNIT,*) "  Molecule"
+         WRITE(XUNIT,'(A6,3F15.8)') (CGNAMES(I), XYZCG(3*I-2:3*I), I=1,NATOMS)
+         CLOSE(XUNIT)
+      END SUBROUTINE WRITE_XYZ
+
+
+END MODULE WRITE_COORDS
