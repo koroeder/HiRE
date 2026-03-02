@@ -14,7 +14,7 @@ MODULE MOD_DEBYEHUECKEL
       !> Routine to allocate all required arrays
       SUBROUTINE INIT_DH()
          USE NAPARAMS, ONLY: SCORE_RNA, DL
-         DL = SCORE_RNA(51)
+         DL = SCORE_RNA(16)
          CALL FIND_CHARGED_PARTICLES()
       END SUBROUTINE INIT_DH
 
