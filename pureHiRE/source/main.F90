@@ -47,8 +47,6 @@ PROGRAM HIRE_CALC
    FLUSH(STDOUT)
    ! save a pdb file with chainid
    CALL DUMP_PDB(3*NATOMS, X, "conf_chainid.pdb",.TRUE.)
-   ! and one without chain id
-   CALL DUMP_PDB(3*NATOMS, X, "conf_nochainid.pdb",.FALSE.)   
    ! Finish up
    CALL TERMINATE_HIRE()
 END PROGRAM HIRE_CALC
