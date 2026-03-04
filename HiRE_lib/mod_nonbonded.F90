@@ -47,7 +47,7 @@ MODULE MOD_NONBONDED
          INTEGER :: TYPEI, TYPEJ   !Type of residue (RNA, DNA, protein, ...)
          INTEGER :: TI, TJ         !ID of residue (A, G, ...)
          INTEGER :: TK, TL         !Atom type
-         REAL(KIND = REAL64) :: A(3), DA2, DF, DX(3)
+         REAL(KIND = REAL64) :: A(3), DA2, DF, DX(3), DCORR
          REAL(KIND = REAL64) :: THIS_EHB, THIS_ESTAK, THIS_EVDW, NB
          LOGICAL :: HBEXIST
 
@@ -121,18 +121,26 @@ MODULE MOD_NONBONDED
                      !make sure we skip the bonded particles for neighbouring res
                      IF ((J-I).EQ.1) THEN
                         IF ((TYPEI.EQ.0).AND.(TYPEJ.EQ.0)) THEN
-                           !For RNA ignore CA-P
-                           IF ((TK.EQ.4).AND.(TL.EQ.3)) CYCLE
+                           !For RNA ignore O3-P
+                           IF ((TK.EQ.1).AND.(TL.EQ.3)) CYCLE
                         ELSEIF ((TYPEI.EQ.1).AND.(TYPEJ.EQ.1)) THEN
                            !For DNA do the same
-                           IF ((TK.EQ.4).AND.(TL.EQ.3)) CYCLE
+                           IF ((TK.EQ.1).AND.(TL.EQ.3)) CYCLE
                         ENDIF                  
+                     ENDIF
+                     !additionally skip neighbouring nucleotide bb/sugar to bb/sugar distances (types 1,2,3,4)
+                     IF ((J-I).EQ.1) THEN
+                        IF ((TYPEI.EQ.0).AND.(TYPEJ.EQ.0)) THEN
+                           IF ((TK.LE.7).AND.(TL.LE.7)) CYCLE
+                        END IF
                      ENDIF
                      A(1:3) = X(3*K-2:3*K) - X(3*L-2:3*L)
                      DA2 = DOT_PRODUCT(A,A) 
                      !Skip if the distance is too large
                      IF (DA2.GT.RCUT2_EXCLV) CYCLE
-                     CALL ENERGY_EXV(NOPT, X, F, K, L, TK, TL, DA2, THIS_EVDW)
+                     DCORR = 0.0D0
+                     IF (ABS(I-J).EQ.1) DCORR = 0.8D0
+                     CALL ENERGY_EXV(NOPT, X, F, K, L, TK, TL, DA2, DCORR, THIS_EVDW)
                       
                      EVDW = EVDW + THIS_EVDW                       
 #if FOR_ANALYSIS
