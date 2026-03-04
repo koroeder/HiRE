@@ -1,80 +1,19 @@
- 1     5.40064  ! Bonds
- 2     0.53385  ! Angle scaling
- 3     2.40951  ! Angle type 1 
- 4     3.99287  ! Angle type 2
- 5     4.06621  ! Angle type 3
- 6     5.41857  ! Angle type 4
- 7     6.08343  ! Angle type 5
- 8     7.80674  ! Angle type 6
- 9     9.66041  ! Angle type 7
-10     1.23158  ! Angle type 8
-11     5.08500  ! Dihedral scale 
-12     2.05211  ! Dihedral type 1
-13     5.89642  ! Dihedral type 2
-14    14.15719  ! Dihedral type 3
-15     4.78332  ! Dihedral type 4
-16     1.24407  ! Dihedral type 5
-17     0.45479  ! Dihedral type 6
-18     1.00599  ! Dihedral type 7
-19     0.58273  ! Dihedral type 8
-20     0.70979  ! Dihedral type 9
-21     0.19212  ! Dihedral type 10
-22    14.35283  ! Excluded volume
-23   130.82441  ! Barrier
-24     1.00000  !! Ratio
-25     3.74570  ! nbct2base
-26     3.98872  ! nbct2gen
-27     4.18338  ! nbct2c4
-28     4.20932  ! nbct2cy
-29     3.36375  ! nbct2pp
-30     3.95299  ! nbradgen
-31     4.38579  ! nbradlarge
-32     1.00000  !! dielectric constant
-33     2.80000  !! Debye length
-34     2.42892  ! SK (stacking)
-35     3.26789  ! SK (stacking)
-36     4.19081  ! SK (stacking)
-37     5.03637  ! EQ (stacking)
-38     4.43916  ! EQ (stacking)
-39     4.08575  ! EQ (stacking)
-40     4.41005  ! WID (stacking)
-41     4.66777  ! WID (stacking)
-42     5.01480  ! WID (stacking)
-43     0.57294  ! Th (stacking)
-44     0.11205  ! Th (stacking)
-45     0.21732  ! Th (stacking)
-46     6.50858  ! GM (stacking)
-47     8.55747  ! GM (stacking)
-48     7.80768  ! GM (stacking)
-49     2.50189  ! EPSHB (hbonds)
-50     3.00000  !! CTIT (hbonds)
-51     4.00000  !! P (hbonds)
-52     2.11817  ! Y (hbonds)
-53     1.27515  ! GAUSSW (hbonds)
-54     0.50000  !! INTSCALE (hbonds)
-55     5.05954  ! sugar base scaling
-56     1.57833  ! ALJ12 sugar base
-57     1.82649  ! BLJ6 sugar base
-58     0.00000  !! KSAXS
-59     1.80000  !! Tit
-60     0.80000  !! noWCq 
-61     1.46174  ! trans WC bp
-62     2.18717  ! cwwAA
-63     2.41284  ! cwwAG
-64     2.18718  ! cwwAC
-65     2.19601  ! cwwAU
-66     2.64973  ! cwwGC
-67     2.71101  ! cwwGU
-68     2.55863  ! cwwCC
-69     2.30701  ! cwwCU
-70     2.33281  ! cwwUU
-71     0.50253  ! cwh
-72     1.05604  ! twh
-73     1.26444  ! cws
-74     1.16214  ! tws
-75     0.75827  ! chh
-76     0.98342  ! thh
-77     1.00867  ! chs
-78     0.97595  ! ths
-79     0.91026  ! css
-80     0.90655  ! tss
+ 1     1.0000  ! Bonds
+ 2     1.0000  ! Angle scaling
+ 3     1.0000  ! Qangle scale
+ 4     1.0000  ! Dihedral scale 
+ 5    12.5000  ! Excl V scaling
+ 6     2.5019  ! EPSHB (hbonds)
+ 7     3.0000  !! CTIT (hbonds)
+ 8     4.0000  !! P (hbonds)
+ 9     2.1182  ! Y (hbonds)
+10     1.2752  ! alpha (hbonds)
+11     0.5000  !! INTSCALE (hbonds)
+12     1.5000  ! stack scaling
+13     5.05954  ! sugar base scaling
+14     1.57833  ! ALJ12 sugar base
+15     1.82649  ! BLJ6 sugar base
+16     2.80000  !! Debye length 
+17     1.80000  !! Tit
+18     0.80000  !! noWCq
+19     0.00000  !! KSAXS
