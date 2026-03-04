@@ -78,15 +78,14 @@ MODULE MOD_DIHEDRALS
 
       !> Routine to pass dihedral information to external programmes
       SUBROUTINE GET_DIHEDRALS(DIHINFO)
-         INTEGER, INTENT(OUT) :: DIHINFO(NDIHS,5)
+         INTEGER, INTENT(OUT) :: DIHINFO(NDIHS,4)
          INTEGER JN
 
          DO JN=1,NDIHS
             DIHINFO(JN,1) = IP(JN)/3 + 1
             DIHINFO(JN,2) = JP(JN)/3 + 1
             DIHINFO(JN,3) = IABS(KP(JN))/3 + 1
-            DIHINFO(JN,4) = IABS(LP(JN))/3 + 1
-            DIHINFO(JN,5) = NPHITYPE(JN)         
+            DIHINFO(JN,4) = IABS(LP(JN))/3 + 1      
          ENDDO
       END SUBROUTINE GET_DIHEDRALS
 

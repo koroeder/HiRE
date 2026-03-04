@@ -24,78 +24,16 @@ MODULE FILL_PARAMS
       SUBROUTINE FILL_HIRE_PARAMS()
          USE VAR_DEFS, ONLY: NRES, RESFINAL, RESNAMES, RESTYPES
          USE UTILS_IO, ONLY: GETUNIT
-         USE NAparams, ONLY: WC, WCCanonic, noWC, TIT, noWCq, SCORE_RNA, &
-                           BLIST, BTYPE, BPROT, BP_CURR, &
-                           cwwAA, cwwAG, cwwAC, cwwAU, cwwGC, cwwGU, cwwCC, cwwCU, cwwUU, &
-                           !twwAA, twwAC, twwAU, twwGG, twwGU, twwGC, twwCC, twwCU, twwUU, &
-                           cwh, twh, cws, tws, chh, thh, chs, ths, css, tss, tww
+         USE NAparams, ONLY: TIT, noWCq, SCORE_RNA, &
+                           BLIST, BTYPE, BPROT, BP_CURR
          USE RNA_HB_PARAMS, ONLY: FILL_RNA_HB_PARAMS
          USE DNA_HB_PARAMS, ONLY: FILL_DNA_HB_PARAMS
        
          IMPLICIT NONE
-         INTEGER :: I !, BINFOUNIT
-       
-         !set parameters from SCORE
-         !WC = SCORE_RNA(39)
-         !WCCanonic = SCORE_RNA(40)
-         !noWC = SCORE_RNA(41)
+         INTEGER :: I 
 
-
-
-         TIT = SCORE_RNA(79)
-         noWCq = SCORE_RNA(80)
-
-         !values from RNA bp database, apart from cwwCC - estimated from optimisation + fitting
-         twwAA = 14.31
-         twwAC = 16.91
-         twwAU = 14.43
-         twwGG = 26.16
-         twwGC = 15.98
-         twwGU = 16.83
-         twwCC = 13.70
-         twwCU = 12.06
-         twwUU = 10.63
-         
-         cwwAA =  6.30
-         cwwAG = 19.48
-         cwwAC =  8.48
-         cwwAU = 14.59
-         cwwGC = 31.36
-         cwwGU = 16.35
-         cwwCC = 11.23
-         cwwCU = 12.31
-         cwwUU = 12.42
-                  
-         !high probability non-canonical bps (probs from basepair catalogue and energy from RNA bp database)
-         twhAA = 13.54
-         twhCC = 19.76
-         twhGG = 11.02
-         thhAA = 10.88
-         cwhGG = 15.96
-         thsAA =  6.89
-         thsAG = 17.38
-         thsCC = 10.33
-         thsGG =  6.29
-         cwsAA = 15.08
-         cwsAC = 14.66
-         cwsCC =  9.22
-         cssAA = 11.22
-         cssAC =  9.92
-         tssAC =  4.00
-         tssAG =  5.40
-         tssGG = 13.20
-         twsCC = 
-
-         cwh = SCORE_RNA(91)
-         twh = SCORE_RNA(92)
-         cws = SCORE_RNA(93)
-         tws = SCORE_RNA(94)
-         chh = SCORE_RNA(95)
-         thh = SCORE_RNA(96)
-         chs = SCORE_RNA(97)
-         ths = SCORE_RNA(98)
-         css = SCORE_RNA(99)
-         tss = SCORE_RNA(100)
+         TIT = SCORE_RNA(17)
+         noWCq = SCORE_RNA(18)
 
          !fill base information
          CALL ALLOC_NAPARAMS(NRES)

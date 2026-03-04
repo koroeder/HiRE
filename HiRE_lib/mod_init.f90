@@ -53,10 +53,10 @@ MODULE MOD_INIT
          USE MOD_BONDS, ONLY: NBONDS, NUMBND, RK, REQ, IB, JB, ICB, ALLOC_BONDS 
          USE MOD_ANGLES, ONLY: NANGLES, NUMANG, TK, TEQ, &
                                IT, JT, KT, ICT, ALLOC_ANGLES, &
-                               NQANGLES, NUMQANG, TKQ, REFQ, AQ, BQ, CQ, EQ, &
+                               NQANGLES, NUMQANG, REFQ, AQ, BQ, CQ, EQ, &
                                ITQ, JTQ, KTQ, ICTQ 
          USE MOD_DIHEDRALS, ONLY: NDIHS, NPTRA, IP, JP, KP, LP, ICP, PK, PN, &
-                                 PHASE, ALLOC_DIHS
+                                 PHASE, ALLOC_DIHS, DOFFSET
          
          INTEGER, INTENT(IN) :: TOPUNIT
          INTEGER :: IEND, J, CURRENT
@@ -125,7 +125,7 @@ MODULE MOD_INIT
                   READ(TOPUNIT,'(5E16.8)') (PN(J,1), PN(J,2), PN(J,3), J=1,NPTRA) 
                CASE("DIHEDRAL_PHASE")
                   READ(TOPUNIT,'(5E16.8)') (PHASE(J,1), PHASE(J,2), PHASE(J,3), J=1,NPTRA) 
-               CASE("DIHEDRAL_PHASE")
+               CASE("DIHEDRAL_OFFSET")
                   READ(TOPUNIT,'(5E16.8)') DOFFSET
                CASE("BONDS")
                   READ(TOPUNIT,'(12I6)') (IB(J), JB(J), ICB(J), J=1,NBONDS)
@@ -180,7 +180,7 @@ MODULE MOD_INIT
 
       !> Subroutine calling all initialisation and assignment routines for the various energy modules
       SUBROUTINE INIT_FROM_MODS()
-         USE MOD_DIHEDRALS, ONLY: INIT_DIHPAR, ASSIGN_PHITYPE
+         USE MOD_DIHEDRALS, ONLY: INIT_DIHPAR
          USE MOD_EXCLV, ONLY: INIT_EXCLV
          USE MOD_DEBYEHUECKEL, ONLY: INIT_DH
          USE MOD_HBONDS, ONLY: SET_HBVARS
@@ -193,7 +193,6 @@ MODULE MOD_INIT
          ! need to fill this first to make sure we have the information whether we are looking at RNA or DNA!
          CALL FILL_HIRE_PARAMS()
          CALL INIT_DIHPAR()
-         CALL ASSIGN_PHITYPE()
          CALL INIT_EXCLV()
          CALL INIT_DH()
          CALL SET_HBVARS()

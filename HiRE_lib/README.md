@@ -16,5 +16,6 @@ SCORE_RNA(13): scaling for sugar - base interaction
 SCORE_RNA(14): parameter for r12 term sugar-base
 SCORE_RNA(15): parameter for r6 term sugar-base
 SCORE_RNA(16): DL in Debye-Hueckel
-SCORE_RNA():
-SCORE_RNA():
+SCORE_RNA(17): titration param
+SCORE_RNA(18): charges noWCq
+SCORE_RNA(19): SAXS scaling
