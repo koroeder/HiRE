@@ -71,6 +71,7 @@ MODULE MOD_DIHEDRALS
          
                   PN(I,J) = DABS(PN(I,J))
                   IPN(I) = INT(PN(I,J)+EPS1)  
+                  IF (IPN(I).EQ.0) IPN(I) = 1 !needed for zero terms, GMUl of 1 is 0.0, sothis does not change the energy computation but prevents a seg fault
                END IF
             END DO    
          ENDDO

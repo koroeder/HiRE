@@ -65,8 +65,6 @@ MODULE FILL_PARAMS
                RESTYPES(I) = 0
             ENDIF
          ENDDO
-         WRITE(*,*) RESTYPES
-         WRITE(*,*) RESNAMES
          !no protonation for now
          BPROT(1:NRES) = 0
 

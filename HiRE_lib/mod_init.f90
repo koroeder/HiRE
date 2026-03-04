@@ -83,7 +83,7 @@ MODULE MOD_INIT
             SELECT CASE (CATNAME)
                CASE("DEFINITIONS")
                   READ(TOPUNIT,'(12I6)') NPARTICLES, NRES, NBONDS, NANGLES, NQANGLES, &
-                                         NDIHS, NRES, NUMBND, NUMANG, NUMQANG, NPTRA, &
+                                         NDIHS, NUMBND, NUMANG, NUMQANG, NPTRA, &
                                          NCHAINS 
                   NOPT = 3 * NPARTICLES
                   !allocation of arrays from bond, angles and dihedral modules
@@ -180,6 +180,7 @@ MODULE MOD_INIT
 
       !> Subroutine calling all initialisation and assignment routines for the various energy modules
       SUBROUTINE INIT_FROM_MODS()
+         USE MOD_ANGLES, ONLY: INIT_ANGLES
          USE MOD_DIHEDRALS, ONLY: INIT_DIHPAR
          USE MOD_EXCLV, ONLY: INIT_EXCLV
          USE MOD_DEBYEHUECKEL, ONLY: INIT_DH
@@ -188,10 +189,11 @@ MODULE MOD_INIT
          USE NBDEFS, ONLY: SET_NBPARAMS
          USE MOD_SUGARBASE, ONLY: INIT_SUGARBASE
          USE MOD_BASESTACKING, ONLY: INIT_STACKING
-         
+
          CALL SET_NBPARAMS()
          ! need to fill this first to make sure we have the information whether we are looking at RNA or DNA!
          CALL FILL_HIRE_PARAMS()
+         CALL INIT_ANGLES()
          CALL INIT_DIHPAR()
          CALL INIT_EXCLV()
          CALL INIT_DH()

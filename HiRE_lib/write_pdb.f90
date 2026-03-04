@@ -76,7 +76,7 @@ MODULE PDB_OUT
       
         !> Writes pdb file using the system data loaded in HiRE
         SUBROUTINE WRITEPDB(COORDS,PDB_UNIT,CHAINIDT)
-            USE VAR_DEFS, ONLY: NPARTICLES, RESFINAL, &
+            USE VAR_DEFS, ONLY: NPARTICLES, RESFINAL, NCHAINS, &
                                 FRAG_PAR_PTR, IGRAPH, RESNAMES
             REAL(KIND=REAL64), INTENT(IN) :: COORDS(3*NPARTICLES)
             INTEGER, INTENT(IN) :: PDB_UNIT
@@ -88,14 +88,14 @@ MODULE PDB_OUT
             CHARACTER(LEN=26), PARAMETER :: U = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
             
             ! obtain chain id
-!            WRITE(*,*) "Create chain ids"
+            !WRITE(*,*) "Create chain ids"
             NDUMMY = 1
             DO I = 1,NPARTICLES
                 IF (I.EQ.1) THEN
                     FRAGID(I) = U(NDUMMY:NDUMMY)
-                ELSE IF (FRAG_PAR_PTR(NDUMMY,1).EQ.I) THEN
-                    NDUMMY = NDUMMY + 1
+                ELSE IF (RESFINAL(FRAG_PAR_PTR(NDUMMY,2)).EQ.I) THEN
                     FRAGID(I) = U(NDUMMY:NDUMMY)
+                    NDUMMY = NDUMMY + 1
                 ELSE
                     FRAGID(I) = U(NDUMMY:NDUMMY)
                 ENDIF
@@ -125,7 +125,7 @@ MODULE PDB_OUT
                     CURRENT_ATOM_DATA % chain_id = FRAGID(CURR_ATOM)
                 ENDIF
                 WRITE(PDB_UNIT, FMT = atom_string_format) CURRENT_ATOM_DATA 
-                IF ((FRAG_PAR_PTR(NDUMMY,2).EQ.CURR_ATOM).AND.CHAINIDT) THEN
+                IF ((RESFINAL(FRAG_PAR_PTR(NDUMMY,2)).EQ.CURR_ATOM).AND.CHAINIDT) THEN
                     NDUMMY = NDUMMY + 1
                     WRITE(PDB_UNIT,'(A)') "TER"
                 ENDIF

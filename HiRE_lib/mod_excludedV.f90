@@ -37,8 +37,13 @@ MODULE MOD_EXCLV
          CT2 = NBCT2(TI,TJ)
          DX(1:3) = X(3*I-2:3*I) - X(3*J-2:3*J)
          DA = DSQRT(DA2)
+         IF (ABS(I-J).LT.8) CT2 = CT2 - 0.75
          D = DA - CT2
          DINV = 1/D
+
+
+         WRITE(*,*) I,J,D,DINV, EEXCL
+
          EEXCL = EXCLV_SCALING*(DINV**VPOWER)
 
          DF = -VPOWER*EEXCL*DINV/DA

@@ -61,6 +61,18 @@ MODULE MOD_ANGLES
          DQ = 0.0D0
       END SUBROUTINE ALLOC_ANGLES  
 
+      SUBROUTINE INIT_ANGLES()
+         USE NUM_DEFS, ONLY: RAD2DEG
+         INTEGER :: I
+
+         DO I=1,NUMANG
+            TEQ(I) = TEQ(I)/RAD2DEG
+         END DO
+         DO I=1,NUMQANG
+            REFQ(I) = REFQ(I)/RAD2DEG
+         END DO
+      END SUBROUTINE INIT_ANGLES
+
       !> Routine to get all anglar contributions
       SUBROUTINE ENERGY_ALL_ANGLES(NOPT, X, F, EANGLE)
          INTEGER, INTENT(IN) :: NOPT                   !should be 3*NATOMS
@@ -75,8 +87,7 @@ MODULE MOD_ANGLES
          EANGLE = 0.0d0
 
          CALL ENERGY_ANGLES(NOPT, X, F1, E1)
-         CALL ENERGY_QANGLES(NOPT, X, F2, E1)
-
+         CALL ENERGY_QANGLES(NOPT, X, F2, E2)
          EANGLE = E1 + E2
          F(1:NOPT) = F1(1:NOPT) + F2(1:NOPT)
       END SUBROUTINE ENERGY_ALL_ANGLES
@@ -125,6 +136,7 @@ MODULE MOD_ANGLES
             DFW = -(2*DF)/DSIN(ANT)
 
             EANGLE = EANGLE + EAW
+
             ! FORCE
             rDI = DFW*(rKJ/RIK0-CT2*rIJ/RIJ0)
             rDK = DFW*(rIJ/RIK0-CT2*rKJ/RKJ0)
