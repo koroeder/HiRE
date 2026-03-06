@@ -469,11 +469,11 @@ MODULE CREATE_TOP
             END DO
             DO K=1,NQINTER
                IF (TYPEMAP(NQINTRA+K).EQ.I) THEN
-                  QTTS(I) = QINTRA(K)%TTA
-                  QA1(I) = QINTRA(K)%A1
-                  QA2(I) = QINTRA(K)%A2
-                  QA3(I) = QINTRA(K)%A3
-                  QA5(I) = QINTRA(K)%A5
+                  QTTS(I) = QINTER(K)%TTA
+                  QA1(I) = QINTER(K)%A1
+                  QA2(I) = QINTER(K)%A2
+                  QA3(I) = QINTER(K)%A3
+                  QA5(I) = QINTER(K)%A5
                   EXIT  
                END IF             
             END DO
