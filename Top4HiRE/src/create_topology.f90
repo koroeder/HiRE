@@ -99,7 +99,7 @@ MODULE CREATE_TOP
          WRITE(TOPUNIT,*) "SECTION DIHEDRAL_PHASE"
          WRITE(TOPUNIT,'(5F16.8)') (DPHASE(I,1), DPHASE(I,2), DPHASE(I,3), I=1,NDTYPE)
          ! dihedral offset
-         WRITE(TOPUNIT,*) "SECTION DIHDEDRAL_OFFSET"
+         WRITE(TOPUNIT,*) "SECTION DIHEDRAL_OFFSET"
          WRITE(TOPUNIT,'(5F16.8)') (DOFFSET(I,1), I=1,NDTYPE)
       END SUBROUTINE WRITE_TYPE_DETAILS
 
@@ -469,11 +469,11 @@ MODULE CREATE_TOP
             END DO
             DO K=1,NQINTER
                IF (TYPEMAP(NQINTRA+K).EQ.I) THEN
-                  QTTS(I) = QINTRA(K)%TTA
-                  QA1(I) = QINTRA(K)%A1
-                  QA2(I) = QINTRA(K)%A2
-                  QA3(I) = QINTRA(K)%A3
-                  QA5(I) = QINTRA(K)%A5
+                  QTTS(I) = QINTER(K)%TTA
+                  QA1(I) = QINTER(K)%A1
+                  QA2(I) = QINTER(K)%A2
+                  QA3(I) = QINTER(K)%A3
+                  QA5(I) = QINTER(K)%A5
                   EXIT  
                END IF             
             END DO
