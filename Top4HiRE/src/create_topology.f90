@@ -88,7 +88,7 @@ MODULE CREATE_TOP
          WRITE(TOPUNIT,'(5F16.8)') QTTS
          ! qangle parameters
          WRITE(TOPUNIT,*) "SECTION QANGLE_PARAMS"
-         WRITE(TOPUNIT,'(5F16.8)') (QA1, QA2, QA3, QA5, I=1,NQTYPE)
+         WRITE(TOPUNIT,'(5F16.8)') (QA1(I), QA2(I), QA3(I), QA5(I), I=1,NQTYPE)
          ! dihedral scaling
          WRITE(TOPUNIT,*) "SECTION DIHEDRAL_FORCE_CONSTANT"
          WRITE(TOPUNIT,'(5F16.8)') (DK(I,1), DK(I,2), DK(I,3), I=1,NDTYPE)
