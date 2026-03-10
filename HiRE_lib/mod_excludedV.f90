@@ -4,7 +4,7 @@
 !> Module containing all routines and variables to calculate the excluded volume contributions
 MODULE MOD_EXCLV
    USE PREC_HIRE
-   USE NBDEFS
+   USE NBDEFS, ONLY: NBCT2, SOFTNESS
    IMPLICIT NONE
    !> Overall scaling of the contribution
    REAL(KIND = REAL64) :: EXCLV_SCALING
@@ -33,20 +33,23 @@ MODULE MOD_EXCLV
          REAL(KIND = REAL64), INTENT(IN) :: DA2        !input squared distance between particles
          REAL(KIND = REAL64), INTENT(IN) :: DCORR      !correction for neighbouring nucleotides
          INTEGER, PARAMETER :: VPOWER = 12
-         REAL(KIND = REAL64) :: DX(3), CT2, D, DA, DINV, DF
+         REAL(KIND = REAL64) :: S
+         REAL(KIND = REAL64) :: DX(3), CT2, D, DA, DF
 
+         S = SOFTNESS(TI,TJ)
          CT2 = NBCT2(TI,TJ)
          DX(1:3) = X(3*I-2:3*I) - X(3*J-2:3*J)
          DA = DSQRT(DA2)
 
-         D = DA - (CT2 - DCORR)
-         DINV = 1/D
+         !D = DA - (CT2 - DCORR)
+         !DINV = 1/D
+         !WRITE(*,*) I,J,D,DINV, EEXCL
+         !EEXCL = EXCLV_SCALING*(DINV**VPOWER)
 
-         WRITE(*,*) I,J,D,DINV, EEXCL
+         D = ((CT2-S)/DA)
 
-         EEXCL = EXCLV_SCALING*(DINV**VPOWER)
-
-         DF = -VPOWER*EEXCL*DINV/DA
+         EEXCL = DCORR*D**VPOWER
+         DF = -VPOWER*EEXCL/D
 
          F(3*I-2:3*I) = F(3*I-2:3*I) + DF*DX(1:3)
          F(3*J-2:3*J) = F(3*J-2:3*J) - DF*DX(1:3)

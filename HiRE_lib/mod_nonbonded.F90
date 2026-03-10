@@ -138,8 +138,8 @@ MODULE MOD_NONBONDED
                      DA2 = DOT_PRODUCT(A,A) 
                      !Skip if the distance is too large
                      IF (DA2.GT.RCUT2_EXCLV) CYCLE
-                     DCORR = 0.0D0
-                     IF (ABS(I-J).EQ.1) DCORR = 0.8D0
+                     DCORR = 1.0D0
+                     IF (ABS(I-J).EQ.1) DCORR = 0.5D0
                      CALL ENERGY_EXV(NOPT, X, F, K, L, TK, TL, DA2, DCORR, THIS_EVDW)
                       
                      EVDW = EVDW + THIS_EVDW                       

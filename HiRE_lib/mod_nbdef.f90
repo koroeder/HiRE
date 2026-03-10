@@ -21,9 +21,11 @@ MODULE NBDEFS
    !> Size paramters for medium beads (O3 and O5)
    REAL(KIND = REAL64) :: NBCT2MEDIUM = 3.6D0
    !> Size paramters for small bead (X1 and X2)
-   REAL(KIND = REAL64) :: NBCT2SMALL = 3.2D0
-   !> Array with bead sizes
+   REAL(KIND = REAL64) :: NBCT2SMALL = 3.0D0
+   !> Array with combined bead sizes
    REAL(KIND = REAL64) :: NBCT2(NTYPES,NTYPES)
+   !> softness parameter
+   REAL(KIND = REAL64) :: SOFTNESS(NTYPES,NTYPES)
 
    !> Charges of particle types, these charges should never change!
    REAL(KIND = REAL64), DIMENSION(NTYPES), PARAMETER ::  &
@@ -31,18 +33,35 @@ MODULE NBDEFS
                                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, &
                                   0.0, 0.0, 0.0, 2.0, 1.0, 1.0, &
                                   -1.0 /) 
+   
+   !> Fixed bead radii used to fill NBCT2
+   REAL(KIND = REAL64), DIMENSION(NTYPES), PARAMETER :: &
+                         RADII = (/1.6, 1.6, 2.0, 2.0, 2.0, 2.0, &
+                                   2.0, 1.5, 1.5, 1.5, 1.5, 1.5, &
+                                   1.5, 1.5, 0.0, 1.0, 1.0, 1.0, &
+                                   1.0 /)
                                                
    CONTAINS
       !> Routine to populate NBCT2 array
       SUBROUTINE SET_NBPARAMS()
+         IMPLICIT NONE 
+         INTEGER :: I, J
+
+         SOFTNESS(:,:) = 0.0D0
+         DO I=1,NTYPES
+            DO J=1,NTYPES
+               NBCT2(I,J) = RADII(I) + RADII(J)
+            END DO
+         END DO
+         
          ! sizes for particle interactions - the larger particle is used (P and A2 for example is 4.0, while B1 and B2 is 3.2)
          ! set 4.0 as base type
-         NBCT2(1:NTYPES,1:NTYPES) = NBCT2LARGE
+         !NBCT2(1:NTYPES,1:NTYPES) = NBCT2LARGE
          ! adjust sizes for base
-         NBCT2(8:14,8:14) = NBCT2SMALL
+         !NBCT2(8:14,8:14) = NBCT2SMALL
          ! adjust for oxygen (O3 and O5)
-         NBCT2(1:2,1:2) = NBCT2MEDIUM
-         NBCT2(1:2,8:14) = NBCT2MEDIUM
-         NBCT2(8:14,1:2) = NBCT2MEDIUM    
+         !NBCT2(1:2,1:2) = NBCT2MEDIUM
+         !NBCT2(1:2,8:14) = NBCT2MEDIUM
+         !NBCT2(8:14,1:2) = NBCT2MEDIUM    
       END SUBROUTINE SET_NBPARAMS   
 END MODULE NBDEFS
