@@ -120,7 +120,7 @@ MODULE MOD_INIT
                CASE("QANGLE_PARAMS")
                   READ(TOPUNIT,'(5E16.8)') (AQ(J), BQ(J), CQ(J), EQ(J), J=1,NUMQANG) 
                CASE("DIHEDRAL_FORCE_CONSTANT")
-                  READ(TOPUNIT,'(5E16.8)') (PK(J,1), PK(J,3), PK(J,3), J=1,NPTRA) 
+                  READ(TOPUNIT,'(5E16.8)') (PK(J,1), PK(J,2), PK(J,3), J=1,NPTRA) 
                CASE("DIHEDRAL_PERIODICITY")
                   READ(TOPUNIT,'(5E16.8)') (PN(J,1), PN(J,2), PN(J,3), J=1,NPTRA) 
                CASE("DIHEDRAL_PHASE")
