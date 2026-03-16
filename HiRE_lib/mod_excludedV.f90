@@ -49,7 +49,7 @@ MODULE MOD_EXCLV
          D = ((CT2-S)/DA)
 
          EEXCL = DCORR*D**VPOWER
-         DF = -VPOWER*EEXCL/D
+         DF = VPOWER*EEXCL/DA2
 
          F(3*I-2:3*I) = F(3*I-2:3*I) + DF*DX(1:3)
          F(3*J-2:3*J) = F(3*J-2:3*J) - DF*DX(1:3)

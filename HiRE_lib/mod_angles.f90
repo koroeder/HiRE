@@ -161,7 +161,7 @@ MODULE MOD_ANGLES
          REAL(KIND = REAL64) :: RIJ(3), RKJ(3), RIJ0, RKJ0, RIK0
          REAL(KIND = REAL64) :: RDI(3), RDJ(3), RDK(3)
          REAL(KIND = REAL64) :: CT0, CT1, CT2, ANT
-         REAL(KIND = REAL64) :: A, B, C, E, REF, DIFF, DIFF2, DIFF3, DIFF4, EQDUMMY, DF
+         REAL(KIND = REAL64) :: A, B, C, E, REF, DIFF, DIFF2, DIFF3, DIFF4, EQDUMMY, DF, DFW
          REAL(KIND = REAL64), PARAMETER :: PT999 = 0.999d0
          INTEGER :: JN, I, J, K, IC
 
@@ -204,8 +204,9 @@ MODULE MOD_ANGLES
             !Force
             DF = (4*A*DIFF3+3*B*DIFF2 + 2*C*DIFF)*SCORE_RNA(3) ! derivative of V_qangle with respect to theta
             ! now need derivative of theta with repsect to x,y,z
-            rDI = DF*(rKJ/RIK0-CT2*rIJ/RIJ0)
-            rDK = DF*(rIJ/RIK0-CT2*rKJ/RKJ0)
+            DFW = -DF/DSIN(ANT)
+            rDI = DFW*(rKJ/RIK0-CT2*rIJ/RIJ0)
+            rDK = DFW*(rIJ/RIK0-CT2*rKJ/RKJ0)
             rDJ = -rDI-rDK
             F(I+1:I+3) = F(I+1:I+3) - rDI
             F(J+1:J+3) = F(J+1:J+3) - rDJ
