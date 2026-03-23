@@ -104,13 +104,13 @@ mkdir $dirname
 cd $dirname
 
 if [ $analysis = "yes" ]; then
-	ANALYSIS=" -DFOR_ANALYSIS"
+	ANALYSIS=" -DFOR_ANALYSIS=1"
 else
 	ANALYSIS=" "
 fi
 
 if [ $profiling = "yes" ]; then
-	PROFILE=" -DFOR_PROFILING"
+	PROFILE=" -DFOR_PROFILING=1"
 else
 	PROFILE=" "
 fi

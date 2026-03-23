@@ -139,13 +139,13 @@ set_module_dir(extralib)
 set_target_properties(extralib PROPERTIES LINKER_LANGUAGE "Fortran") 
 set_target_properties(extralib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};${DUMMY_CPP_FLAGS};__SPARSE")
 
-option(PROF_VER "Enable profiling" OFF)
-if(PROF_VER)
+option(FOR_PROFILING "Enable profiling" OFF)
+if(FOR_PROFILING)
 	add_definitions(-DFOR_PROFILING)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
         SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
         SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-endif(PROF_VER)
+endif(FOR_PROFILING)
 
 # Link CHOLMOD, if we're using it
 option(WITH_SPARSE "Compile with SuiteSparse for sparse hessian diagonalisation" OFF)

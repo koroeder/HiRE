@@ -4,7 +4,7 @@
 # 
 ############################################################
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 # Silence warnings about PROJECT_VERSION not being set
 cmake_policy(SET CMP0048 OLD)
@@ -16,7 +16,7 @@ endif (CMAKE_CURRENT_SOURCE_DIR MATCHES "^${CMAKE_BINARY_DIRECTORY}$")
 project(HIRE)
 
 set(PROJECT_VERSION "1.0")
-set(PROJECT_CONTACT "kr366@cam.ac.uk")
+set(PROJECT_CONTACT "konstantin.roeder@kcl.ac.uk")
 get_filename_component(GIT_ROOT ${HIRE_SOURCE_DIR}/../.. ABSOLUTE)
 message(WARNING "Root directory is ${HIRE_SOURCE_DIR}")
 if (CMAKE_C_COMPILER_ID MATCHES "Intel")
@@ -104,18 +104,18 @@ set_target_properties(hirelib PROPERTIES LINKER_LANGUAGE "Fortran")
 set_target_properties(hirelib PROPERTIES COMPILE_DEFINITIONS "${COMPILE_DEFINITIONS};__HIRE") 
 target_link_libraries(hirelib ${lapackblas_libraries})
 
-option(ANALYSIS_VER "Enable printing for structural analysis" OFF)
-if(ANALYSIS_VER)
+option(FOR_ANALYSIS "Enable printing for structural analysis" OFF)
+if(FOR_ANALYSIS)
         add_definitions(-DFOR_ANALYSIS)
-endif(ANALYSIS_VER)
+endif(FOR_ANALYSIS)
 
-option(PROF_VER "Enable profiling" OFF)
-if(PROF_VER)
+option(FOR_PROFILING "Enable profiling" OFF)
+if(FOR_PROFILING)
 	add_definitions(-DFOR_PROFILING)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
         SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
         SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-endif(PROF_VER)
+endif(FOR_PROFILING)
 
 add_definitions(-D_GIT_ROOT_='${GIT_ROOT}')
 
