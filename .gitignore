@@ -7,3 +7,7 @@ Docs/html
 Docs/latex
 *.code-workspace
 __pycache__
+
+!Examples/HiRE2FA-example/input/1akx.cg.pdb
+!Examples/HiRE2FA-example/expected-out/1akx.fa.original.pdb
+!Examples/HiRE2FA-example/expected-out/1akx.fa.reconstructed.pdb
