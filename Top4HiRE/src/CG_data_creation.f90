@@ -163,7 +163,13 @@ MODULE CG_DATA
                CGTYPE(ATOMCOUNTER) = 2
                CGMASS(ATOMCOUNTER) = 16.000D0
                CGCHARGE(ATOMCOUNTER) = 0.000D0
-               !third grain differs between RNA and DNA!
+               !third grain: O3
+               ATOMCOUNTER = ATOMCOUNTER + 1
+               CGNAMES(ATOMCOUNTER) = "O3"
+               CGTYPE(ATOMCOUNTER) = 1
+               CGMASS(ATOMCOUNTER) = 16.000D0
+               CGCHARGE(ATOMCOUNTER) = 0.000D0
+               !fourth grain differs between RNA and DNA!
                ATOMCOUNTER = ATOMCOUNTER + 1
                IF (RESTYPE(J).EQ.0) THEN !RNA
                   !third grain: R4
@@ -176,13 +182,7 @@ MODULE CG_DATA
                END IF
                CGMASS(ATOMCOUNTER) = 20.000D0
                CGCHARGE(ATOMCOUNTER) = 0.000D0 
-               !fourth grain: O3
-               ATOMCOUNTER = ATOMCOUNTER + 1
-               CGNAMES(ATOMCOUNTER) = "O3"
-               CGTYPE(ATOMCOUNTER) = 1
-               CGMASS(ATOMCOUNTER) = 16.000D0
-               CGCHARGE(ATOMCOUNTER) = 0.000D0
-               !fifth grai also differs between RNA and DNA
+               !fifth grain also differs between RNA and DNA
                ATOMCOUNTER = ATOMCOUNTER + 1
                IF (RESTYPE(J).EQ.0) THEN !RNA
                   !fourth grain: R1
