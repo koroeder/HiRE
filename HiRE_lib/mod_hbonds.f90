@@ -483,60 +483,6 @@ MODULE MOD_HBONDS
 !                endif
 !             end do
 
-            fa(:,3) = fa(:,3)  - Ehb*(p/anga) * (&
-   !                   d anga / d ma0
-            salpa*(crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)))/dma &
-   !                   d anga / d ra0
-            -(crossproduct(ralpa-ra0*anga, ua)*dot_product(-rba, na0)/dna)/dra)
-
-            fa(:,2) = fa(:,2)        - Ehb*(p/anga)* (&
-   !                   d anga / d ua0
-            -calpa*(ra0- ua0*cosa)/dua & !
-   !                   d anga / d ma0
-            -salpa*( crossproduct(ua0, crossproduct(ra0-sina*ma0, ua0)) + &
-            crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
-            crossproduct(ra0-sina*ma0, na) )/dma &
-   !                   d anga / d ra0
-            -(crossproduct(ua-va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)
-
-            fa(:,1) = fa(:,1) - Ehb*(p/anga)* (&
-   !                   d anga / d ua0
-            calpa*(ra0- ua0*cosa)/dua +&
-   !                   d anga / d ma0
-            salpa*(crossproduct(va, crossproduct(ua, ra0-sina*ma0)) + &
-            crossproduct(ra0-sina*ma0, na))/dma &
-   !                   d anga / d ra0
-            -(ralpa-ra0*anga+crossproduct(va, ralpa-ra0*anga)*dot_product(-rba, na0)/dna)/dra)&
-   !                   d angb / d rb0
-            - Ehb*(p/angb)*(ralpb-rb0*angb)/drb
-
-            fb(:,1) = fb(:,1)  - Ehb*(p/angb)* (&
-   !                   d angb / d ub0
-            calpb*(rb0- ub0*cosb)/dub +&
-   !                   d angb / d mb0
-            salpb*(crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
-            crossproduct(rb0-sinb*mb0, nb))/dmb &
-   !                   d angb / d rb0
-            -(ralpb-rb0*angb+crossproduct(vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)&
-   !                   d anga / d ra0
-            - Ehb*(p/anga)*(ralpa-ra0*anga)/dra
-
-            fb(:,2) = fb(:,2)       - Ehb*(p/angb)* (&
-   !                   d angb / d ub0
-            -calpb*(rb0- ub0*cosb)/dub &
-   !                   d angb / d mb0
-            -salpb*( crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)) + &
-            crossproduct(vb, crossproduct(ub, rb0-sinb*mb0)) + &
-            crossproduct(rb0-sinb*mb0, nb) )/dmb & !
-   !                   d angb / d rb0
-            -(crossproduct(ub-vb, ralpb-rb0*angb)*dot_product(rba, nb0)/dnb)/drb)
-
-            fb(:,3) = fb(:,3)        - Ehb*(p/angb)* (&
-   !                   d angb / d mb0
-            salpb*(crossproduct(ub0, crossproduct(rb0-sinb*mb0, ub0)))/dmb &
-   !                   d angb / d rb0
-            -(crossproduct(ralpb-rb0*angb, ub)*dot_product(rba, nb0)/dnb)/drb)
-
         ENDDO
         IF (EHHB .GE. REGCUT) RETURN      !! TEST HB EXISTANCE 06-04-2012
          HBEXIST = .TRUE.

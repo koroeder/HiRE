@@ -28,7 +28,7 @@ MODULE MOD_EXCLV
          INTEGER, INTENT(IN) :: I, J                   !indices of grains
          INTEGER, INTENT(IN) :: TI,TJ                  !type of grains
          REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    !input coordinates
-         REAL(KIND = REAL64), INTENT(OUT) :: F(NOPT)   !force
+         REAL(KIND = REAL64), INTENT(INOUT) :: F(NOPT) !force
          REAL(KIND = REAL64), INTENT(OUT) :: EEXCL     !energy contribution
          REAL(KIND = REAL64), INTENT(IN) :: DA2        !input squared distance between particles
          REAL(KIND = REAL64), INTENT(IN) :: DCORR      !correction for neighbouring nucleotides
@@ -48,7 +48,7 @@ MODULE MOD_EXCLV
 
          D = ((CT2-S)/DA)
 
-         EEXCL = DCORR*D**VPOWER
+         EEXCL = EXCLV_SCALING*(DCORR*D**VPOWER)
          DF = VPOWER*EEXCL/DA2
 
          F(3*I-2:3*I) = F(3*I-2:3*I) + DF*DX(1:3)
