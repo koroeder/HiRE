@@ -111,7 +111,7 @@ MODULE MD_COMMONS
     ! Continue simulation at RESTARTSTEP?
     LOGICAL :: CONTINUESIMT = .FALSE.
     ! Restart input file
-    CHARACTER(LEN=25) :: RESTARTINPF = "md_restart.dat"
+    CHARACTER(LEN=256) :: RESTARTINPF = "md_restart.dat"
     ! Frequency to dump restart file
     INTEGER :: NDUMPRST = 1000
     ! use reflective sphere

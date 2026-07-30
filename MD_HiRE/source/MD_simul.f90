@@ -206,7 +206,7 @@ MODULE MD_SIMULATION
          INTEGER :: I
          REAL(KIND = REAL64) :: DIST, RMSD
          CHARACTER(LEN=15) :: JSTRING
-         CHARACTER(LEN=30) :: PDBNAME
+         CHARACTER(LEN=256) :: PDBNAME
          CHARACTER(LEN=8) :: TASKSTR
 
          !write energies

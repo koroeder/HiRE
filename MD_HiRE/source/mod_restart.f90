@@ -31,7 +31,7 @@ MODULE MOD_RESTART
          USE INPUTMOD, ONLY: INPUTKW, READI, READF
          USE MD_UTILS, ONLY: TERMINATE_ERR
          IMPLICIT NONE 
-         CHARACTER(LEN=25), INTENT(IN) :: INPF                      
+         CHARACTER(LEN=256), INTENT(IN) :: INPF                      
          INTEGER, INTENT(OUT) :: CURRSTEP
          REAL(KIND = REAL64), INTENT(OUT) :: X(NOPT)
          REAL(KIND = REAL64), INTENT(OUT) :: VEL(NOPT)         
