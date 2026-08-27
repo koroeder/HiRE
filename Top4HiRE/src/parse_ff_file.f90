@@ -32,7 +32,7 @@ MODULE PARSE_FF
             NQINTER = NQINTER + N5
             NQINTRA = NQINTRA + N6
             NDINTER = NDINTER + N7
-            NDINTRA = NDINTRA + N8            
+            NDINTRA = NDINTRA + N8
          END DO
          CALL ALLOCATE_FF_GLOBALS()
 
@@ -65,7 +65,7 @@ MODULE PARSE_FF
             IF (TRIM(ADJUSTL(LINE)).EQ."#FILECONTENT") THEN
                READ(INUNIT,'(A)',IOSTAT=IOSTAT) LINE
                READ(LINE,*) N1,N2,N3,N4,N5,N6,N7,N8,N9
-            ELSE IF (TRIM(ADJUSTL(LINE)).EQ."#BONDS") THEN 
+            ELSE IF (TRIM(ADJUSTL(LINE)).EQ."#BONDS") THEN
                READ(INUNIT,'(A)',IOSTAT=IOSTAT) LINE !comment line
                DO I=1,N1+N2
                   READ(INUNIT,'(A)',IOSTAT=IOSTAT) LINE
@@ -162,7 +162,11 @@ MODULE PARSE_FF
                         DIDX = DIHTYPE(INTTYPE)
                      END IF
                      CURRTERMS(INTTYPE) = CURRTERMS(INTTYPE) + 1
-                     TERMIDX = CURRTERMS(INTTYPE) 
+                     TERMIDX = CURRTERMS(INTTYPE)
+                     IF (TERMIDX.GT.MAXNTERM) THEN
+                        WRITE(*,*) "Error: too many terms for dihedral type ", INTTYPE
+                        STOP
+                     END IF
                      DINTER(DIDX,TERMIDX)%AT1 = ENTRIES(3)
                      DINTER(DIDX,TERMIDX)%AT2 = ENTRIES(4)
                      DINTER(DIDX,TERMIDX)%AT3 = ENTRIES(5)
@@ -171,6 +175,7 @@ MODULE PARSE_FF
                      READ(ENTRIES(8),'(F12.4)') DINTER(DIDX,TERMIDX)%PHASE
                      READ(ENTRIES(9),'(F8.0)') DINTER(DIDX,TERMIDX)%PERIOD
                      READ(ENTRIES(10),'(F12.4)') DINTER(DIDX,TERMIDX)%YOFF
+                     READ(ENTRIES(1),'(I4)') DINTERTYPE(DIDX)
                   ELSE
                      !first determine whether this is a new dihedral, or whether we already have some terms
                      IF (DIHTYPE(INTTYPE).EQ.-1) THEN
@@ -181,7 +186,11 @@ MODULE PARSE_FF
                         DIDX = DIHTYPE(INTTYPE)
                      END IF
                      CURRTERMS(INTTYPE) = CURRTERMS(INTTYPE) + 1
-                     TERMIDX = CURRTERMS(INTTYPE) 
+                     TERMIDX = CURRTERMS(INTTYPE)
+                     IF (TERMIDX.GT.MAXNTERM) THEN
+                        WRITE(*,*) "Error: too many terms for dihedral type ", INTTYPE
+                        STOP
+                     END IF
                      DINTRA(DIDX,TERMIDX)%AT1 = ENTRIES(3)
                      DINTRA(DIDX,TERMIDX)%AT2 = ENTRIES(4)
                      DINTRA(DIDX,TERMIDX)%AT3 = ENTRIES(5)
@@ -190,9 +199,10 @@ MODULE PARSE_FF
                      READ(ENTRIES(8),'(F12.4)') DINTRA(DIDX,TERMIDX)%PHASE
                      READ(ENTRIES(9),'(F8.0)') DINTRA(DIDX,TERMIDX)%PERIOD
                      READ(ENTRIES(10),'(F12.4)') DINTRA(DIDX,TERMIDX)%YOFF
+                     READ(ENTRIES(1),'(I4)') DINTRATYPE(DIDX)
                   END IF
-               END DO   
-               DEALLOCATE(CURRTERMS,DIHTYPE)         
+               END DO
+               DEALLOCATE(CURRTERMS,DIHTYPE)
             END IF
          END DO
          CLOSE(INUNIT)
