@@ -15,8 +15,8 @@ MODULE MOD_DIHEDRALS
    REAL(KIND = REAL64), ALLOCATABLE :: PK(:,:)    
    !> Number of torsional equilibrium states 
    REAL(KIND = REAL64), ALLOCATABLE :: PN(:,:)
-   !> Interger value of PN    
-   INTEGER, ALLOCATABLE :: IPN(:)               
+   !> Interger value of PN, one per (dihedral type, term) pair - must match the (NPTRA,3) shape of PN/PK/GAMC/GAMS
+   INTEGER, ALLOCATABLE :: IPN(:,:)
    !> Torsional phase factor
    REAL(KIND = REAL64), ALLOCATABLE :: PHASE(:,:)
    !> Torsional y-offset
@@ -42,7 +42,7 @@ MODULE MOD_DIHEDRALS
       !> Routine to allocate all required arrays
       SUBROUTINE ALLOC_DIHS()
          CALL DEALLOC_DIHS()
-         ALLOCATE(PK(NPTRA,3), PN(NPTRA,3), IPN(NPTRA), PHASE(NPTRA,3), &
+         ALLOCATE(PK(NPTRA,3), PN(NPTRA,3), IPN(NPTRA,3), PHASE(NPTRA,3), &
                   IP(NDIHS), JP(NDIHS), KP(NDIHS), LP(NDIHS), ICP(NDIHS), &
                   GAMC(NPTRA,3), GAMS(NPTRA,3), DOFFSET(NPTRA))
       END SUBROUTINE ALLOC_DIHS 
@@ -70,8 +70,8 @@ MODULE MOD_DIHEDRALS
                   GAMS(I,J) = DUMS*PK(I,J)
          
                   PN(I,J) = DABS(PN(I,J))
-                  IPN(I) = INT(PN(I,J)+EPS1)  
-                  IF (IPN(I).EQ.0) IPN(I) = 1 !needed for zero terms, GMUl of 1 is 0.0, sothis does not change the energy computation but prevents a seg fault
+                  IPN(I,J) = INT(PN(I,J)+EPS1)
+                  IF (IPN(I,J).EQ.0) IPN(I,J) = 1 !needed for zero terms, GMUl of 1 is 0.0, sothis does not change the energy computation but prevents a seg fault
                END IF
             END DO    
          ENDDO
@@ -183,9 +183,9 @@ MODULE MOD_DIHEDRALS
             
             ! ----- ENERGY AND THE DERIVATIVES WITH RESPECT TO COSPHI -----
             !iterate over all terms
+            IC = ICP(JN)
             DO K=1,3
-               IC = ICP(JN)
-               INC = IPN(IC)
+               INC = IPN(IC,K)
                IF (ABS(PK(IC,K)).GT.EPS0) THEN
                   CT0 = PN(IC,K)*AP1
                   COSNP = DCOS(CT0)

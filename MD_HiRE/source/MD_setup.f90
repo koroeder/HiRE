@@ -4,10 +4,15 @@ MODULE MD_SETUP
       SUBROUTINE START_TRACKING()
          USE FILE_UTILS, ONLY: FILE_OPEN
          USE MD_COMMONS
+         USE HIRE_INTERFACE, ONLY: HIRE_DECOMPE_HEADER
          IMPLICIT NONE
          CALL FILE_OPEN("md_energy.log",EUNIT,.TRUE.)
          CALL FILE_OPEN("md_coords.xyz",XUNIT,.TRUE.)
          IF (RMSDT) CALL FILE_OPEN("md_rmsd.log",RUNIT,.TRUE.)
+         IF (EDECOMPT) THEN
+            CALL FILE_OPEN("md_edecomp.log",EDECOMPUNIT,.TRUE.)
+            CALL HIRE_DECOMPE_HEADER(EDECOMPUNIT)
+         END IF
       END SUBROUTINE START_TRACKING
 
       SUBROUTINE SETUP_POTENTIAL()
@@ -179,11 +184,19 @@ MODULE MD_SETUP
          ELSE IF (WORD .EQ. 'DUMPRST') THEN
             CALL READI(NDUMPRST)            
 
-         !+++++++++++++++!   
+         !+++++++++++++++!
          ! LETTER E      !
          !+++++++++++++++!
-            
-         !+++++++++++++++!   
+
+         ! Keyword: EDECOMP
+         ! Added: 27/08/2026 (k2262470), last modified: 27/08/2026 (k2262470)
+         ! Description: write a per-term (bond/angle/torsion/DH/Hbond/vdW/stacking/sugar-base)
+         !              energy decomposition to md_edecomp.log at the DUMPENERGY cadence,
+         !              for diagnosing which potential term is behind an energy spike.
+         ELSE IF (WORD .EQ. 'EDECOMP') THEN
+            EDECOMPT = .TRUE.
+
+         !+++++++++++++++!
          ! LETTER F      !
          !+++++++++++++++!
             

@@ -210,9 +210,42 @@ MODULE CALCFORCES
          WRITE(EUNIT, '(A,F15.5)') " Esaxs:  ", ENEPOT%ESAXS
          WRITE(EUNIT, '(A,F15.5)') " Edistr: ", ENEPOT%EDISTR
          WRITE(EUNIT, '(A,F15.5)') " Eposr:  ", ENEPOT%EPOSR
-         WRITE(EUNIT, '(A,F15.5)') " Etot:   ", ENEPOT%ETOT         
+         WRITE(EUNIT, '(A,F15.5)') " Etot:   ", ENEPOT%ETOT
       END SUBROUTINE PRINT_POT_ENE
-    
+
+      !> Write the column header for PRINT_POT_ENE_LINE's one-row-per-call format
+      !> @brief
+      !>
+      !> Call once, right after opening the output unit, before any PRINT_POT_ENE_LINE calls.
+      !>
+      !> @param[in] EUNIT - output file unit
+      SUBROUTINE WRITE_POT_ENE_HEADER(EUNIT)
+         INTEGER, INTENT(IN) :: EUNIT
+
+         WRITE(EUNIT, '(A10,12(1X,A15))') "#Step", "Ebond", "Eangle", "Etors", "Edh", &
+                        "Ehbond", "Evdw", "Estak", "Esb", "Esaxs", "Edistr", "Eposr", "Etot"
+      END SUBROUTINE WRITE_POT_ENE_HEADER
+
+      !> Print energy decomposition as a single row, for time-series diagnostics
+      !> @brief
+      !>
+      !> Same data as PRINT_POT_ENE, but written as one line per call (prefixed with a step
+      !> number) instead of a 12-line labelled block, so a long run's per-term energies can be
+      !> plotted/greped over time and correlated against the step-indexed total-energy log.
+      !>
+      !> @param[in] EUNIT - output file unit
+      !> @param[in] CURRSTEP - step number to prefix the row with
+      !> @param[in] ENEPOT - energy vector to be printed out
+      SUBROUTINE PRINT_POT_ENE_LINE(EUNIT, CURRSTEP, ENEPOT)
+         TYPE(POT_ENE), INTENT(IN) :: ENEPOT
+         INTEGER, INTENT(IN) :: EUNIT
+         INTEGER, INTENT(IN) :: CURRSTEP
+
+         WRITE(EUNIT, '(I10,12(1X,F15.7))') CURRSTEP, ENEPOT%EBOND, ENEPOT%EANGLES, &
+                        ENEPOT%ETORS, ENEPOT%EDH, ENEPOT%EHBOND, ENEPOT%EVDW, ENEPOT%ESTAK, &
+                        ENEPOT%ESB, ENEPOT%ESAXS, ENEPOT%EDISTR, ENEPOT%EPOSR, ENEPOT%ETOT
+      END SUBROUTINE PRINT_POT_ENE_LINE
+
 END MODULE CALCFORCES
 
 

@@ -195,10 +195,10 @@ MODULE MD_SIMULATION
       SUBROUTINE DUMPDATA(CURRSTEP, CURRTEMP)
          USE MD_COMMONS, ONLY: NATOMS, XUNIT, EUNIT, DUMPPDBT, NDUMPE, NDUMPP, NDUMPX, NDUMPRST, &
                                COORDS, VEL, EKIN, EPOT, ALIGNCONFT, RMSDT, NDUMPR, RUNIT, &
-                               NTASKS, TASKID, ELEMENTS, REXT
-         USE HIRE_INTERFACE, ONLY: DUMP_PDB
+                               NTASKS, TASKID, ELEMENTS, REXT, EDECOMPT, EDECOMPUNIT
+         USE HIRE_INTERFACE, ONLY: DUMP_PDB, HIRE_DECOMPE_LINE
          USE MOD_RESTART, ONLY: WRITE_RST_FILE
-         USE MOD_RMSD, ONLY: GET_RMSD 
+         USE MOD_RMSD, ONLY: GET_RMSD
          USE NUMKIND
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: CURRSTEP
@@ -212,6 +212,9 @@ MODULE MD_SIMULATION
          !write energies
          IF (MOD(CURRSTEP,NDUMPE).EQ.0) THEN
             WRITE(EUNIT,'(I10,3(1X,F15.7))') CURRSTEP, EPOT+EKIN, EPOT, EKIN
+            !per-term energy decomposition, same cadence - reflects the last force
+            !evaluation (this step's), same as EPOT/EKIN above
+            IF (EDECOMPT) CALL HIRE_DECOMPE_LINE(EDECOMPUNIT, CURRSTEP)
          END IF 
          !write coordinate files
          IF (MOD(CURRSTEP,NDUMPX).EQ.0) THEN

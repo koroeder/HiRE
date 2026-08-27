@@ -146,7 +146,48 @@ MODULE HIRE_INTERFACE
 #ifdef __HIRE       
          CALL PRINT_POT_ENE(OUTUNIT, EVEC)
 #endif
-      END SUBROUTINE HIRE_DECOMPE 
+      END SUBROUTINE HIRE_DECOMPE
+
+      !> Write the column header for HIRE_DECOMPE_LINE's one-row-per-call format
+      !> @brief
+      !>
+      !> Call once, right after opening the output unit, before any HIRE_DECOMPE_LINE calls.
+      !>
+      !> @param[in] OUTUNIT - output file unit
+      !>
+      !> @see WRITE_POT_ENE_HEADER
+      SUBROUTINE HIRE_DECOMPE_HEADER(OUTUNIT)
+#ifdef __HIRE
+         USE CALCFORCES, ONLY: WRITE_POT_ENE_HEADER
+#endif
+         INTEGER, INTENT(IN) :: OUTUNIT
+#ifdef __HIRE
+         CALL WRITE_POT_ENE_HEADER(OUTUNIT)
+#endif
+      END SUBROUTINE HIRE_DECOMPE_HEADER
+
+      !> Print energy decomposition as a single row, for time-series diagnostics
+      !> @brief
+      !>
+      !> Same data as HIRE_DECOMPE, but written as one line per call (prefixed with a step
+      !> number) so a long run's per-term energies can be plotted/grepped over time and
+      !> correlated against a step-indexed total-energy log. Call HIRE_DECOMPE_HEADER once
+      !> beforehand to label the columns.
+      !>
+      !> @param[in] OUTUNIT - output file unit
+      !> @param[in] CURRSTEP - step number to prefix the row with
+      !>
+      !> @see PRINT_POT_ENE_LINE
+      SUBROUTINE HIRE_DECOMPE_LINE(OUTUNIT, CURRSTEP)
+#ifdef __HIRE
+         USE CALCFORCES, ONLY: PRINT_POT_ENE_LINE, EVEC
+#endif
+         INTEGER, INTENT(IN) :: OUTUNIT
+         INTEGER, INTENT(IN) :: CURRSTEP
+#ifdef __HIRE
+         CALL PRINT_POT_ENE_LINE(OUTUNIT, CURRSTEP, EVEC)
+#endif
+      END SUBROUTINE HIRE_DECOMPE_LINE
 
       !> Create pdb file
       !> @brief

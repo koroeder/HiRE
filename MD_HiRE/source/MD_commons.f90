@@ -75,6 +75,10 @@ MODULE MD_COMMONS
     INTEGER :: RUNIT
     ! output unit for temperature
     INTEGER :: TEMPUNIT
+    ! write per-term (EVEC) energy decomposition diagnostics?
+    LOGICAL :: EDECOMPT = .FALSE.
+    ! output unit for per-term energy decomposition diagnostics
+    INTEGER :: EDECOMPUNIT
     ! output frequency for coordinates
     INTEGER :: NDUMPX
     ! output frequency for energy
