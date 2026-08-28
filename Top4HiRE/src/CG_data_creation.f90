@@ -13,7 +13,7 @@ MODULE CG_DATA
          INTEGER :: DUMMYTER(NRES,2)
          INTEGER :: J
          INTEGER :: ATOMCOUNTER
-         
+
          ALLOCATE(CGRESNAMES(NRES),RESTYPE(NRES),CGSTART(NRES),CGFINAL(NRES))
          NDUMMYTER = 0
          ATOMCOUNTER = 0
@@ -40,64 +40,64 @@ MODULE CG_DATA
                RESTYPE(J) = 2
             ELSE IF (CURRNAME.EQ."CL") THEN
                CGRESNAMES(J) = "CL"
-               ATOMCOUNTER = ATOMCOUNTER + 1  
-               RESTYPE(J) = 2      
+               ATOMCOUNTER = ATOMCOUNTER + 1
+               RESTYPE(J) = 2
             !check which residue we have
             ELSE IF (INDEX(CURRNAME,"A").GT.0) THEN
                IF (INDEX(CURRNAME,"5").GT.0) THEN
                   CGRESNAMES(J) = "A5"
                   ATOMCOUNTER = ATOMCOUNTER + 6
-               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN                
+               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN
                   CGRESNAMES(J) = "A3"
                   ATOMCOUNTER = ATOMCOUNTER + 7
                ELSE
                   CGRESNAMES(J) = "A"
                   ATOMCOUNTER = ATOMCOUNTER + 7
-               END IF                 
+               END IF
             ELSE IF (INDEX(CURRNAME,"C").GT.0) THEN
                IF (INDEX(CURRNAME,"5").GT.0) THEN
                   CGRESNAMES(J) = "C5"
                   ATOMCOUNTER = ATOMCOUNTER + 5
-               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN                
+               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN
                   CGRESNAMES(J) = "C3"
                   ATOMCOUNTER = ATOMCOUNTER + 6
                ELSE
                   CGRESNAMES(J) = "C"
                   ATOMCOUNTER = ATOMCOUNTER + 6
-               END IF  
+               END IF
             ELSE IF (INDEX(CURRNAME,"G").GT.0) THEN
                IF (INDEX(CURRNAME,"5").GT.0) THEN
                   CGRESNAMES(J) = "G5"
                   ATOMCOUNTER = ATOMCOUNTER + 6
-               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN                
+               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN
                   CGRESNAMES(J) = "G3"
                   ATOMCOUNTER = ATOMCOUNTER + 7
                ELSE
                   CGRESNAMES(J) = "G"
                   ATOMCOUNTER = ATOMCOUNTER + 7
-               END IF  
+               END IF
             ELSE IF (INDEX(CURRNAME,"T").GT.0) THEN
                IF (INDEX(CURRNAME,"5").GT.0) THEN
                   CGRESNAMES(J) = "T5"
                   ATOMCOUNTER = ATOMCOUNTER + 5
-               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN                
+               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN
                   CGRESNAMES(J) = "T3"
                   ATOMCOUNTER = ATOMCOUNTER + 6
                ELSE
                   CGRESNAMES(J) = "T"
                   ATOMCOUNTER = ATOMCOUNTER + 6
-               END IF  
+               END IF
             ELSE IF (INDEX(CURRNAME,"U").GT.0) THEN
                IF (INDEX(CURRNAME,"5").GT.0) THEN
                   CGRESNAMES(J) = "U5"
                   ATOMCOUNTER = ATOMCOUNTER + 5
-               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN                
+               ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN
                   CGRESNAMES(J) = "U3"
                   ATOMCOUNTER = ATOMCOUNTER + 6
                ELSE
                   CGRESNAMES(J) = "U"
                   ATOMCOUNTER = ATOMCOUNTER + 6
-               END IF  
+               END IF
             ELSE
                WRITE(*,*) "Residue name ", CURRNAME, " not recognised - STOP"
                STOP
@@ -122,7 +122,7 @@ MODULE CG_DATA
          INTEGER :: J
          INTEGER :: ATOMCOUNTER
 
-         ATOMCOUNTER = 0 
+         ATOMCOUNTER = 0
          DO J=1,NRES
             ! the type number is synced with the HiRE library
             IF (RESTYPE(J).EQ.2) THEN
@@ -136,7 +136,7 @@ MODULE CG_DATA
                   CGNAMES(ATOMCOUNTER) = "NA"
                   CGTYPE(ATOMCOUNTER) = 17
                   CGMASS(ATOMCOUNTER) = 22.990D0
-                  CGCHARGE(ATOMCOUNTER) = 1.000D0 
+                  CGCHARGE(ATOMCOUNTER) = 1.000D0
                ELSE IF (CGRESNAMES(J).EQ."K") THEN
                   CGNAMES(ATOMCOUNTER) = "K"
                   CGTYPE(ATOMCOUNTER) = 18
@@ -147,7 +147,7 @@ MODULE CG_DATA
                   CGTYPE(ATOMCOUNTER) = 19
                   CGMASS(ATOMCOUNTER) = 35.450D0
                   CGCHARGE(ATOMCOUNTER) = -1.000D0
-               END IF               
+               END IF
             ELSE IF ((RESTYPE(J).EQ.0).OR.(RESTYPE(J).EQ.1)) THEN
                IF (INDEX(CGRESNAMES(J),"5").EQ.0) THEN
                   !first grain: P (not existent in 5 terminal nucleotides)
@@ -181,7 +181,7 @@ MODULE CG_DATA
                   CGTYPE(ATOMCOUNTER) = 5
                END IF
                CGMASS(ATOMCOUNTER) = 20.000D0
-               CGCHARGE(ATOMCOUNTER) = 0.000D0 
+               CGCHARGE(ATOMCOUNTER) = 0.000D0
                !fifth grain also differs between RNA and DNA
                ATOMCOUNTER = ATOMCOUNTER + 1
                IF (RESTYPE(J).EQ.0) THEN !RNA
@@ -194,7 +194,7 @@ MODULE CG_DATA
                   CGTYPE(ATOMCOUNTER) = 7
                END IF
                CGMASS(ATOMCOUNTER) = 12.000D0
-               CGCHARGE(ATOMCOUNTER) = 0.000D0 
+               CGCHARGE(ATOMCOUNTER) = 0.000D0
                !nucleobase grains
                IF (INDEX(CGRESNAMES(J),"A").GT.0) THEN
                   ATOMCOUNTER = ATOMCOUNTER + 1
@@ -230,10 +230,10 @@ MODULE CG_DATA
                   CGTYPE(ATOMCOUNTER) = 14
                   CGMASS(ATOMCOUNTER) = 131.000D0
                   CGCHARGE(ATOMCOUNTER) = 0.000D0
-               ELSE IF (INDEX(CGRESNAMES(J),"U").GT.0) THEN   
+               ELSE IF (INDEX(CGRESNAMES(J),"U").GT.0) THEN
                   ATOMCOUNTER = ATOMCOUNTER + 1
                   CGNAMES(ATOMCOUNTER) = "U1"
-                  CGTYPE(ATOMCOUNTER) = 13
+                  CGTYPE(ATOMCOUNTER) = 12
                   CGMASS(ATOMCOUNTER) = 131.000D0
                   CGCHARGE(ATOMCOUNTER) = 0.000D0
                END IF
