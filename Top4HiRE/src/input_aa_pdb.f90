@@ -31,8 +31,8 @@ MODULE PARSE_AA_PDB
 
          DO I=1,NRES
             IF (RESTYPE(I).EQ.2) THEN !ions only have one set of coordinates
-               ATOMIDAA = AARESSTART(J)
-               ATOMIDCG = CGSTART(J)
+               ATOMIDAA = AARESSTART(I)
+               ATOMIDCG = CGSTART(I)
                CALL ASSIGN_AA_TO_CG(ATOMIDAA,ATOMIDCG)
             ELSE IF ((RESTYPE(I).EQ.0).OR.(RESTYPE(I).EQ.1)) THEN !RNA and DNA
                DO J=CGSTART(I),CGFINAL(I)
