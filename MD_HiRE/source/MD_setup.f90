@@ -18,12 +18,13 @@ MODULE MD_SETUP
       SUBROUTINE SETUP_POTENTIAL()
          USE MD_COMMONS, ONLY: MYUNIT, NATOMS, NOPT, TOPNAME, SCALEDATNAME, COORDSFILE, &
                                MASSES, COORDS, MININITIAL, RESTARTSIMT, ATNAMES, &
-                               TOTALMASS, TMASSINV
+                               TOTALMASS, TMASSINV, REXT, TASKID
          USE HIRE_INTERFACE, ONLY: HIRE_INITIALISE, PASS_HIRE_MASSES, PASS_PARTICLE_NAMES
          USE MD_UTILS, ONLY: ALLOC_COMMONS, RUNMIN
          USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
          IMPLICIT NONE
          INTEGER :: J, XUNIT
+         CHARACTER(LEN=40) :: XFILE
          !first initialise the HiRE interface
          CALL HIRE_INITIALISE(TOPNAME, SCALEDATNAME, NATOMS)
 
@@ -42,9 +43,16 @@ MODULE MD_SETUP
          CALL PARTS2ELS()
 
          IF (.NOT.RESTARTSIMT) THEN
-            ! get coordinates
-            IF (FILE_EXIST(COORDSFILE)) THEN
-               CALL FILE_OPEN(COORDSFILE,XUNIT,.FALSE.)
+            ! get coordinates; a replica-exchange run takes <COORDSFILE>.<replica> (1-based) when it exists,
+            ! so replicas can start from different structures, and the shared file otherwise
+            XFILE = COORDSFILE
+            IF (REXT) THEN
+               WRITE(XFILE,'(A,A,I0)') TRIM(COORDSFILE), ".", TASKID+1
+               IF (.NOT.FILE_EXIST(TRIM(XFILE))) XFILE = COORDSFILE
+               WRITE(MYUNIT,*) " setup> Reading start coordinates from ", TRIM(XFILE)
+            ENDIF
+            IF (FILE_EXIST(TRIM(XFILE))) THEN
+               CALL FILE_OPEN(TRIM(XFILE),XUNIT,.FALSE.)
                READ(XUNIT, *) (COORDS(J), J=1,3*NATOMS)
                CLOSE(XUNIT)
                ! minimise coordinates
@@ -79,11 +87,15 @@ MODULE MD_SETUP
       SUBROUTINE READ_SETTINGS()
          USE FILE_UTILS, ONLY: FILE_OPEN
          USE INPUTMOD, ONLY: INPUTKW
+         USE NUMKIND
+         USE MD_COMMONS, ONLY: DT, GAMMA, TIMEUNITPS, PS2AKMA
          IMPLICIT NONE
          INTEGER :: PARAMUNIT
          LOGICAL :: EOFT
          CHARACTER(25) :: KEYWORD
-            
+         ! defaults in internal time units: 0.01 (0.4889 fs) and 0.1 (2.045 ps^-1)
+         REAL(KIND = REAL64), PARAMETER :: DTDEFAULT = 1.0D-2, GAMMADEFAULT = 1.0D-1
+
          ! open simdata file    
          CALL FILE_OPEN("mddata", PARAMUNIT, .FALSE.)
             
@@ -98,6 +110,16 @@ MODULE MD_SETUP
             ENDIF
          END DO
          CLOSE(PARAMUNIT)
+
+         ! apply defaults for TIMESTEP and GAMMA only now, as their units depend on TIMEUNIT
+         IF (DT.LT.0.0D0) THEN
+            DT = DTDEFAULT
+            IF (TIMEUNITPS) DT = DTDEFAULT/PS2AKMA
+         END IF
+         IF (GAMMA.LT.0.0D0) THEN
+            GAMMA = GAMMADEFAULT
+            IF (TIMEUNITPS) GAMMA = GAMMADEFAULT*PS2AKMA
+         END IF
       END SUBROUTINE READ_SETTINGS
 
       SUBROUTINE SETKEYS(WORD)
@@ -111,6 +133,7 @@ MODULE MD_SETUP
          IMPLICIT NONE
          CHARACTER(25), INTENT(IN) :: WORD
          CHARACTER(1) :: CONTINUEDUMMY = "F"
+         CHARACTER(8) :: UNITDUMMY
          REAL(KIND = REAL64) :: DUMMYDIST
         
          ! Keyword IF clause - first is comments, last is unrecognised command,
@@ -206,7 +229,8 @@ MODULE MD_SETUP
 
          ! Keyword: GAMMA
          ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
-         ! Description: Value for friction parameter gamma
+         ! Description: Value for friction parameter gamma, in ps^-1 (or inverse internal
+         !              time units if TIMEUNIT INTERNAL is set)
          ELSE IF (WORD .EQ. 'GAMMA') THEN
             CALL READF(GAMMA) 
 
@@ -320,6 +344,12 @@ MODULE MD_SETUP
             CALL READF(LOWR)
             CALL READF(HIGHR)
 
+         ! Keyword: HREXTERM
+         ! Description: energy term scaled by LAMBDA in Hamiltonian REX (REXMD ... H):
+         ! ALL (default) scales every term, COOP only the helix cooperativity EPSCOOP
+         ELSE IF (WORD .EQ. 'HREXTERM') THEN
+            CALL READA(HREXTERM)
+
          ELSE IF (WORD .EQ. 'RMSD') THEN
             RMSDT = .TRUE.
             CALL READI(NDUMPR)
@@ -405,9 +435,24 @@ MODULE MD_SETUP
 
          ! Keyword: TIMESTEP
          ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)
-         ! Description: Time steps to be used
+         ! Description: Time steps to be used, in ps (or internal time units if TIMEUNIT INTERNAL is set)
          ELSE IF (WORD .EQ. 'TIMESTEP') THEN
             CALL READF(DT)
+
+         ! Keyword: TIMEUNIT
+         ! Added: 11/09/2026 (k2262470), last modified: 11/09/2026 (k2262470)
+         ! Description: Units for TIMESTEP and GAMMA: PS (default, ps and ps^-1) or INTERNAL
+         !              (sqrt(amu*A^2/(kcal/mol)) = 48.888 fs, the behaviour of older inputs)
+         ELSE IF (WORD .EQ. 'TIMEUNIT') THEN
+            CALL READA(UNITDUMMY)
+            IF (UNITDUMMY.EQ."PS") THEN
+               TIMEUNITPS = .TRUE.
+            ELSE IF (UNITDUMMY.EQ."INTERNAL") THEN
+               TIMEUNITPS = .FALSE.
+            ELSE
+               WRITE(*,'(2A)') " setkeys> TIMEUNIT must be PS or INTERNAL, got: ", TRIM(UNITDUMMY)
+               STOP
+            END IF
 
          ! Keyword: TOPOLOGY
          ! Added: 01/11/2022 (k2262470), last modified: 01/11/2022 (k2262470)

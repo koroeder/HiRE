@@ -8,29 +8,29 @@ MODULE MPI_UTILS
 
       SUBROUTINE REPORT_PARAMS_MPI()
          USE MD_COMMONS
-         USE MD_UTILS, ONLY: TERMINATE_ERR
+         USE MD_UTILS, ONLY: TERMINATE_ERR, REPORT_TIMESCALE
          IMPLICIT NONE
          WRITE(MYUNIT,'(A)') " Molecular dynamics simulation for HiRE "
          WRITE(MYUNIT,'(A)') " ______________________________________ "
          WRITE(MYUNIT,'(A)') " "
          WRITE(MYUNIT,'(A,I10,A)') " settings> Run MD simulation for ", MDSTEPS, " steps"
-         WRITE(MYUNIT,'(A,F6.2)') " settings> Time step for simulation:          ", DT
          IF (MDMETHOD.EQ."VV") THEN
             WRITE(MYUNIT,'(A)') " settings> MD simulation will use Velocity-Verlet"
          ELSE IF (MDMETHOD.EQ."LD") THEN
             WRITE(MYUNIT,'(A)') " settings> MD simulation will use Langevin dynamics"
-            WRITE(MYUNIT,'(A,F6.2)') " settings> Gamma value for Langevin dynamics: ", GAMMA
-         ELSE 
+         ELSE
             WRITE(MYUNIT,'(2A)') " settings> MD method not recognised: ", MDMETHOD
             CALL TERMINATE_ERR(.FALSE., .FALSE.)
          END IF
+         CALL REPORT_TIMESCALE()
          WRITE(MYUNIT,'(A,I6,A,I6)') " settings> This is a replica-exchange simulation with ", NREPLICA, &
                                      ". This is replica ", TASKID+1
          IF (REXMODE.EQ.'T') THEN
             WRITE(MYUNIT,'(A)') " settings> REX type: Temperature-REX"
          ELSE IF (REXMODE.EQ.'H') THEN
             WRITE(MYUNIT,'(A)') " settings> REX type: Hamiltonian-REX"
-            WRITE(MYUNIT,'(A,F8.2)') " settings> Lambda is: ", LAMBDA
+            WRITE(MYUNIT,'(A,F8.4)') " settings> Lambda is: ", LAMBDA
+            WRITE(MYUNIT,'(2A)') " settings> Lambda scales: ", TRIM(HREXTERM)
          END IF
          WRITE(MYUNIT,'(A,F8.2)') " settings> Temperature for MD simulation:     ", TEMP
          WRITE(MYUNIT,'(A)') " "
@@ -58,7 +58,7 @@ MODULE MPI_UTILS
 
       SUBROUTINE COMMUNICATE_SETTINGS()
          USE MD_COMMONS
-         USE HIRE_INTERFACE, ONLY:  SET_UNIV_SCALING
+         USE EXCHANGES, ONLY: APPLY_LAMBDA
          USE FILE_UTILS, ONLY: FILE_EXIST, FILE_OPEN
          USE MD_UTILS, ONLY: TERMINATE_ERR
          USE INPUTMOD, ONLY: READF, INPUT
@@ -131,7 +131,7 @@ MODULE MPI_UTILS
                CALL MPI_RECV(LAMBDA,1,MPI_DOUBLE,0,REMD_TAG,MPI_COMM_WORLD,MPISTATUS,ERR_CODE_MPI)
             END IF
             CALL MPI_BCAST(TEMP,1,MPI_DOUBLE,0,MPI_COMM_WORLD,ERR_CODE_MPI)
-            CALL SET_UNIV_SCALING(LAMBDA)
+            CALL APPLY_LAMBDA(LAMBDA)
          END IF
 #endif
       END SUBROUTINE COMMUNICATE_SETTINGS

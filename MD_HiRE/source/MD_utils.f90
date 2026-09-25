@@ -42,19 +42,38 @@ MODULE MD_UTILS
          WRITE(MYUNIT,'(A)') " ______________________________________ "
          WRITE(MYUNIT,'(A)') " "
          WRITE(MYUNIT,'(A,I10,A)') " settings> Run MD simulation for ", MDSTEPS, " steps"
-         WRITE(MYUNIT,'(A,F6.2)') " settings> Time step for simulation:          ", DT
          IF (MDMETHOD.EQ."VV") THEN
             WRITE(MYUNIT,'(A)') " settings> MD simulation will use Velocity-Verlet"
          ELSE IF (MDMETHOD.EQ."LD") THEN
             WRITE(MYUNIT,'(A)') " settings> MD simulation will use Langevin dynamics"
-            WRITE(MYUNIT,'(A,F6.2)') " settings> Gamma value for Langevin dynamics: ", GAMMA
-         ELSE 
+         ELSE
             WRITE(MYUNIT,'(2A)') " settings> MD method not recognised: ", MDMETHOD
             CALL TERMINATE_ERR(.FALSE., .FALSE.)
          END IF
+         CALL REPORT_TIMESCALE()
          WRITE(MYUNIT,'(A,F8.2)') " settings> Temperature for MD simulation:     ", TEMP
          WRITE(MYUNIT,'(A)') " "
       END SUBROUTINE REPORT_PARAMS
+
+      !> Report time step (and gamma for Langevin dynamics) in input and physical units
+      SUBROUTINE REPORT_TIMESCALE()
+         USE MD_COMMONS, ONLY: MYUNIT, MDMETHOD, DT, GAMMA, TIMEUNITPS, PS2AKMA
+         IMPLICIT NONE
+         IF (TIMEUNITPS) THEN
+            WRITE(MYUNIT,'(A,F12.6,A,F10.4,A)') " settings> Time step for simulation:          ", DT, &
+                                                " ps (", DT*1.0D3, " fs)"
+            IF (MDMETHOD.EQ."LD") THEN
+               WRITE(MYUNIT,'(A,F12.6,A)') " settings> Gamma value for Langevin dynamics: ", GAMMA, " ps^-1"
+            END IF
+         ELSE
+            WRITE(MYUNIT,'(A,F12.6,A,F10.4,A)') " settings> Time step for simulation:          ", DT, &
+                                                " internal units (", DT*1.0D3/PS2AKMA, " fs)"
+            IF (MDMETHOD.EQ."LD") THEN
+               WRITE(MYUNIT,'(A,F12.6,A,F10.4,A)') " settings> Gamma value for Langevin dynamics: ", GAMMA, &
+                                                   " internal units (", GAMMA*PS2AKMA, " ps^-1)"
+            END IF
+         END IF
+      END SUBROUTINE REPORT_TIMESCALE
 
       SUBROUTINE MD_START()
          USE MD_COMMONS, ONLY: MYUNIT, NTASKS, TASKID
@@ -109,10 +128,19 @@ MODULE MD_UTILS
       END SUBROUTINE RUNMIN
 
       SUBROUTINE SET_DERIVED_PARAMS()
-         USE MD_COMMONS, ONLY: DT, HDT, GAMMA, GFRIC, NATOMS, NOPT
+         USE MD_COMMONS, ONLY: DT, DTX, HDT, GAMMA, GAMMAX, GFRIC, TIMEUNITPS, PS2AKMA
          IMPLICIT NONE
-         HDT = 0.5*DT
-         GFRIC = 1.0D0 - GAMMA*HDT
+         ! convert time step and friction from input units to internal time units,
+         ! the integrators only ever see DTX, HDT, GAMMAX and GFRIC
+         IF (TIMEUNITPS) THEN
+            DTX = DT*PS2AKMA
+            GAMMAX = GAMMA/PS2AKMA
+         ELSE
+            DTX = DT
+            GAMMAX = GAMMA
+         END IF
+         HDT = 0.5D0*DTX
+         GFRIC = 1.0D0 - GAMMAX*HDT
       END SUBROUTINE SET_DERIVED_PARAMS
 
       SUBROUTINE SEED_RANDOM()

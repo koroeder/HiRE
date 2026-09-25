@@ -5,6 +5,8 @@ MODULE MD_COMMONS
     LOGICAL :: REXT = .FALSE.
     ! REX method: T- Temperature, H- Hamiltonian
     CHARACTER(LEN=1) :: REXMODE = "H"
+    ! energy term scaled by LAMBDA in Hamiltonian REX: ALL (every term) or COOP (helix cooperativity only)
+    CHARACTER(LEN=8) :: HREXTERM = "ALL"
     ! number of replicas
     INTEGER :: NREPLICA = 0
     ! Lower bound for replicas
@@ -41,15 +43,26 @@ MODULE MD_COMMONS
     CHARACTER(LEN=4), ALLOCATABLE :: ATNAMES(:)
     ! particle else
     CHARACTER(LEN=1), ALLOCATABLE :: ELEMENTS(:)
-    ! gamma
-    REAL(KIND = REAL64) :: GAMMA = 1.0D-1 
+    ! 1 ps in internal time units: with energies in kcal/mol, lengths in A and masses in amu
+    ! the implicit time unit is sqrt(amu*A^2/(kcal/mol)) = 48.888 fs (AKMA, as in AMBER/CHARMM)
+    REAL(KIND = REAL64), PARAMETER :: PS2AKMA = 20.4548283D0
+    ! are TIMESTEP and GAMMA given in ps and ps^-1 (default) or in internal units?
+    LOGICAL :: TIMEUNITPS = .TRUE.
+    ! gamma, as read from input (ps^-1 or inverse internal time unit),
+    ! negative if not given - the default is then set in READ_SETTINGS once TIMEUNIT is known
+    REAL(KIND = REAL64) :: GAMMA = -1.0D0
+    ! gamma in inverse internal time units
+    REAL(KIND = REAL64) :: GAMMAX
     ! friction parameter
     REAL(KIND = REAL64) :: GFRIC
     ! Langevin scaling parameter, currently not used
     REAL(KIND = REAL64) :: LANGEVINSCALE = 0.1
-    ! time step
-    REAL(KIND = REAL64) :: DT = 1.0D-2
-    ! half a time step
+    ! time step, as read from input (ps or internal time unit),
+    ! negative if not given - the default is then set in READ_SETTINGS once TIMEUNIT is known
+    REAL(KIND = REAL64) :: DT = -1.0D0
+    ! time step in internal time units
+    REAL(KIND = REAL64) :: DTX
+    ! half a time step (internal time units)
     REAL(KIND = REAL64) :: HDT
     ! random number seed
     INTEGER :: RANDOMSEED = -1

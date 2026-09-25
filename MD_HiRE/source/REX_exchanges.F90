@@ -42,6 +42,10 @@ MODULE EXCHANGES
          INITIATE(1:NREPLICA) = .FALSE.
          MEACTIVET = .FALSE.
          MEINITIATET = .FALSE.
+         ! MDREX_bug.md finding #9: EXCHANGEDT is only assigned inside the MEACTIVET branch below, but
+         ! read unconditionally afterwards (NTHISTIME count, and the MPI send/receive to rank 0) - an
+         ! idle replica this round would otherwise report whatever was left over from a previous call.
+         EXCHANGEDT = .FALSE.
 
          IF (TASKID.EQ.0) THEN
             !identify the number of pairs and the first rep
@@ -126,8 +130,9 @@ MODULE EXCHANGES
       END SUBROUTINE SELECT_EXCHANGES
 
       SUBROUTINE PASS_DATA_FOR_EXCHANGE_H(MEINITIATET,EXCHANGEDT)
-         USE MD_COMMONS, ONLY: EPOT, TEMP, VEL, NTASKS, COORDS, LAMBDA, NATOMS, MYUNIT
-         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD, SET_UNIV_SCALING
+         USE MD_COMMONS, ONLY: EPOT, TEMP, VEL, NTASKS, COORDS, LAMBDA, NATOMS, MYUNIT, ACC
+         USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
+         USE MD_CALCS, ONLY: GET_ACC
          LOGICAL, INTENT(IN) :: MEINITIATET
          LOGICAL, INTENT(OUT) :: EXCHANGEDT
 #ifdef MPI
@@ -172,12 +177,14 @@ MODULE EXCHANGES
             ! current scaling set is L1
             CALL HIRE_ENERGY_GRAD(3*NATOMS, X1, U11, G, .FALSE.)
             CALL HIRE_ENERGY_GRAD(3*NATOMS, X2, U12, G, .FALSE.)
-            CALL SET_UNIV_SCALING(L2)
+            CALL APPLY_LAMBDA(L2)
             CALL HIRE_ENERGY_GRAD(3*NATOMS, X1, U21, G, .FALSE.)
             CALL HIRE_ENERGY_GRAD(3*NATOMS, X2, U22, G, .FALSE.)
-            ! the exchnge probability is given by:
-            !H-REX: P(1<->2) = min(1, exp[(1/kT1 - 1/kT2){(U1(x2)-U1(x1)) + (U2(x1)-U2(x2))}])
-            DUMMY = (1.0/T1 - 1.0/T2)*((U12 - U11) + (U21 - U22))
+            ! the exchange probability is given by (Uij = energy of coordinates j with lambda i):
+            !H-REX: P(1<->2) = min(1, exp[(U11 - U21)/kT1 + (U22 - U12)/kT2])
+            ! (the previous form (1/kT1 - 1/kT2)*(...) is zero for equal temperatures and accepted every swap,
+            !  MDREX_bug.md finding #1)
+            DUMMY = (U11 - U21)/T1 + (U22 - U12)/T2
             PROB = MIN(1.0,EXP(DUMMY))
             RAND = DPRAND()
             WRITE(*,*) " rex> Exchanging ", TASKID, " with ", OTHERREP, &
@@ -219,9 +226,28 @@ MODULE EXCHANGES
          WRITE(MYUNIT,'(A)') " "
          
          ! make sure to reset scaling
-         CALL SET_UNIV_SCALING(LAMBDA)
-#endif 
+         CALL APPLY_LAMBDA(LAMBDA)
+         ! after an accepted swap the stored accelerations belong to the old Hamiltonian (MDREX_bug.md finding #6)
+         IF (SWITCHT) THEN
+            CALL HIRE_ENERGY_GRAD(3*NATOMS, COORDS, EPOT, G, .FALSE.)
+            CALL GET_ACC(G, ACC)
+         ENDIF
+#endif
       END SUBROUTINE PASS_DATA_FOR_EXCHANGE_H
+
+      !> Apply the Hamiltonian-REX parameter L to the potential: with HREXTERM ALL it scales every energy
+      !> term (SCALING(1:8)), with COOP only the helix-cooperativity strength EPSCOOP
+      SUBROUTINE APPLY_LAMBDA(L)
+         USE MD_COMMONS, ONLY: HREXTERM
+         USE HIRE_INTERFACE, ONLY: SET_UNIV_SCALING, SET_COOP_SCALING
+         REAL(KIND = REAL64), INTENT(IN) :: L
+
+         IF (TRIM(HREXTERM).EQ.'COOP') THEN
+            CALL SET_COOP_SCALING(L)
+         ELSE
+            CALL SET_UNIV_SCALING(L)
+         ENDIF
+      END SUBROUTINE APPLY_LAMBDA
 
          
 

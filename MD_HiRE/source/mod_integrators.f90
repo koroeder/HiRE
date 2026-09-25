@@ -13,7 +13,7 @@ MODULE MOD_INTEGRATORS
       !> 4. \f( \mathbf{V}(t+\Delta t)\,=\,\mathbf{v}(t+\frac{1}{2}\Delta t)\,+\,\frac{1}{2}\mathbf{a}(t+\Delta t)\Delta t\f) \n      
    
       SUBROUTINE VELOCITY_VERLET(X, VEL, ACC, EPOT, EKIN)
-         USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DT, DETECTHIGHFORCES, WRITINGHIGHFORCES
+         USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DTX, DETECTHIGHFORCES, WRITINGHIGHFORCES
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
          IMPLICIT NONE
@@ -26,7 +26,7 @@ MODULE MOD_INTEGRATORS
          ! calculate velocity at half step
          VEL(1:NOPT) = VEL(1:NOPT) + ACC(1:NOPT)*HDT
          ! calculate new coordinates
-         X(1:NOPT) = X(1:NOPT) + VEL(1:NOPT)*DT
+         X(1:NOPT) = X(1:NOPT) + VEL(1:NOPT)*DTX
          ! calculate new gradient
          CALL HIRE_ENERGY_GRAD(NOPT, X, EPOT, GRAD, .FALSE.)
          !debugging function for writing trajectories with high forces
@@ -43,7 +43,7 @@ MODULE MOD_INTEGRATORS
 
       !> Velocity-verlet algorithm assuming the acceleration is only position dependent
       SUBROUTINE VELOCITY_VERLET2(X, VEL, ACC, EPOT, EKIN)
-         USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DT
+         USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DTX
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
          IMPLICIT NONE
@@ -54,7 +54,7 @@ MODULE MOD_INTEGRATORS
          REAL(KIND=REAL64) :: GRAD(NOPT), OLDACC(NOPT)
  
          ! calculate new coordinates
-         X(1:NOPT) = X(1:NOPT) + VEL(1:NOPT)*DT + 0.5*ACC(1:NOPT)*DT*DT
+         X(1:NOPT) = X(1:NOPT) + VEL(1:NOPT)*DTX + 0.5*ACC(1:NOPT)*DTX*DTX
          ! calculate new gradient
          CALL HIRE_ENERGY_GRAD(NOPT, X, EPOT, GRAD, .FALSE.)
          ! save old acceleration
@@ -68,7 +68,7 @@ MODULE MOD_INTEGRATORS
       END SUBROUTINE VELOCITY_VERLET2      
 
       SUBROUTINE LANGEVIN_STEP(TEMP,X,VEL,ACC,EPOT, EKIN)
-         USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DT, GFRIC, GAMMA, MASSES, &
+         USE MD_COMMONS, ONLY: NATOMS, NOPT, HDT, DTX, GFRIC, GAMMAX, MASSES, &
                               DETECTHIGHFORCES, WRITINGHIGHFORCES
          USE HIRE_INTERFACE, ONLY: HIRE_ENERGY_GRAD
          USE MD_CALCS, ONLY: GET_ACC, E_KINETIC
@@ -88,7 +88,7 @@ MODULE MOD_INTEGRATORS
          ! see Allen and Tildesley, "Computer Simulation of Liquids" (2nd ed.), p. 384 
 
          DO I=1,NATOMS
-            NOISE(I) = DSQRT(TEMP*GAMMA*DT/MASSES(I))
+            NOISE(I) = DSQRT(TEMP*GAMMAX*DTX/MASSES(I))
          END DO
 
          DO I=1,NATOMS
@@ -98,7 +98,7 @@ MODULE MOD_INTEGRATORS
                CALL RAND_NORMAL(1.0D0, 0.0D0, NR1)
                VEL(IDX) = GFRIC*VEL(IDX) + ACC(IDX)*HDT + NR1*NOISE(I)
                !update full-step coordinates
-               X(IDX) = X(IDX) + VEL(IDX)*DT
+               X(IDX) = X(IDX) + VEL(IDX)*DTX
             END DO
          END DO
          ! get new potential energy and gradient
