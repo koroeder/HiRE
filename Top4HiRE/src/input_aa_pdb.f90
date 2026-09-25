@@ -13,7 +13,7 @@ MODULE PARSE_AA_PDB
 
          CALL PARSE_PDB_FILE(INPUTNAME)
 
-         CALL GET_RES_DATA(PDBRESNAMES)
+         CALL GET_RES_DATA(PDBRESNAMES,PDBTERMINI)
          CALL ASSIGN_GRAIN_DATA()
          CALL CREATE_CG_XYZ() !at this point we have all the data, now create the CG data from it
 
@@ -31,25 +31,25 @@ MODULE PARSE_AA_PDB
 
          DO I=1,NRES
             IF (RESTYPE(I).EQ.2) THEN !ions only have one set of coordinates
-               ATOMIDAA = AARESSTART(J)
-               ATOMIDCG = CGSTART(J)
+               ATOMIDAA = AARESSTART(I)
+               ATOMIDCG = CGSTART(I)
                CALL ASSIGN_AA_TO_CG(ATOMIDAA,ATOMIDCG)
             ELSE IF ((RESTYPE(I).EQ.0).OR.(RESTYPE(I).EQ.1)) THEN !RNA and DNA
                DO J=CGSTART(I),CGFINAL(I)
                   IF (CGNAMES(J).EQ."P") THEN
-                     CALL GET_ATOMID("P",I,ATOMIDAA)
+                     CALL REQUIRE_ATOMID("P",I,ATOMIDAA)
                      CALL ASSIGN_AA_TO_CG(ATOMIDAA,J)
                   ELSE IF (CGNAMES(J).EQ."O5") THEN
-                     CALL GET_ATOMID("O5'",I,ATOMIDAA)
+                     CALL REQUIRE_ATOMID("O5'",I,ATOMIDAA)
                      CALL ASSIGN_AA_TO_CG(ATOMIDAA,J)
                   ELSE IF (CGNAMES(J).EQ."O3") THEN
-                     CALL GET_ATOMID("O3'",I,ATOMIDAA)
+                     CALL REQUIRE_ATOMID("O3'",I,ATOMIDAA)
                      CALL ASSIGN_AA_TO_CG(ATOMIDAA,J)
                   ELSE IF ((CGNAMES(J).EQ."R4").OR.(CGNAMES(J).EQ."S4")) THEN
-                     CALL GET_ATOMID("C4'",I,ATOMIDAA)
+                     CALL REQUIRE_ATOMID("C4'",I,ATOMIDAA)
                      CALL ASSIGN_AA_TO_CG(ATOMIDAA,J)
                   ELSE IF ((CGNAMES(J).EQ."R1").OR.(CGNAMES(J).EQ."S1")) THEN
-                     CALL GET_ATOMID("C1'",I,ATOMIDAA)
+                     CALL REQUIRE_ATOMID("C1'",I,ATOMIDAA)
                      CALL ASSIGN_AA_TO_CG(ATOMIDAA,J)
                   ELSE
                      CALL GET_BASE_COORDS(I,J)
@@ -113,7 +113,7 @@ MODULE PARSE_AA_PDB
          GRAINPOS(1:3) = 0.0D0
          TOTALMASS = 0.0D0
          DO I=1,NATSINGRAIN
-            CALL GET_ATOMID(GRAINATOMS(I),RESID,ATOMID)
+            CALL REQUIRE_ATOMID(GRAINATOMS(I),RESID,ATOMID)
             ATOMMASS = 0.0D0
             IF (INDEX(GRAINATOMS(I),"C").GT.0) THEN
                ATOMMASS = 12.011D0
@@ -157,5 +157,19 @@ MODULE PARSE_AA_PDB
          ENDDO
          RETURN
       END SUBROUTINE GET_ATOMID
+
+      !get atom id from name for given residue, stop if the atom does not exist
+      SUBROUTINE REQUIRE_ATOMID(ATNAME,RESID,ATOMID)
+         IMPLICIT NONE
+         INTEGER, INTENT(IN) :: RESID
+         CHARACTER(*), INTENT(IN) :: ATNAME
+         INTEGER, INTENT(OUT) :: ATOMID
+         CALL GET_ATOMID(ATNAME,RESID,ATOMID)
+         IF (ATOMID.EQ.0) THEN
+            WRITE(*,'(3A,I6,3A)') " ERROR - atom ", TRIM(ATNAME), " required for the CG model is missing in residue ", &
+                                  RESID, " (", TRIM(ADJUSTL(PDBRESNAMES(RESID))), ") - STOP"
+            STOP
+         END IF
+      END SUBROUTINE REQUIRE_ATOMID
 
 END MODULE PARSE_AA_PDB

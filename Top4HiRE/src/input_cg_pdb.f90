@@ -13,8 +13,13 @@ MODULE PARSE_CG_PDB
 
          CALL PARSE_PDB_FILE(INPUTNAME)
 
-         CALL GET_RES_DATA(PDBRESNAMES)
+         CALL GET_RES_DATA(PDBRESNAMES,PDBTERMINI)
          CALL ASSIGN_GRAIN_DATA()
+         IF (NATOMS.NE.PDBNATOMS) THEN
+            WRITE(*,'(A,I6,A,I6,A)') " ERROR - CG model has ", NATOMS, " grains, but the CG pdb file has ", &
+                                     PDBNATOMS, " - STOP"
+            STOP
+         END IF
          XYZCG = XYZPDB !CG data is already present in the CG PDB file
 
          IF (DEBUGT) THEN

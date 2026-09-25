@@ -5,22 +5,27 @@ MODULE CG_DATA
    CONTAINS
 
       !get CG residue names and termini location
-      SUBROUTINE GET_RES_DATA(SEQ)
+      !> @param[in] SEQ - residue names, a 5 (3) in the name marks a 5' (3') terminal residue
+      !> @param[in] CHAINS - optional, first and last residue of each chain (e.g. from TER records);
+      !>                     if not given, the chains are derived from the 5'/3' residue names
+      SUBROUTINE GET_RES_DATA(SEQ,CHAINS)
          CHARACTER(LEN=4), INTENT(IN) :: SEQ(NRES)
+         INTEGER, INTENT(IN), OPTIONAL :: CHAINS(:,:)
 
          CHARACTER(LEN=4) :: CURRNAME
          INTEGER :: NDUMMYTER
          INTEGER :: DUMMYTER(NRES,2)
          INTEGER :: J
          INTEGER :: ATOMCOUNTER
-         
+
          ALLOCATE(CGRESNAMES(NRES),RESTYPE(NRES),CGSTART(NRES),CGFINAL(NRES))
          NDUMMYTER = 0
+         DUMMYTER(1:NRES,1:2) = -1
          ATOMCOUNTER = 0
          RESTYPE(1:NRES) = 0 !default is RNA
          DO J=1,NRES
             CGSTART(J) = ATOMCOUNTER + 1
-            CURRNAME = SEQ(J)
+            CURRNAME = ADJUSTL(SEQ(J))
             !check whether residue name has a D in it (DNA)
             IF (INDEX(CURRNAME,"D").GT.0) THEN
                RESTYPE(J) = 1
@@ -102,18 +107,40 @@ MODULE CG_DATA
                WRITE(*,*) "Residue name ", CURRNAME, " not recognised - STOP"
                STOP
             END IF
-            !check for terminal position
+            !check for terminal position (only used if CHAINS is not given)
             IF (INDEX(CURRNAME,"5").GT.0) THEN
                NDUMMYTER = NDUMMYTER + 1
                DUMMYTER(NDUMMYTER,1) = J
-            ELSE IF (INDEX(CURRNAME,"3").GT.0) THEN
+            END IF
+            IF ((INDEX(CURRNAME,"3").GT.0).AND.(NDUMMYTER.GT.0)) THEN
                DUMMYTER(NDUMMYTER,2) = J
             END IF
             CGFINAL(J) = ATOMCOUNTER
          END DO
-         NTERMINI = NDUMMYTER
-         ALLOCATE(TERMINI(NTERMINI,2))
-         TERMINI(1:NTERMINI,1:2) = DUMMYTER(1:NTERMINI,1:2)
+         IF (PRESENT(CHAINS)) THEN
+            NTERMINI = SIZE(CHAINS,1)
+            ALLOCATE(TERMINI(NTERMINI,2))
+            TERMINI(1:NTERMINI,1:2) = CHAINS(1:NTERMINI,1:2)
+         ELSE
+            !without 5' names everything is one chain
+            IF (NDUMMYTER.EQ.0) THEN
+               NDUMMYTER = 1
+               DUMMYTER(1,1) = 1
+            END IF
+            !a chain without 3' terminal name ends before the next chain starts
+            DO J=1,NDUMMYTER
+               IF (DUMMYTER(J,2).EQ.-1) THEN
+                  IF (J.LT.NDUMMYTER) THEN
+                     DUMMYTER(J,2) = DUMMYTER(J+1,1) - 1
+                  ELSE
+                     DUMMYTER(J,2) = NRES
+                  END IF
+               END IF
+            END DO
+            NTERMINI = NDUMMYTER
+            ALLOCATE(TERMINI(NTERMINI,2))
+            TERMINI(1:NTERMINI,1:2) = DUMMYTER(1:NTERMINI,1:2)
+         END IF
          NATOMS = ATOMCOUNTER
          ALLOCATE(CGNAMES(NATOMS),CGTYPE(NATOMS),CGMASS(NATOMS),CGCHARGE(NATOMS),XYZCG(3*NATOMS))
       END SUBROUTINE GET_RES_DATA

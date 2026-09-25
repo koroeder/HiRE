@@ -40,6 +40,8 @@ MODULE PARSE_PDB
          CALL ALLOC_PDB_DATA()
          !now parse pdb information properly
          CALL GET_PDB_INFO(INPUTNAME)
+         !chain starts without phosphate are 5' terminal residues
+         CALL MARK_5PRIME_TERMINI()
 
          IF (DEBUGT) THEN
             WRITE(*,*) "NATOMS, NRES: ", PDBNATOMS, NRES
@@ -131,15 +133,19 @@ MODULE PARSE_PDB
          INTEGER :: CURRATOM, CURRRES, RESID, CURRRESID
          INTEGER :: DUMMYTERMINI(NRES,2)
          INTEGER :: DUMMYNTERMINI
+         LOGICAL :: NEWCHAINT
+         CHARACTER(LEN=1) :: CURRCHAINID
 
          NEXT=.TRUE.
          CURRATOM = 0
          CURRRES = 0
          CURRRESID = -1
          RESID = 0
-         DUMMYNTERMINI = 1
+         DUMMYNTERMINI = 0
          DUMMYTERMINI(1:NRES,1:2) = -1
-         DUMMYTERMINI(DUMMYNTERMINI,1) = 1
+         !the next residue starts a new chain (true for the first residue, and after TER records)
+         NEWCHAINT = .TRUE.
+         CURRCHAINID = " "
          CALL FILE_OPEN(INPUTNAME,PDBUNIT,.FALSE.) !open file read-only
          DO WHILE (NEXT)
             READ(PDBUNIT,'(A)',IOSTAT=IEND) LINE
@@ -164,15 +170,26 @@ MODULE PARSE_PDB
                      CURRRES = CURRRES + 1
                      IF (CURRRES.GT.1) THEN
                         PDBRESFINAL(CURRRES-1) = CURRATOM - 1
+                        !a change of chain identifier without TER record also starts a new chain
+                        IF ((.NOT.NEWCHAINT).AND.(LINE(22:22).NE.CURRCHAINID)) THEN
+                           DUMMYTERMINI(DUMMYNTERMINI,2) = CURRRES - 1
+                           NEWCHAINT = .TRUE.
+                        END IF
                      END IF
+                     IF (NEWCHAINT) THEN
+                        DUMMYNTERMINI = DUMMYNTERMINI + 1
+                        DUMMYTERMINI(DUMMYNTERMINI,1) = CURRRES
+                        NEWCHAINT = .FALSE.
+                     END IF
+                     CURRCHAINID = LINE(22:22)
                      AARESSTART(CURRRES) = CURRATOM
                      PDBRESNAMES(CURRRES) = LINE(18:20)
                   END IF
                ELSE IF (LINE(1:3).EQ."TER") THEN
-                  DUMMYTERMINI(DUMMYNTERMINI,2) = CURRRES
-                  IF (CURRRES.LT.NRES) THEN
-                     DUMMYNTERMINI = DUMMYNTERMINI + 1
-                     DUMMYTERMINI(DUMMYNTERMINI,1) = CURRRES + 1
+                  !close the current chain, the next residue (if any) starts a new one
+                  IF ((DUMMYNTERMINI.GT.0).AND.(.NOT.NEWCHAINT)) THEN
+                     DUMMYTERMINI(DUMMYNTERMINI,2) = CURRRES
+                     NEWCHAINT = .TRUE.
                   END IF
                END IF
             END IF
@@ -180,10 +197,45 @@ MODULE PARSE_PDB
          CLOSE(PDBUNIT)
          ! add the final res terminus
          PDBRESFINAL(CURRRES) = CURRATOM
+         ! close the last chain if the file does not end with a TER record
+         IF (DUMMYNTERMINI.GT.0) THEN
+            IF (DUMMYTERMINI(DUMMYNTERMINI,2).EQ.-1) DUMMYTERMINI(DUMMYNTERMINI,2) = CURRRES
+         END IF
          !allocate terminal arrays
          PDBNTER = DUMMYNTERMINI
          ALLOCATE(PDBTERMINI(PDBNTER,2))
          PDBTERMINI(1:PDBNTER,1:2) = DUMMYTERMINI(1:DUMMYNTERMINI,1:2)
       END SUBROUTINE GET_PDB_INFO
+
+      !> A nucleotide starting a chain without a phosphate is a 5' terminal residue. Mark it
+      !> with a 5 in its name (e.g. G -> G5), so that no P grain is created for it, as if the
+      !> 5' terminal name had been used in the input.
+      SUBROUTINE MARK_5PRIME_TERMINI()
+         INTEGER :: I, J, RESID
+         LOGICAL :: HASP
+         CHARACTER(LEN=4) :: RNAME
+
+         DO I=1,PDBNTER
+            RESID = PDBTERMINI(I,1)
+            RNAME = ADJUSTL(PDBRESNAMES(RESID))
+            !already named as 5' terminal residue
+            IF (INDEX(RNAME,"5").GT.0) CYCLE
+            !ions have no phosphate
+            IF ((RNAME.EQ."MG").OR.(RNAME.EQ."NA").OR.(RNAME.EQ."K").OR.(RNAME.EQ."CL")) CYCLE
+            HASP = .FALSE.
+            DO J=AARESSTART(RESID),PDBRESFINAL(RESID)
+               IF (ADJUSTL(PDBNAMES(J)).EQ."P") THEN
+                  HASP = .TRUE.
+                  EXIT
+               END IF
+            END DO
+            IF (.NOT.HASP) THEN
+               PDBRESNAMES(RESID) = TRIM(RNAME)//"5"
+               WRITE(*,'(A,I6,4A)') "  Residue ", RESID, " (", TRIM(RNAME), &
+                                    ") starts a chain without phosphate - treated as 5' terminal ", &
+                                    TRIM(PDBRESNAMES(RESID))
+            END IF
+         END DO
+      END SUBROUTINE MARK_5PRIME_TERMINI
 
 END MODULE PARSE_PDB
