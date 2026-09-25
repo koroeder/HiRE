@@ -10,7 +10,8 @@ RMSD 25 F
 # simulation settings
 MDMODE VV 
 TEMPERATURE 0.616 
-TIMESTEP 0.01
+# time step in ps (use TIMEUNIT INTERNAL for units of 48.888 fs)
+TIMESTEP 0.0005
 MDSTEPS 2000
 # initial minimisation
 MININIT 5000 100 1.0D-3

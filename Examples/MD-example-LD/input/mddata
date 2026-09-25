@@ -8,9 +8,10 @@ DUMPENERGY 25
 DUMPPDB 250
 # simulation settings
 MDMODE LD
-GAMMA 0.1
-TEMPERATURE 0.616 
-TIMESTEP 0.01
+# friction in ps^-1 and time step in ps (use TIMEUNIT INTERNAL for units of 48.888 fs)
+GAMMA 2.0
+TEMPERATURE 0.616
+TIMESTEP 0.0005
 MDSTEPS 2000
 # initial minimisation
 MININIT 5000 100 1.0D-3

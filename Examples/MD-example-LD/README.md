@@ -17,8 +17,9 @@ All the input files are provided in the 'input' directory - just run the executa
 
 Options:
 
- - to change the timestep alter the line TIMESTEP 0.01 to a different value
- - adjust the Langevin dynamics settings with changes to GAMMA 0.1
+ - to change the timestep alter the line TIMESTEP 0.0005 to a different value (the units are ps!)
+ - adjust the Langevin dynamics settings with changes to GAMMA 2.0 (the units are ps^-1!)
+ - to give TIMESTEP and GAMMA in the internal time unit instead (sqrt(amu*A^2/(kcal/mol)) = 48.888 fs), add the line TIMEUNIT INTERNAL
  - for more MD steps, change the MDSTEPS value
  - for a different temperature, change the line TEMPERATURE 0.616 (the units are kcal/mol!)
 
