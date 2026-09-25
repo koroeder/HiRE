@@ -164,18 +164,27 @@ MODULE MOD_INIT
          IMPLICIT NONE
          
          CHARACTER(LEN=*), INTENT(IN) :: SCALEDATNAME !Name of scale.dat file
-         INTEGER :: SCUNIT, I, IDUMMY
+         INTEGER :: SCUNIT, I, IDUMMY, IOS, NREAD
          REAL(KIND = REAL64) :: SCORE
          CHARACTER(LEN=100) :: DUMMY
-         
+
          SCUNIT=GETUNIT()
          OPEN(UNIT=SCUNIT, FILE=SCALEDATNAME, STATUS='OLD', ACTION='READ')
+         ! entries missing at the end of an older, shorter file stay 0 (= term switched off)
+         SCORE_RNA(1:SCORESIZE) = 0.0D0
+         NREAD = 0
          DO I=1,SCORESIZE
             !READ(SCUNIT, '(I4,F12.3,A)') IDUMMY, SCORE, DUMMY
-            READ(SCUNIT, *) IDUMMY, SCORE !, DUMMY
+            READ(SCUNIT, *, IOSTAT=IOS) IDUMMY, SCORE !, DUMMY
+            IF (IOS.NE.0) EXIT
             SCORE_RNA(I) = SCORE
+            NREAD = I
          ENDDO
-         CLOSE(SCUNIT)   
+         CLOSE(SCUNIT)
+         IF (NREAD.LT.SCORESIZE) THEN
+            WRITE(*,'(A,I3,A,I3,A)') " read_scale_dat> ", NREAD, " of ", SCORESIZE, &
+                                     " entries found, the remaining ones are set to 0"
+         ENDIF
       END SUBROUTINE READ_SCALE_DAT
 
       !> Subroutine calling all initialisation and assignment routines for the various energy modules

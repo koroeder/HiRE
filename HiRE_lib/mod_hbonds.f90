@@ -19,23 +19,75 @@ MODULE MOD_HBONDS
    !> Scaling variable for new planar function
    REAL(KIND = REAL64) :: ALPHA
    !> Interaction scaling
-   REAL(KIND = REAL64) :: INTSCALE  
-  
+   REAL(KIND = REAL64) :: INTSCALE
+
+   ! Many-body hydrogen-bond terms (applied in MOD_NONBONDED), all off when 0
+   !> minimum sequence separation j-i for hydrogen bonds within one chain
+   INTEGER :: MINSEP_HB = 0
+   !> pair-saturation strength (kcal/mol): KSAT * sum_i max(0, n_i - NSAT0)**2
+   REAL(KIND = REAL64) :: KSAT = 0.0D0
+   !> pairing occupancy of a base allowed before the saturation penalty starts
+   REAL(KIND = REAL64) :: NSAT0 = 1.0D0
+   !> helix cooperativity per stacked canonical pair step (kcal/mol): -EPSCOOP * sum sigma_ij sigma_(i+1)(j-1)
+   REAL(KIND = REAL64) :: EPSCOOP = 0.0D0
+   !> shape exponent m of the capped occupancy sigma(o) = o / (1 + o**m)**(1/m)
+   REAL(KIND = REAL64) :: SIGM = 4.0D0
+   !> run-time multiplier of EPSCOOP (Hamiltonian replica exchange along the cooperativity, HIRE_INTERFACE:SET_COOP_SCALING)
+   REAL(KIND = REAL64) :: COOPSCALE = 1.0D0
+   !> table entry of the canonical cWW pair for RNA base types (G 1, A 2, C 3, U 4), 0 for non-canonical type pairs
+   INTEGER, PARAMETER :: CWWIDX(4,4) = RESHAPE((/  0,  0, 10, 14, &
+                                                   0,  0,  0,  4, &
+                                                  10,  0,  0,  0, &
+                                                  14,  4,  0,  0 /), (/4,4/))
+   !> energy of an ideal pair of RNA base types: EPSHB * s(cWW), or EPSHB * max(s) for non-canonical type pairs
+   REAL(KIND = REAL64) :: EREF_HB(4,4)
+
    CONTAINS
 
       !> Routine to set module variables based on scale.dat data
       SUBROUTINE SET_HBVARS()
          USE NAPARAMS, ONLY: SCORE_RNA
-         EPSHB = SCORE_RNA(6)     
+         USE RNA_HB_PARAMS, ONLY: RS => S, RNPARAM => NPARAM
+         INTEGER :: TA, TB
+         EPSHB = SCORE_RNA(6)
          CTIT = SCORE_RNA(7)
          P = INT(SCORE_RNA(8))
          Y = SCORE_RNA(9)
          !GAUSSW = SCORE_RNA(73)
          ALPHA = SCORE_RNA(10)
          INTSCALE = SCORE_RNA(11)
-      END SUBROUTINE SET_HBVARS 
+         MINSEP_HB = NINT(SCORE_RNA(20))
+         KSAT = SCORE_RNA(21)
+         NSAT0 = SCORE_RNA(22)
+         IF (NSAT0.LE.0.0D0) NSAT0 = 1.0D0
+         EPSCOOP = SCORE_RNA(23)
+         SIGM = SCORE_RNA(24)
+         IF (SIGM.LE.0.0D0) SIGM = 4.0D0
+         ! reference energies need the RNA table, filled before this routine (INIT_FROM_MODS)
+         DO TA=1,4
+            DO TB=1,4
+               IF (CWWIDX(TA,TB).GT.0) THEN
+                  EREF_HB(TA,TB) = EPSHB*RS(CWWIDX(TA,TB),TA,TB,1,1)
+               ELSE
+                  EREF_HB(TA,TB) = EPSHB*MAXVAL(RS(1:RNPARAM(TA,TB),TA,TB,1,1))
+               ENDIF
+            ENDDO
+         ENDDO
+         IF ((MINSEP_HB.GT.0).OR.(KSAT.NE.0.0D0).OR.(EPSCOOP.NE.0.0D0)) THEN
+            WRITE(*,'(A,I3,4(A,F10.4))') " set_hbvars> many-body H-bond terms: MINSEP ", MINSEP_HB, &
+               "  KSAT ", KSAT, "  NSAT0 ", NSAT0, "  EPSCOOP ", EPSCOOP, "  SIGM ", SIGM
+         ENDIF
+      END SUBROUTINE SET_HBVARS
 
-      SUBROUTINE ENERGY_HB(BI, BJ, MTYPEI, MTYPEJ, NOPT, X, F, THIS_EHB, HBEXIST)
+      !> Hydrogen-bond energy of one base pair and its forces on the last three particles of both bases
+      !> @brief
+      !>
+      !> The forces are returned rather than added to F, so that E_NONBONDED can rescale them for the
+      !> many-body terms. ECWW, FICWW and FJCWW are the contribution of the canonical cWW table entry alone.
+      !>
+      !> @param[out] I, JP - last particle of base BI and BJ (the forces act on I-2:I and JP-2:JP)
+      SUBROUTINE ENERGY_HB(BI, BJ, MTYPEI, MTYPEJ, NOPT, X, THIS_EHB, HBEXIST, I, JP, FIHB, FJHB, &
+                           ECWW, FICWW, FJCWW)
          USE NAPARAMS, ONLY: BTYPE, BP_CURR
          !as the planarityDistEq is zero, we don't need it any longer
 !         USE RNA_HB_PARAMS, ONLY: PDEQ_RNA => planarityDistEq
@@ -47,29 +99,41 @@ MODULE MOD_HBONDS
          INTEGER, INTENT(IN) :: MTYPEI, MTYPEJ         ! type of base I and J (RNA or DNA)
          INTEGER, INTENT(IN) :: NOPT                   ! should be 3*NATOMS
          REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    ! input coordinates
-         REAL(KIND = REAL64), INTENT(INOUT) :: F(NOPT) ! force from bonds
          REAL(KIND = REAL64), INTENT(OUT) :: THIS_EHB  ! energy contribution
          LOGICAL, INTENT(OUT) :: HBEXIST               ! do we have a hydrogen bond formed?
+         INTEGER, INTENT(OUT) :: I, JP                 ! last particle of base I and J
+         REAL(KIND = REAL64), DIMENSION(3,3), INTENT(OUT) :: FIHB, FJHB     ! forces on base I and J
+         REAL(KIND = REAL64), INTENT(OUT) :: ECWW                           ! energy of the cWW entry
+         REAL(KIND = REAL64), DIMENSION(3,3), INTENT(OUT) :: FICWW, FJCWW   ! forces of the cWW entry
 
          REAL(KIND = REAL64), PARAMETER :: BPTHRESH = 2.3D0 !Energy cutoff for BP in BP_curr
-         
-         INTEGER :: I, J                      ! indices for atoms under consideration
+
+         INTEGER :: J                         ! central atom of base J
          INTEGER :: TI, TJ                    ! base types for I and J - A, C, G, U/T
 
          INTEGER, PARAMETER :: A = 1 , B = 2
-         INTEGER :: IDX, ID, JP
+         INTEGER :: IDX, CWWPAR
          REAL(KIND = REAL64) :: ENP1, ENP2, ETEMP, EHHB, REHHB, FTEMP_J(3), FTEMP_I(3)!, DISTEQ
-         REAL(KIND = REAL64), DIMENSION(3,3) :: FIHB, FJHB
          REAL(KIND = REAL64), DIMENSION(3,3) :: FHB_I, FHB_J, FNP1_I, FNP1_J, FNP2_I, FNP2_J
 
          ! set variables based on identify of bases
-         I = RESFINAL(BI)     ! last atom's index for first base (B1 for A and G, CY for C and U) 
+         I = RESFINAL(BI)     ! last atom's index for first base (B1 for A and G, CY for C and U)
          JP = RESFINAL(BJ)    ! last atom's index for base 2
-         J = JP - 1            ! central atom's index for base 2 
+         J = JP - 1            ! central atom's index for base 2
          TI = BTYPE(BI)
          TJ = BTYPE(BJ)
-         
+         ! the canonical entry is only tagged for RNA-RNA pairs
+         CWWPAR = 0
+         IF ((MTYPEI.EQ.0).AND.(MTYPEJ.EQ.0).AND.(TI.GE.1).AND.(TI.LE.4).AND.(TJ.GE.1).AND.(TJ.LE.4)) THEN
+            CWWPAR = CWWIDX(TI,TJ)
+         ENDIF
+
          !set forces and energies to zero
+         FIHB(:,:) = 0.0D0
+         FJHB(:,:) = 0.0D0
+         ECWW = 0.0D0
+         FICWW(:,:) = 0.0D0
+         FJCWW(:,:) = 0.0D0
          THIS_EHB = 0.0D0
          EHHB = 0.0D0
          FHB_I(:,:) = 0.0D0
@@ -107,7 +171,8 @@ MODULE MOD_HBONDS
          !FNP1_J(1:3, IDX + 1) = FNP1_J(1:3, IDX + 1) + FTEMP_J
          !FNP2_I(1:3, IDX + 1) = FNP2_I(1:3, IDX + 1) + FTEMP_I
 
-         CALL HBNEW(BI, BJ, MTYPEI, MTYPEJ, I, TI, J, TJ, NOPT, X, EHHB, HBEXIST, FHB_I, FHB_J, ENP1, ENP2)
+         CALL HBNEW(BI, BJ, MTYPEI, MTYPEJ, I, TI, J, TJ, NOPT, X, EHHB, HBEXIST, FHB_I, FHB_J, ENP1, ENP2, &
+                    CWWPAR, ECWW, FICWW, FJCWW)
 
          IF (.NOT. HBEXIST) RETURN !at this stage THIS_EHB is still 0.0D0
 
@@ -132,13 +197,7 @@ MODULE MOD_HBONDS
          !   END IF
          !END IF
 
-         ! OLD planarity !NEW Additive
-         DO IDX = 1,3
-            ID = I - IDX + 1
-            F((3*ID-2):(3*ID)) = F((3*ID-2):(3*ID)) + FIHB(:,IDX)
-            ID = JP - IDX + 1
-            F((3*ID-2):(3*ID)) = F((3*ID-2):(3*ID)) + FJHB(:,IDX)
-         ENDDO
+         ! the forces FIHB/FJHB are added to F by E_NONBONDED (MOD_NONBONDED:ADD_BASE_FORCES)
 
       END SUBROUTINE ENERGY_HB
 
@@ -239,8 +298,11 @@ MODULE MOD_HBONDS
       !> @param[out] FB - forces array for base b     
       !> @param[in] ENP1 - energy from plane environment to be added for base 1 (or A or I)
       !> @param[in] ENP2 - energy from plane environment to be added for base 2 (or B or J)
+      !> @param[in] CWWPAR - table entry of the canonical cWW pair, 0 if none
+      !> @param[out] ECWW - energy of the cWW entry alone
+      !> @param[out] FACWW, FBCWW - forces of the cWW entry alone
       SUBROUTINE HBNEW(BI, BJ, MTYPEI, MTYPEJ, IDXA, TYA, IDXB, TYB, NOPT, X, EHHB, HBEXIST, &
-         FA, FB, ENP1, ENP2)
+         FA, FB, ENP1, ENP2, CWWPAR, ECWW, FACWW, FBCWW)
          USE NAPARAMS, ONLY: BPROT, BOCC, RCUT2_HBOND
          USE RNA_HB_PARAMS, ONLY: RCALPAM => CALPAM, RCALPBM => CALPBM, RSALPAM => SALPAM, &
                                   RSALPBM => SALPBM, RDREF => DREF, RS => S, RNPARAM => NPARAM
@@ -259,9 +321,12 @@ MODULE MOD_HBONDS
          INTEGER, INTENT(IN) :: NOPT                   ! should be 3*NATOMS
          REAL(KIND = REAL64), INTENT(IN) :: X(NOPT)    ! input coordinates
          REAL(KIND = REAL64), INTENT(IN) :: ENP1, ENP2
-         REAL(KIND = REAL64), INTENT(OUT) :: EHHB, FA(3,3), FB(3,3) 
+         REAL(KIND = REAL64), INTENT(OUT) :: EHHB, FA(3,3), FB(3,3)
          LOGICAL, INTENT(OUT) :: HBEXIST
-         
+         INTEGER, INTENT(IN) :: CWWPAR
+         REAL(KIND = REAL64), INTENT(OUT) :: ECWW, FACWW(3,3), FBCWW(3,3)
+         REAL(KIND = REAL64) :: FASAVE(3,3), FBSAVE(3,3)
+
          REAL(KIND = REAL64), PARAMETER :: REGCUT = 1.0D-3  !Regularisation cutoff  D-7
          
          INTEGER :: QI, QJ        ! charges for I and J, using protonations state
@@ -298,6 +363,9 @@ MODULE MOD_HBONDS
          HBEXIST = .FALSE.
          FA(1:3,1:3) = 0.0D0
          FB(1:3,1:3) = 0.0D0
+         ECWW = 0.0D0
+         FACWW(1:3,1:3) = 0.0D0
+         FBCWW(1:3,1:3) = 0.0D0
 
          !particle positions from coordinates
          A1(1:3) = X((3*IDXA-8):(3*IDXA-6))
@@ -407,7 +475,13 @@ MODULE MOD_HBONDS
             !first check for size of Ehb
             IF (EHB .GE. REGCUT) CYCLE
 
-            EHHB = EHHB + EHB   
+            EHHB = EHHB + EHB
+            ! the cWW entry's own forces are the change of FA/FB over this iteration
+            IF (PAR.EQ.CWWPAR) THEN
+               ECWW = EHB
+               FASAVE = FA
+               FBSAVE = FB
+            ENDIF
             !Calculate forces
             
             fa(:,3) = fa(:,3) + fplana2 *2*ALPHA *EHB
@@ -459,6 +533,10 @@ MODULE MOD_HBONDS
             fb(:,1) = fb(:,1) + fangb1
             fb(:,2) = fb(:,2) + fangb2
             fb(:,3) = fb(:,3) + fangb3
+            IF (PAR.EQ.CWWPAR) THEN
+               FACWW = FA - FASAVE
+               FBCWW = FB - FBSAVE
+            ENDIF
 
             
             

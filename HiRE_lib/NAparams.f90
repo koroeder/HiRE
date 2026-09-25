@@ -7,7 +7,13 @@ MODULE NAparams
    IMPLICIT NONE
 
    !> number of parameters given in scale.dat
-   INTEGER, PARAMETER :: SCORESIZE=19
+   !> entries 20-24 are the many-body hydrogen-bond terms (see MOD_HBONDS:SET_HBVARS); a shorter
+   !> file leaves them at 0, which switches those terms off
+   ! 25 STKSC_PP (pyr-pur), 26 STKSC_RR (pur-pur), 27 STKSC_YY (pyr-pyr): multiplicative
+   ! scale factors on the per-class stacking well depth SK in MOD_BASESTACKING:STACKPARAMS2.
+   ! A value of exactly 0 (including a missing/short file) is interpreted as 1 (no change),
+   ! since these entries did not exist before and the stacking term must stay on by default.
+   INTEGER, PARAMETER :: SCORESIZE=27
    !> HiRE potential parameters given in scale.dat
    REAL(KIND = REAL64) :: SCORE_RNA(SCORESIZE)
 

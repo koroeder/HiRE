@@ -32,9 +32,19 @@ MODULE CALCFORCES
       !> Distance contraints
       REAL(KIND = REAL64) :: EDISTR 
       !> Positional contraints
-      REAL(KIND = REAL64) :: EPOSR          
-      !> Total energy 
-      REAL(KIND = REAL64) :: ETOT          
+      REAL(KIND = REAL64) :: EPOSR
+      !> hydrogen-bond pair saturation
+      REAL(KIND = REAL64) :: ESAT
+      !> hydrogen-bond helix cooperativity
+      REAL(KIND = REAL64) :: ECOOP
+      !> stacking energy of pyrimidine-purine steps (diagnostic subset of ESTAK)
+      REAL(KIND = REAL64) :: ESTAKPP
+      !> stacking energy of purine-purine steps (diagnostic subset of ESTAK)
+      REAL(KIND = REAL64) :: ESTAKRR
+      !> stacking energy of pyrimidine-pyrimidine steps (diagnostic subset of ESTAK)
+      REAL(KIND = REAL64) :: ESTAKYY
+      !> Total energy
+      REAL(KIND = REAL64) :: ETOT
    END TYPE POT_ENE
 
    !> vector containing the energy contributions
@@ -62,7 +72,8 @@ MODULE CALCFORCES
          USE MOD_ANGLES, ONLY: ENERGY_ALL_ANGLES
          USE MOD_DIHEDRALS, ONLY: ENERGY_DIHS
          USE MOD_DEBYEHUECKEL, ONLY: DH_ENERGY
-         USE MOD_NONBONDED, ONLY: E_NONBONDED
+         USE MOD_NONBONDED, ONLY: E_NONBONDED, ESAT_LAST, ECOOP_LAST, &
+                                  ESTAK_PYRPUR_LAST, ESTAK_PURPUR_LAST, ESTAK_PYRPYR_LAST
          USE MOD_SUGARBASE, ONLY: E_SUGARBASE
          USE MOD_SAXS, ONLY: RNA_SAXS_FORCE
          USE MOD_RESTRAINTS, ONLY: E_DISTRESTR, E_POSRESTR, NRESTS, NPOSRES
@@ -105,8 +116,15 @@ MODULE CALCFORCES
          ! not ideal but I guess the average is the best with the current setup, probably should make the scaling identical for all three
          F(1:NOPT) = F(1:NOPT) + THIS_F(1:NOPT)*(SCALING(5)+SCALING(6)+SCALING(7))/3.0
          EVEC%EHBOND = EHHB*SCALING(5)
-         EVEC%ESTAK = ESTAK*SCALING(6) 
+         EVEC%ESTAK = ESTAK*SCALING(6)
          EVEC%EVDW = EVDW*SCALING(7)
+         EVEC%ESTAKPP = ESTAK_PYRPUR_LAST*SCALING(6)
+         EVEC%ESTAKRR = ESTAK_PURPUR_LAST*SCALING(6)
+         EVEC%ESTAKYY = ESTAK_PYRPYR_LAST*SCALING(6)
+         ! many-body hydrogen-bond terms (forces already in THIS_F), scaled like the hydrogen bonds
+         ETOT = ETOT + (ESAT_LAST + ECOOP_LAST)*SCALING(5)
+         EVEC%ESAT = ESAT_LAST*SCALING(5)
+         EVEC%ECOOP = ECOOP_LAST*SCALING(5)
          !6. Sugar-base interaction
          CALL E_SUGARBASE(NOPT, X, THIS_F, THIS_E)
          ETOT = ETOT + THIS_E*SCALING(8)
@@ -185,7 +203,12 @@ MODULE CALCFORCES
          ENEPOT%ESAXS = 0.0D0   
          ENEPOT%EDISTR = 0.0D0
          ENEPOT%EPOSR = 0.0D0
-         ENEPOT%ETOT = 0.0D0 
+         ENEPOT%ESAT = 0.0D0
+         ENEPOT%ECOOP = 0.0D0
+         ENEPOT%ESTAKPP = 0.0D0
+         ENEPOT%ESTAKRR = 0.0D0
+         ENEPOT%ESTAKYY = 0.0D0
+         ENEPOT%ETOT = 0.0D0
       END SUBROUTINE RESET_POT_ENE
 
       !> Printing debug information
@@ -210,6 +233,11 @@ MODULE CALCFORCES
          WRITE(EUNIT, '(A,F15.5)') " Esaxs:  ", ENEPOT%ESAXS
          WRITE(EUNIT, '(A,F15.5)') " Edistr: ", ENEPOT%EDISTR
          WRITE(EUNIT, '(A,F15.5)') " Eposr:  ", ENEPOT%EPOSR
+         WRITE(EUNIT, '(A,F15.5)') " Esat:   ", ENEPOT%ESAT
+         WRITE(EUNIT, '(A,F15.5)') " Ecoop:  ", ENEPOT%ECOOP
+         WRITE(EUNIT, '(A,F15.5)') " Estakpp:", ENEPOT%ESTAKPP
+         WRITE(EUNIT, '(A,F15.5)') " Estakrr:", ENEPOT%ESTAKRR
+         WRITE(EUNIT, '(A,F15.5)') " Estakyy:", ENEPOT%ESTAKYY
          WRITE(EUNIT, '(A,F15.5)') " Etot:   ", ENEPOT%ETOT
       END SUBROUTINE PRINT_POT_ENE
 
@@ -222,8 +250,9 @@ MODULE CALCFORCES
       SUBROUTINE WRITE_POT_ENE_HEADER(EUNIT)
          INTEGER, INTENT(IN) :: EUNIT
 
-         WRITE(EUNIT, '(A10,12(1X,A15))') "#Step", "Ebond", "Eangle", "Etors", "Edh", &
-                        "Ehbond", "Evdw", "Estak", "Esb", "Esaxs", "Edistr", "Eposr", "Etot"
+         WRITE(EUNIT, '(A10,17(1X,A15))') "#Step", "Ebond", "Eangle", "Etors", "Edh", &
+                        "Ehbond", "Evdw", "Estak", "Esb", "Esaxs", "Edistr", "Eposr", "Esat", "Ecoop", &
+                        "Estakpp", "Estakrr", "Estakyy", "Etot"
       END SUBROUTINE WRITE_POT_ENE_HEADER
 
       !> Print energy decomposition as a single row, for time-series diagnostics
@@ -241,9 +270,10 @@ MODULE CALCFORCES
          INTEGER, INTENT(IN) :: EUNIT
          INTEGER, INTENT(IN) :: CURRSTEP
 
-         WRITE(EUNIT, '(I10,12(1X,F15.7))') CURRSTEP, ENEPOT%EBOND, ENEPOT%EANGLES, &
+         WRITE(EUNIT, '(I10,17(1X,F15.7))') CURRSTEP, ENEPOT%EBOND, ENEPOT%EANGLES, &
                         ENEPOT%ETORS, ENEPOT%EDH, ENEPOT%EHBOND, ENEPOT%EVDW, ENEPOT%ESTAK, &
-                        ENEPOT%ESB, ENEPOT%ESAXS, ENEPOT%EDISTR, ENEPOT%EPOSR, ENEPOT%ETOT
+                        ENEPOT%ESB, ENEPOT%ESAXS, ENEPOT%EDISTR, ENEPOT%EPOSR, ENEPOT%ESAT, ENEPOT%ECOOP, &
+                        ENEPOT%ESTAKPP, ENEPOT%ESTAKRR, ENEPOT%ESTAKYY, ENEPOT%ETOT
       END SUBROUTINE PRINT_POT_ENE_LINE
 
 END MODULE CALCFORCES

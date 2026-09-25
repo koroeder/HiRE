@@ -393,7 +393,20 @@ MODULE HIRE_INTERFACE
             
 #ifdef __HIRE
          SCALING(1:8) = SCALEVAL
-#endif         
-      END SUBROUTINE SET_UNIV_SCALING    
+#endif
+      END SUBROUTINE SET_UNIV_SCALING
+
+      !> Scale the helix-cooperativity strength EPSCOOP of the many-body hydrogen-bond terms
+      !> (used for Hamiltonian replica exchange along the cooperativity)
+      SUBROUTINE SET_COOP_SCALING(SCALEVAL)
+#ifdef __HIRE
+         USE MOD_HBONDS, ONLY: COOPSCALE
+#endif
+         REAL(KIND = R64), INTENT(IN) :: SCALEVAL
+
+#ifdef __HIRE
+         COOPSCALE = SCALEVAL
+#endif
+      END SUBROUTINE SET_COOP_SCALING
 
 END MODULE HIRE_INTERFACE

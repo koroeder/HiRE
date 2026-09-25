@@ -8,12 +8,20 @@ MODULE MOD_BASESTACKING
    USE NBDEFS
    IMPLICIT NONE
    REAL(KIND = REAL64) :: SCALE_STACKING
+   !> per-class multipliers on the stacking well depth SK (scale file entries 25-27);
+   !> a value of exactly 0 (missing/short file) defaults to 1 (no change)
+   REAL(KIND = REAL64) :: SKSCALE_PYRPUR = 1.0D0
+   REAL(KIND = REAL64) :: SKSCALE_PURPUR = 1.0D0
+   REAL(KIND = REAL64) :: SKSCALE_PYRPYR = 1.0D0
    CONTAINS
 
       SUBROUTINE INIT_STACKING()
          USE NAPARAMS, ONLY: SCORE_RNA
          IMPLICIT NONE
          SCALE_STACKING = SCORE_RNA(12)
+         SKSCALE_PYRPUR = MERGE(1.0D0, SCORE_RNA(25), SCORE_RNA(25).EQ.0.0D0)
+         SKSCALE_PURPUR = MERGE(1.0D0, SCORE_RNA(26), SCORE_RNA(26).EQ.0.0D0)
+         SKSCALE_PYRPYR = MERGE(1.0D0, SCORE_RNA(27), SCORE_RNA(27).EQ.0.0D0)
       END SUBROUTINE INIT_STACKING
 
       !> New stacking parameters
@@ -38,24 +46,24 @@ MODULE MOD_BASESTACKING
             !pyr-pur
             EQ = 5.2080
             WID = 0.8571
-            SK = 2.2050
+            SK = 2.2050 * SKSCALE_PYRPUR
             Th = 0.7116
             GM = 14.2440
          ELSE IF (TI.LT.3.AND.TJ.LT.3) THEN
             !pur-pur
             EQ = 4.8671
             WID = 0.9501
-            SK = 2.5967
+            SK = 2.5967 * SKSCALE_PURPUR
             Th = 0.7324
             GM = 20.8857
          ELSE
             !pyr-pyr
             EQ = 5.2758
             WID = 0.5496
-            SK = 1.6733
+            SK = 1.6733 * SKSCALE_PYRPYR
             Th = 0.5149
             GM = 14.7501
-         ENDIF       
+         ENDIF
       END SUBROUTINE STACKPARAMS2
     
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEW STAKING POTENTIAL - Vertical offset !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
