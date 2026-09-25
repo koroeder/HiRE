@@ -21,7 +21,7 @@ MODULE CREATE_TOP
          CALL GET_ANGLE_INFO()
          CALL GET_QANGLE_INFO()
          CALL GET_DIHEDRAL_INFO()
-         
+
          TOPUNIT = GETUNIT()
          OPEN(UNIT=TOPUNIT, FILE=TOPNAME, STATUS='NEW')
 
@@ -51,7 +51,7 @@ MODULE CREATE_TOP
          WRITE(TOPUNIT,*) "SECTION RESIDUE_NAMES"
          WRITE(TOPUNIT,'(20A4)') CGRESNAMES
          !residue start and finish indices
-         WRITE(TOPUNIT,*) "SECTION RESIDUE_POINTER"   
+         WRITE(TOPUNIT,*) "SECTION RESIDUE_POINTER"
          WRITE(TOPUNIT,'(12I6)') (CGSTART(I),CGFINAL(I), I=1,NRES)
          !termini
          WRITE(TOPUNIT,*) "SECTION CHAIN_POINTER"
@@ -76,7 +76,7 @@ MODULE CREATE_TOP
          WRITE(TOPUNIT,'(5F16.8)') BKSPR
          !bond equilibrium distance
          WRITE(TOPUNIT,*) "SECTION BOND_EQUIL_VALUE"
-         WRITE(TOPUNIT,'(5F16.8)') BREQ       
+         WRITE(TOPUNIT,'(5F16.8)') BREQ
          !angle force constants
          WRITE(TOPUNIT,*) "SECTION ANGLE_FORCE_CONSTANT"
          WRITE(TOPUNIT,'(5F16.8)') AKSPR
@@ -112,13 +112,13 @@ MODULE CREATE_TOP
          WRITE(TOPUNIT,'(12I6)') (BONDS(I,1), BONDS(I,2), BTYPE(I), I=1,NBONDS)
          !angle information
          WRITE(TOPUNIT,*) "SECTION ANGLES"
-         WRITE(TOPUNIT,'(12I6)') (ANGLES(I,1), ANGLES(I,2), ANGLES(I,3), ATYPE(I), I=1,NANGLE)     
+         WRITE(TOPUNIT,'(12I6)') (ANGLES(I,1), ANGLES(I,2), ANGLES(I,3), ATYPE(I), I=1,NANGLE)
          !qangle information
          WRITE(TOPUNIT,*) "SECTION QANGLES"
-         WRITE(TOPUNIT,'(12I6)') (QANGLES(I,1), QANGLES(I,2), QANGLES(I,3), QTYPE(I), I=1,NQANGLE)    
+         WRITE(TOPUNIT,'(12I6)') (QANGLES(I,1), QANGLES(I,2), QANGLES(I,3), QTYPE(I), I=1,NQANGLE)
          !dihedral information
          WRITE(TOPUNIT,*) "SECTION DIHEDRALS"
-         WRITE(TOPUNIT,'(12I6)') (DIHS(I,1), DIHS(I,2), DIHS(I,3), DIHS(I,4), DTYPE(I), I=1,NDIH)         
+         WRITE(TOPUNIT,'(12I6)') (DIHS(I,1), DIHS(I,2), DIHS(I,3), DIHS(I,4), DTYPE(I), I=1,NDIH)
       END SUBROUTINE WRITE_BONDEDINTS_DETAILS
 
       SUBROUTINE GET_BOND_INFO()
@@ -147,7 +147,7 @@ MODULE CREATE_TOP
             !now go over intraresidue bonds
             DO K=1,NBINTRA
                !check whether the type of this bond matches the res type
-               IF (.NOT.(BINTRATYPE(K).EQ.RESTYPE(I))) CONTINUE
+               IF (.NOT.(BINTRATYPE(K).EQ.RESTYPE(I))) CYCLE
                !get grain names
                AT1=BINTRA(K)%AT1
                AT2=BINTRA(K)%AT2
@@ -168,20 +168,20 @@ MODULE CREATE_TOP
                      NBTYPE = NBTYPE + 1
                      TYPEMAP(K) = NBTYPE
                   END IF
-                  DUMMYTYPE(NBONDS) = TYPEMAP(K) 
+                  DUMMYTYPE(NBONDS) = TYPEMAP(K)
                END IF
             END DO
-            !now do interresidue bonds 
+            !now do interresidue bonds
             IF (.NOT.TERMINALT) THEN
                DO K=1,NBINTER
                   !check whether the type of this bond matches the res type
-                  IF (.NOT.(BINTERTYPE(K).EQ.RESTYPE(I))) CONTINUE
+                  IF (.NOT.(BINTERTYPE(K).EQ.RESTYPE(I))) CYCLE
                   !get grain names
                   AT1=BINTER(K)%AT1
                   AT2=BINTER(K)%AT2
                   !get their indices - if there is a star in the grain name, it is in the next residue
                   IF (INDEX(AT1,"*").GT.0) THEN
-                     CALL GET_CG_ID(I+1,AT1,IDX1)                  
+                     CALL GET_CG_ID(I+1,AT1,IDX1)
                   ELSE
                      CALL GET_CG_ID(I,AT1,IDX1)
                   END IF
@@ -189,7 +189,7 @@ MODULE CREATE_TOP
                      CALL GET_CG_ID(I+1,AT2,IDX2)
                   ELSE
                      CALL GET_CG_ID(I,AT2,IDX2)
-                  END IF                  
+                  END IF
                   !if either is -1, the bond does not exist
                   IF ((IDX1.EQ.-1).OR.(IDX2.EQ.-1)) THEN
                      CONTINUE
@@ -204,7 +204,7 @@ MODULE CREATE_TOP
                         NBTYPE = NBTYPE + 1
                         TYPEMAP(NBINTRA+K) = NBTYPE
                      END IF
-                     DUMMYTYPE(NBONDS) = TYPEMAP(NBINTRA+K) 
+                     DUMMYTYPE(NBONDS) = TYPEMAP(NBINTRA+K)
                   END IF
                END DO
             END IF
@@ -225,8 +225,8 @@ MODULE CREATE_TOP
                IF (TYPEMAP(NBINTRA+K).EQ.I) THEN
                   BKSPR(I) = BINTER(K)%KSPR
                   BREQ(I) = BINTER(K)%REQ
-                  EXIT  
-               END IF             
+                  EXIT
+               END IF
             END DO
          END DO
       END SUBROUTINE GET_BOND_INFO
@@ -258,7 +258,7 @@ MODULE CREATE_TOP
             !now go over intraresidue angles
             DO K=1,NAINTRA
                !check whether the type of this bond matches the res type
-               IF (.NOT.(AINTRATYPE(K).EQ.RESTYPE(I))) CONTINUE
+               IF (.NOT.(AINTRATYPE(K).EQ.RESTYPE(I))) CYCLE
                !get grain names
                AT1=AINTRA(K)%AT1
                AT2=AINTRA(K)%AT2
@@ -282,21 +282,21 @@ MODULE CREATE_TOP
                      NATYPE = NATYPE + 1
                      TYPEMAP(K) = NATYPE
                   END IF
-                  DUMMYTYPE(NANGLE) = TYPEMAP(K) 
+                  DUMMYTYPE(NANGLE) = TYPEMAP(K)
                END IF
             END DO
-            !now do interresidue bonds 
+            !now do interresidue bonds
             IF (.NOT.TERMINALT) THEN
                DO K=1,NAINTER
                   !check whether the type of this bond matches the res type
-                  IF (.NOT.(AINTERTYPE(K).EQ.RESTYPE(I))) CONTINUE
+                  IF (.NOT.(AINTERTYPE(K).EQ.RESTYPE(I))) CYCLE
                   !get grain names
                   AT1=AINTER(K)%AT1
                   AT2=AINTER(K)%AT2
                   AT3=AINTER(K)%AT3
                   !get their indices - if there is a star in the grain name, it is in the next residue
                   IF (INDEX(AT1,"*").GT.0) THEN
-                     CALL GET_CG_ID(I+1,AT1,IDX1)                  
+                     CALL GET_CG_ID(I+1,AT1,IDX1)
                   ELSE
                      CALL GET_CG_ID(I,AT1,IDX1)
                   END IF
@@ -325,7 +325,7 @@ MODULE CREATE_TOP
                         NATYPE = NATYPE + 1
                         TYPEMAP(NAINTRA+K) = NATYPE
                      END IF
-                     DUMMYTYPE(NANGLE) = TYPEMAP(NAINTRA+K) 
+                     DUMMYTYPE(NANGLE) = TYPEMAP(NAINTRA+K)
                   END IF
                END DO
             END IF
@@ -346,8 +346,8 @@ MODULE CREATE_TOP
                IF (TYPEMAP(NAINTRA+K).EQ.I) THEN
                   AKSPR(I) = AINTER(K)%KSPR
                   ATEQ(I) = AINTER(K)%TEQ
-                  EXIT  
-               END IF             
+                  EXIT
+               END IF
             END DO
          END DO
       END SUBROUTINE GET_ANGLE_INFO
@@ -379,7 +379,7 @@ MODULE CREATE_TOP
             !now go over intraresidue angles
             DO K=1,NQINTRA
                !check whether the type of this bond matches the res type
-               IF (.NOT.(QINTRATYPE(K).EQ.RESTYPE(I))) CONTINUE
+               IF (.NOT.(QINTRATYPE(K).EQ.RESTYPE(I))) CYCLE
                !get grain names
                AT1=QINTRA(K)%AT1
                AT2=QINTRA(K)%AT2
@@ -403,21 +403,21 @@ MODULE CREATE_TOP
                      NQTYPE = NQTYPE + 1
                      TYPEMAP(K) = NQTYPE
                   END IF
-                  DUMMYTYPE(NQANGLE) = TYPEMAP(K) 
+                  DUMMYTYPE(NQANGLE) = TYPEMAP(K)
                END IF
             END DO
-            !now do interresidue bonds 
+            !now do interresidue bonds
             IF (.NOT.TERMINALT) THEN
                DO K=1,NQINTER
                   !check whether the type of this bond matches the res type
-                  IF (.NOT.(QINTERTYPE(K).EQ.RESTYPE(I))) CONTINUE
+                  IF (.NOT.(QINTERTYPE(K).EQ.RESTYPE(I))) CYCLE
                   !get grain names
                   AT1=QINTER(K)%AT1
                   AT2=QINTER(K)%AT2
                   AT3=QINTER(K)%AT3
                   !get their indices - if there is a star in the grain name, it is in the next residue
                   IF (INDEX(AT1,"*").GT.0) THEN
-                     CALL GET_CG_ID(I+1,AT1,IDX1)                  
+                     CALL GET_CG_ID(I+1,AT1,IDX1)
                   ELSE
                      CALL GET_CG_ID(I,AT1,IDX1)
                   END IF
@@ -446,7 +446,7 @@ MODULE CREATE_TOP
                         NQTYPE = NQTYPE + 1
                         TYPEMAP(NQINTRA+K) = NQTYPE
                      END IF
-                     DUMMYTYPE(NQANGLE) = TYPEMAP(NQINTRA+K) 
+                     DUMMYTYPE(NQANGLE) = TYPEMAP(NQINTRA+K)
                   END IF
                END DO
             END IF
@@ -474,8 +474,8 @@ MODULE CREATE_TOP
                   QA2(I) = QINTER(K)%A2
                   QA3(I) = QINTER(K)%A3
                   QA5(I) = QINTER(K)%A5
-                  EXIT  
-               END IF             
+                  EXIT
+               END IF
             END DO
          END DO
       END SUBROUTINE GET_QANGLE_INFO
@@ -508,7 +508,7 @@ MODULE CREATE_TOP
             !now go over intraresidue angles
             DO K=1,NDINTRA
                !check whether the type of this bond matches the res type
-               IF (.NOT.(DINTRATYPE(K).EQ.RESTYPE(I))) CONTINUE
+               IF (.NOT.(DINTRATYPE(K).EQ.RESTYPE(I))) CYCLE
                !get grain names
                AT1=DINTRA(K,1)%AT1
                AT2=DINTRA(K,1)%AT2
@@ -535,14 +535,14 @@ MODULE CREATE_TOP
                      NDTYPE = NDTYPE + 1
                      TYPEMAP(K) = NDTYPE
                   END IF
-                  DUMMYTYPE(NDIH) = TYPEMAP(K) 
+                  DUMMYTYPE(NDIH) = TYPEMAP(K)
                END IF
             END DO
-            !now do interresidue bonds 
+            !now do interresidue bonds
             IF (.NOT.TERMINALT) THEN
                DO K=1,NDINTER
                   !check whether the type of this bond matches the res type
-                  IF (.NOT.(DINTERTYPE(K).EQ.RESTYPE(I))) CONTINUE
+                  IF (.NOT.(DINTERTYPE(K).EQ.RESTYPE(I))) CYCLE
                   !get grain names
                   AT1=DINTER(K,1)%AT1
                   AT2=DINTER(K,1)%AT2
@@ -550,7 +550,7 @@ MODULE CREATE_TOP
                   AT4=DINTER(K,1)%AT4
                   !get their indices - if there is a star in the grain name, it is in the next residue
                   IF (INDEX(AT1,"*").GT.0) THEN
-                     CALL GET_CG_ID(I+1,AT1,IDX1)                  
+                     CALL GET_CG_ID(I+1,AT1,IDX1)
                   ELSE
                      CALL GET_CG_ID(I,AT1,IDX1)
                   END IF
@@ -585,7 +585,7 @@ MODULE CREATE_TOP
                         NDTYPE = NDTYPE + 1
                         TYPEMAP(NDINTRA+K) = NDTYPE
                      END IF
-                     DUMMYTYPE(NDIH) = TYPEMAP(NDINTRA+K) 
+                     DUMMYTYPE(NDIH) = TYPEMAP(NDINTRA+K)
                   END IF
                END DO
             END IF
@@ -614,8 +614,8 @@ MODULE CREATE_TOP
                      DPERIOD(I,J) = DINTER(K,J)%PERIOD
                      DOFFSET(I,J) = DINTER(K,J)%YOFF
                   END DO
-                  EXIT  
-               END IF             
+                  EXIT
+               END IF
             END DO
          END DO
       END SUBROUTINE GET_DIHEDRAL_INFO

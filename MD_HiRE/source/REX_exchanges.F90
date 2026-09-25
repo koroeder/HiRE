@@ -180,11 +180,9 @@ MODULE EXCHANGES
             CALL APPLY_LAMBDA(L2)
             CALL HIRE_ENERGY_GRAD(3*NATOMS, X1, U21, G, .FALSE.)
             CALL HIRE_ENERGY_GRAD(3*NATOMS, X2, U22, G, .FALSE.)
-            ! the exchange probability is given by (Uij = energy of coordinates j with lambda i):
-            !H-REX: P(1<->2) = min(1, exp[(U11 - U21)/kT1 + (U22 - U12)/kT2])
-            ! (the previous form (1/kT1 - 1/kT2)*(...) is zero for equal temperatures and accepted every swap,
-            !  MDREX_bug.md finding #1)
-            DUMMY = (U11 - U21)/T1 + (U22 - U12)/T2
+            ! the exchnge probability is given by:
+            !H-REX: P(1<->2) = min(1, exp[(1/kT1)(U1(x1)-U1(x2)) + (1/kT2)(U2(x2)-U2(x1))])
+            DUMMY = (1.0/T1)*(U11 - U12) + (1.0/T2)*(U22 - U21)
             PROB = MIN(1.0,EXP(DUMMY))
             RAND = DPRAND()
             WRITE(*,*) " rex> Exchanging ", TASKID, " with ", OTHERREP, &
