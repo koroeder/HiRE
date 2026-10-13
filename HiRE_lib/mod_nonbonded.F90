@@ -10,6 +10,8 @@ MODULE MOD_NONBONDED
    REAL(KIND = REAL64) :: ESAT_LAST = 0.0D0
    !> Helix-cooperativity energy of the last E_NONBONDED call
    REAL(KIND = REAL64) :: ECOOP_LAST = 0.0D0
+   !> Helix-cooperativity energy per step class (0, 1, 2 G-C pairs per step) of the last call (sums to ECOOP_LAST)
+   REAL(KIND = REAL64) :: ECOOP_CLS_LAST(0:2) = 0.0D0
    !> Per-class stacking energy of the last E_NONBONDED call (diagnostic; sums to ESTAK),
    !> used to zero-cost reweight per-class stacking scale factors from logged trajectories
    REAL(KIND = REAL64) :: ESTAK_PYRPUR_LAST = 0.0D0
@@ -59,7 +61,7 @@ MODULE MOD_NONBONDED
       !> @see ENERGY_EXCLV
       SUBROUTINE E_NONBONDED(NOPT, X, F, EHHB, ESTAK, EVDW)
          USE UTILS_IO, ONLY: GETUNIT
-         USE MOD_HBONDS, ONLY: ENERGY_HB, MINSEP_HB, KSAT, EPSCOOP
+         USE MOD_HBONDS, ONLY: ENERGY_HB, MINSEP_HB, KSAT, COOP_ON
          USE MOD_EXCLV, ONLY: ENERGY_EXV
          USE MOD_BASESTACKING, ONLY: NA_STACKV2
          USE NAPARAMS, ONLY: BOCC, BTYPE, BLIST, RCUT2_EXCLV, NBCUT
@@ -100,9 +102,10 @@ MODULE MOD_NONBONDED
          F(1:NOPT) = 0.0D0
          BOCC(1:NRES) = 0
 
-         MANYBODYT = (KSAT.NE.0.0D0).OR.(EPSCOOP.NE.0.0D0)
+         MANYBODYT = (KSAT.NE.0.0D0).OR.COOP_ON
          ESAT_LAST = 0.0D0
          ECOOP_LAST = 0.0D0
+         ECOOP_CLS_LAST(:) = 0.0D0
          ESTAK_PYRPUR_LAST = 0.0D0
          ESTAK_PURPUR_LAST = 0.0D0
          ESTAK_PYRPYR_LAST = 0.0D0
@@ -228,23 +231,24 @@ MODULE MOD_NONBONDED
       !> With the pair energy E_p (<= 0) and the ideal-pair energy EREF of its base types, the occupancy
       !> is o_p = -E_p/EREF and the load of a base n_i = sum over its pairs of o_p.\n
       !> Saturation:   ESAT = KSAT * sum_i max(0, n_i - NSAT0)**2\n
-      !> Cooperativity: ECOOP = -EPSCOOP * sum over stacked pair steps (i,j)-(i+1,j-1) of sigma_p*sigma_q,
-      !> with sigma = s/(1+s**m)**(1/m) of the cWW occupancy s = -E_cWW/EREF.\n
+      !> Cooperativity: ECOOP = -sum over stacked pair steps (i,j)-(i+1,j-1) of EPSCOOP_CLS(c)*sigma_p*sigma_q,
+      !> with sigma = s/(1+s**m)**(1/m) of the cWW occupancy s = -E_cWW/EREF and c the number of G-C pairs
+      !> in the step (all EPSCOOP_CLS = EPSCOOP unless scale entries 28-30 are set).\n
       !> Both depend on the coordinates only through the pair energies, so the force of each pair is its
       !> hydrogen-bond force times W_p = 1 + dESAT/dE_p, plus its cWW force times C_p = dECOOP/dE_cWW,p.
       !>
       !> @param[in] NOPT - number of degrees of freedom
       !> @param[inout] F - forces, the scaled hydrogen-bond forces are added
       SUBROUTINE MANYBODY_HB(NOPT, F)
-         USE MOD_HBONDS, ONLY: KSAT, NSAT0, EPSCOOP, SIGM, COOPSCALE
+         USE MOD_HBONDS, ONLY: KSAT, NSAT0, SIGM, COOPSCALE, COOP_ON, EPSCOOP_CLS, EPSCOOP, COOPCLASS_ON
          USE VAR_DEFS, ONLY: NRES
          IMPLICIT NONE
          INTEGER, INTENT(IN) :: NOPT
          REAL(KIND = REAL64), INTENT(INOUT) :: F(NOPT)
 
-         INTEGER :: P, Q, I, J
+         INTEGER :: P, Q, I, J, C
          REAL(KIND = REAL64) :: NOCC(NRES), HP(NRES), ER(NPAIRS), SIG(NPAIRS), DSIG(NPAIRS)
-         REAL(KIND = REAL64) :: OC, T, W, CF, NEIGH
+         REAL(KIND = REAL64) :: OC, T, W, CF, NEIGH, ESTEP
 
          NOCC(:) = 0.0D0
          DO P=1,NPAIRS
@@ -276,7 +280,12 @@ MODULE MOD_NONBONDED
          DO P=1,NPAIRS
             IF (SIG(P).EQ.0.0D0) CYCLE
             Q = HELIX_NEIGHBOUR(P, 1)
-            IF (Q.GT.0) ECOOP_LAST = ECOOP_LAST - EPSCOOP*COOPSCALE*SIG(P)*SIG(Q)
+            IF (Q.GT.0) THEN
+               C = STEP_CLASS(P, Q)
+               ESTEP = -EPSCOOP_CLS(C)*COOPSCALE*SIG(P)*SIG(Q)
+               ECOOP_LAST = ECOOP_LAST + ESTEP
+               ECOOP_CLS_LAST(C) = ECOOP_CLS_LAST(C) + ESTEP
+            ENDIF
          ENDDO
 
          DO P=1,NPAIRS
@@ -285,14 +294,26 @@ MODULE MOD_NONBONDED
             IF (ER(P).GT.0.0D0) THEN
                ! dESAT/dE_p = -(h'(n_i) + h'(n_j))/EREF
                W = 1.0D0 - (HP(PRES(1,P)) + HP(PRES(2,P)))/ER(P)
-               IF ((EPSCOOP.NE.0.0D0).AND.(DSIG(P).GT.0.0D0)) THEN
+               IF (COOP_ON.AND.(DSIG(P).GT.0.0D0)) THEN
                   NEIGH = 0.0D0
-                  Q = HELIX_NEIGHBOUR(P, 1)
-                  IF (Q.GT.0) NEIGH = NEIGH + SIG(Q)
-                  Q = HELIX_NEIGHBOUR(P, -1)
-                  IF (Q.GT.0) NEIGH = NEIGH + SIG(Q)
-                  ! dECOOP/dE_cWW,p = EPSCOOP*sigma'(s_p)*(sigma of both neighbouring steps)/EREF
-                  CF = EPSCOOP*COOPSCALE*DSIG(P)*NEIGH/ER(P)
+                  IF (COOPCLASS_ON) THEN
+                     ! per-class model: NEIGH = sum over both neighbouring steps of EPSCOOP_CLS(class)*sigma_q
+                     Q = HELIX_NEIGHBOUR(P, 1)
+                     IF (Q.GT.0) NEIGH = NEIGH + EPSCOOP_CLS(STEP_CLASS(P, Q))*SIG(Q)
+                     Q = HELIX_NEIGHBOUR(P, -1)
+                     IF (Q.GT.0) NEIGH = NEIGH + EPSCOOP_CLS(STEP_CLASS(P, Q))*SIG(Q)
+                     ! dECOOP/dE_cWW,p = sigma'(s_p)*(sum of EPSCOOP_CLS*sigma of both neighbouring steps)/EREF
+                     CF = COOPSCALE*DSIG(P)*NEIGH/ER(P)
+                  ELSE
+                     ! single-EPSCOOP model: the original expression, kept verbatim (same model to round-off; with
+                     ! -O3 -ffast-math the compiler may still reorder it, so trajectories are not bit-identical to older builds)
+                     Q = HELIX_NEIGHBOUR(P, 1)
+                     IF (Q.GT.0) NEIGH = NEIGH + SIG(Q)
+                     Q = HELIX_NEIGHBOUR(P, -1)
+                     IF (Q.GT.0) NEIGH = NEIGH + SIG(Q)
+                     ! dECOOP/dE_cWW,p = EPSCOOP*sigma'(s_p)*(sigma of both neighbouring steps)/EREF
+                     CF = EPSCOOP*COOPSCALE*DSIG(P)*NEIGH/ER(P)
+                  ENDIF
                ENDIF
             ENDIF
             CALL ADD_BASE_FORCES(NOPT, F, PATM(1,P), PATM(2,P), PF(:,:,1,P), PF(:,:,2,P), W)
@@ -318,6 +339,29 @@ MODULE MOD_NONBONDED
          IF ((BTYPE(I).LT.1).OR.(BTYPE(I).GT.4).OR.(BTYPE(J).LT.1).OR.(BTYPE(J).GT.4)) RETURN
          ER = EREF_HB(BTYPE(I),BTYPE(J))
       END FUNCTION PAIR_EREF
+
+      !> Class of the pair step formed by stored pairs P and Q: the number of G-C pairs among them (0, 1, 2)
+      FUNCTION STEP_CLASS(P, Q) RESULT(C)
+         IMPLICIT NONE
+         INTEGER, INTENT(IN) :: P, Q
+         INTEGER :: C
+
+         C = 0
+         IF (IS_GC(P)) C = C + 1
+         IF (IS_GC(Q)) C = C + 1
+      END FUNCTION STEP_CLASS
+
+      !> .TRUE. if stored pair P joins a G and a C (RNA base types G 1, C 3)
+      LOGICAL FUNCTION IS_GC(P)
+         USE NAPARAMS, ONLY: BTYPE
+         IMPLICIT NONE
+         INTEGER, INTENT(IN) :: P
+         INTEGER :: TA, TB
+
+         TA = BTYPE(PRES(1,P))
+         TB = BTYPE(PRES(2,P))
+         IS_GC = ((TA.EQ.1).AND.(TB.EQ.3)).OR.((TA.EQ.3).AND.(TB.EQ.1))
+      END FUNCTION IS_GC
 
       !> Stored pair one helix step away from pair P: DIR = 1 gives (i+1, j-1), DIR = -1 gives (i-1, j+1);
       !> 0 if that step leaves either chain or no hydrogen bond was stored for it

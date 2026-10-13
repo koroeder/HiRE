@@ -34,6 +34,13 @@ MODULE MOD_HBONDS
    REAL(KIND = REAL64) :: SIGM = 4.0D0
    !> run-time multiplier of EPSCOOP (Hamiltonian replica exchange along the cooperativity, HIRE_INTERFACE:SET_COOP_SCALING)
    REAL(KIND = REAL64) :: COOPSCALE = 1.0D0
+   !> cooperativity strength per step class, indexed by the number of G-C pairs in the step (0, 1, 2);
+   !> each defaults to EPSCOOP (scale entries 28-30 absent or 0 = the single-EPSCOOP model)
+   REAL(KIND = REAL64) :: EPSCOOP_CLS(0:2) = 0.0D0
+   !> .TRUE. when any class value was set explicitly (entries 28-30): per-class Ecoop columns are logged
+   LOGICAL :: COOPCLASS_ON = .FALSE.
+   !> .TRUE. when the cooperativity term is active in any class
+   LOGICAL :: COOP_ON = .FALSE.
    !> table entry of the canonical cWW pair for RNA base types (G 1, A 2, C 3, U 4), 0 for non-canonical type pairs
    INTEGER, PARAMETER :: CWWIDX(4,4) = RESHAPE((/  0,  0, 10, 14, &
                                                    0,  0,  0,  4, &
@@ -41,6 +48,13 @@ MODULE MOD_HBONDS
                                                   14,  4,  0,  0 /), (/4,4/))
    !> energy of an ideal pair of RNA base types: EPSHB * s(cWW), or EPSHB * max(s) for non-canonical type pairs
    REAL(KIND = REAL64) :: EREF_HB(4,4)
+   !> regularisation of the H-bond angular term near a base-plane normal (scale entry 31; 0 or absent = off, the
+   !> unregularised term). HBNEW builds its angles from RBA projected onto each base plane, normalised by its length
+   !> DRA (DRB); DRA**2 = DBA**2 (1 - ZA**2) -> 0 when the partner lies on the normal, where the angles are undefined
+   !> and the forces carry 1/DRA (MD blow-ups, trackB/B4/hpA_fix/BLOWUP_DIAGNOSTIC.md). When on, the pair energy is
+   !> multiplied by S = SA*SB, SA = 1 - exp(-(1 - ZA**2)/HBREG_EPS): S = 1 to within exp(-1/HBREG_EPS) for partners
+   !> away from the normal, S ~ DRA**2 near it.
+   REAL(KIND = REAL64) :: HBREG_EPS = 0.0D0
 
    CONTAINS
 
@@ -63,6 +77,19 @@ MODULE MOD_HBONDS
          EPSCOOP = SCORE_RNA(23)
          SIGM = SCORE_RNA(24)
          IF (SIGM.LE.0.0D0) SIGM = 4.0D0
+         COOPCLASS_ON = .FALSE.
+         DO TA=0,2
+            IF (SCORE_RNA(28+TA).NE.0.0D0) THEN
+               EPSCOOP_CLS(TA) = SCORE_RNA(28+TA)
+               COOPCLASS_ON = .TRUE.
+            ELSE
+               EPSCOOP_CLS(TA) = EPSCOOP
+            ENDIF
+         ENDDO
+         COOP_ON = ANY(EPSCOOP_CLS.NE.0.0D0)
+         HBREG_EPS = MAX(SCORE_RNA(31), 0.0D0)
+         IF (HBREG_EPS.GT.0.0D0) WRITE(*,'(A,F10.5)') &
+            " set_hbvars> H-bond angular term regularised near base-plane normals, HBREG_EPS ", HBREG_EPS
          ! reference energies need the RNA table, filled before this routine (INIT_FROM_MODS)
          DO TA=1,4
             DO TB=1,4
@@ -73,9 +100,13 @@ MODULE MOD_HBONDS
                ENDIF
             ENDDO
          ENDDO
-         IF ((MINSEP_HB.GT.0).OR.(KSAT.NE.0.0D0).OR.(EPSCOOP.NE.0.0D0)) THEN
+         IF ((MINSEP_HB.GT.0).OR.(KSAT.NE.0.0D0).OR.(EPSCOOP.NE.0.0D0).OR.COOP_ON) THEN
             WRITE(*,'(A,I3,4(A,F10.4))') " set_hbvars> many-body H-bond terms: MINSEP ", MINSEP_HB, &
                "  KSAT ", KSAT, "  NSAT0 ", NSAT0, "  EPSCOOP ", EPSCOOP, "  SIGM ", SIGM
+         ENDIF
+         IF (COOPCLASS_ON) THEN
+            WRITE(*,'(A,3F10.4)') " set_hbvars> per-class helix cooperativity EPSCOOP (0, 1, 2 G-C pairs per step):", &
+               EPSCOOP_CLS(0), EPSCOOP_CLS(1), EPSCOOP_CLS(2)
          ENDIF
       END SUBROUTINE SET_HBVARS
 
@@ -326,6 +357,8 @@ MODULE MOD_HBONDS
          INTEGER, INTENT(IN) :: CWWPAR
          REAL(KIND = REAL64), INTENT(OUT) :: ECWW, FACWW(3,3), FBCWW(3,3)
          REAL(KIND = REAL64) :: FASAVE(3,3), FBSAVE(3,3)
+         REAL(KIND = REAL64) :: SW, SWA, SWB, DSA_U(3), DSA_V(3), DSA_R(3), DSB_U(3), DSB_V(3), DSB_R(3), &
+                                DSA(3,3), DSB(3,3)
 
          REAL(KIND = REAL64), PARAMETER :: REGCUT = 1.0D-3  !Regularisation cutoff  D-7
          
@@ -564,6 +597,46 @@ MODULE MOD_HBONDS
         ENDDO
         IF (EHHB .GE. REGCUT) RETURN      !! TEST HB EXISTANCE 06-04-2012
          HBEXIST = .TRUE.
+         ! optional regularisation near base-plane normals (HBREG_EPS, see the module header); the pair selection
+         ! above is unchanged, the switch only scales the accepted energy and forces (FA, FB are forces, -dE/dx)
+         IF (HBREG_EPS.GT.0.0D0) THEN
+            CALL NORMAL_SWITCH(UA, VA, RBA, DBA, SWA, DSA_U, DSA_V, DSA_R)
+            CALL NORMAL_SWITCH(UB, VB, RBA, DBA, SWB, DSB_U, DSB_V, DSB_R)
+            SW = SWA*SWB
+            ! dS/dx per bead, column order as FA/FB: 1 = A3 (B3), 2 = A2 (B2), 3 = A1 (B1)
+            DSA(:,1) = SWB*(DSA_R + DSA_U) + SWA*DSB_R
+            DSA(:,2) = -SWB*(DSA_U + DSA_V)
+            DSA(:,3) = SWB*DSA_V
+            DSB(:,1) = -SWB*DSA_R + SWA*(DSB_U - DSB_R)
+            DSB(:,2) = -SWA*(DSB_U + DSB_V)
+            DSB(:,3) = SWA*DSB_V
+            FA = SW*FA - EHHB*DSA
+            FB = SW*FB - EHHB*DSB
+            FACWW = SW*FACWW - ECWW*DSA
+            FBCWW = SW*FBCWW - ECWW*DSB
+            EHHB = SW*EHHB
+            ECWW = SW*ECWW
+         ENDIF
       END SUBROUTINE HBNEW
+
+      !> Switch S = 1 - exp(-(1 - Z**2)/HBREG_EPS) on Z = (R . N0)/|R|, N0 the unit normal of U x V, and its
+      !> gradients with respect to U, V and R (HBNEW regularisation)
+      SUBROUTINE NORMAL_SWITCH(U, V, R, DR, S, DSDU, DSDV, DSDR)
+         USE VEC_UTILS
+         REAL(KIND = REAL64), INTENT(IN) :: U(3), V(3), R(3), DR
+         REAL(KIND = REAL64), INTENT(OUT) :: S, DSDU(3), DSDV(3), DSDR(3)
+         REAL(KIND = REAL64) :: N(3), N0(3), DN, Z, EW, DSDZ, G(3)
+         N = CROSSPRODUCT(U, V)
+         DN = SQRT(DOT_PRODUCT(N, N))
+         N0 = N/DN
+         Z = DOT_PRODUCT(R, N0)/DR
+         EW = EXP(-(1.0D0 - Z*Z)/HBREG_EPS)
+         S = 1.0D0 - EW
+         DSDZ = -2.0D0*Z*EW/HBREG_EPS
+         DSDR = DSDZ*(N0/DR - Z*R/(DR*DR))
+         G = (R - DOT_PRODUCT(R, N0)*N0)/(DR*DN)           ! dZ/dN
+         DSDU = DSDZ*CROSSPRODUCT(V, G)
+         DSDV = DSDZ*CROSSPRODUCT(G, U)
+      END SUBROUTINE NORMAL_SWITCH
 
 END MODULE MOD_HBONDS

@@ -13,7 +13,11 @@ MODULE NAparams
    ! scale factors on the per-class stacking well depth SK in MOD_BASESTACKING:STACKPARAMS2.
    ! A value of exactly 0 (including a missing/short file) is interpreted as 1 (no change),
    ! since these entries did not exist before and the stacking term must stay on by default.
-   INTEGER, PARAMETER :: SCORESIZE=27
+   ! 28 EPSCOOP_GC0, 29 EPSCOOP_GC1, 30 EPSCOOP_GC2: helix-cooperativity strength per class of pair step,
+   ! by the number of G-C pairs in the step (MOD_HBONDS:SET_HBVARS). A value of exactly 0 (including a
+   ! missing/short file) means "use the global EPSCOOP (entry 23)", so older scale files give the
+   ! single-EPSCOOP model unchanged.
+   INTEGER, PARAMETER :: SCORESIZE=31
    !> HiRE potential parameters given in scale.dat
    REAL(KIND = REAL64) :: SCORE_RNA(SCORESIZE)
 

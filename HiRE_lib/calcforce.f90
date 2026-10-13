@@ -45,6 +45,11 @@ MODULE CALCFORCES
       REAL(KIND = REAL64) :: ESTAKYY
       !> Total energy
       REAL(KIND = REAL64) :: ETOT
+      !> helix cooperativity per step class, 0, 1, 2 G-C pairs per step (diagnostic subsets of ECOOP;
+      !> written to md_edecomp only with per-class EPSCOOP set, scale entries 28-30)
+      REAL(KIND = REAL64) :: ECOOP0
+      REAL(KIND = REAL64) :: ECOOP1
+      REAL(KIND = REAL64) :: ECOOP2
    END TYPE POT_ENE
 
    !> vector containing the energy contributions
@@ -72,7 +77,7 @@ MODULE CALCFORCES
          USE MOD_ANGLES, ONLY: ENERGY_ALL_ANGLES
          USE MOD_DIHEDRALS, ONLY: ENERGY_DIHS
          USE MOD_DEBYEHUECKEL, ONLY: DH_ENERGY
-         USE MOD_NONBONDED, ONLY: E_NONBONDED, ESAT_LAST, ECOOP_LAST, &
+         USE MOD_NONBONDED, ONLY: E_NONBONDED, ESAT_LAST, ECOOP_LAST, ECOOP_CLS_LAST, &
                                   ESTAK_PYRPUR_LAST, ESTAK_PURPUR_LAST, ESTAK_PYRPYR_LAST
          USE MOD_SUGARBASE, ONLY: E_SUGARBASE
          USE MOD_SAXS, ONLY: RNA_SAXS_FORCE
@@ -125,6 +130,9 @@ MODULE CALCFORCES
          ETOT = ETOT + (ESAT_LAST + ECOOP_LAST)*SCALING(5)
          EVEC%ESAT = ESAT_LAST*SCALING(5)
          EVEC%ECOOP = ECOOP_LAST*SCALING(5)
+         EVEC%ECOOP0 = ECOOP_CLS_LAST(0)*SCALING(5)
+         EVEC%ECOOP1 = ECOOP_CLS_LAST(1)*SCALING(5)
+         EVEC%ECOOP2 = ECOOP_CLS_LAST(2)*SCALING(5)
          !6. Sugar-base interaction
          CALL E_SUGARBASE(NOPT, X, THIS_F, THIS_E)
          ETOT = ETOT + THIS_E*SCALING(8)
@@ -209,6 +217,9 @@ MODULE CALCFORCES
          ENEPOT%ESTAKRR = 0.0D0
          ENEPOT%ESTAKYY = 0.0D0
          ENEPOT%ETOT = 0.0D0
+         ENEPOT%ECOOP0 = 0.0D0
+         ENEPOT%ECOOP1 = 0.0D0
+         ENEPOT%ECOOP2 = 0.0D0
       END SUBROUTINE RESET_POT_ENE
 
       !> Printing debug information
@@ -219,6 +230,7 @@ MODULE CALCFORCES
       !> @param[in] EUNIT - output file unit
       !> @param[in] ENEPOT - energy vector to be printed out
       SUBROUTINE PRINT_POT_ENE(EUNIT,ENEPOT)
+         USE MOD_HBONDS, ONLY: COOPCLASS_ON
          TYPE(POT_ENE), INTENT(IN) :: ENEPOT
          INTEGER, INTENT(IN) :: EUNIT
          
@@ -239,6 +251,11 @@ MODULE CALCFORCES
          WRITE(EUNIT, '(A,F15.5)') " Estakrr:", ENEPOT%ESTAKRR
          WRITE(EUNIT, '(A,F15.5)') " Estakyy:", ENEPOT%ESTAKYY
          WRITE(EUNIT, '(A,F15.5)') " Etot:   ", ENEPOT%ETOT
+         IF (COOPCLASS_ON) THEN
+            WRITE(EUNIT, '(A,F15.5)') " Ecoop0: ", ENEPOT%ECOOP0
+            WRITE(EUNIT, '(A,F15.5)') " Ecoop1: ", ENEPOT%ECOOP1
+            WRITE(EUNIT, '(A,F15.5)') " Ecoop2: ", ENEPOT%ECOOP2
+         ENDIF
       END SUBROUTINE PRINT_POT_ENE
 
       !> Write the column header for PRINT_POT_ENE_LINE's one-row-per-call format
@@ -248,11 +265,20 @@ MODULE CALCFORCES
       !>
       !> @param[in] EUNIT - output file unit
       SUBROUTINE WRITE_POT_ENE_HEADER(EUNIT)
+         USE MOD_HBONDS, ONLY: COOPCLASS_ON
          INTEGER, INTENT(IN) :: EUNIT
 
-         WRITE(EUNIT, '(A10,17(1X,A15))') "#Step", "Ebond", "Eangle", "Etors", "Edh", &
+         ! with per-class EPSCOOP (scale entries 28-30) three columns are appended after Etot;
+         ! otherwise the format is unchanged
+         IF (COOPCLASS_ON) THEN
+            WRITE(EUNIT, '(A10,20(1X,A15))') "#Step", "Ebond", "Eangle", "Etors", "Edh", &
+                        "Ehbond", "Evdw", "Estak", "Esb", "Esaxs", "Edistr", "Eposr", "Esat", "Ecoop", &
+                        "Estakpp", "Estakrr", "Estakyy", "Etot", "Ecoop0", "Ecoop1", "Ecoop2"
+         ELSE
+            WRITE(EUNIT, '(A10,17(1X,A15))') "#Step", "Ebond", "Eangle", "Etors", "Edh", &
                         "Ehbond", "Evdw", "Estak", "Esb", "Esaxs", "Edistr", "Eposr", "Esat", "Ecoop", &
                         "Estakpp", "Estakrr", "Estakyy", "Etot"
+         ENDIF
       END SUBROUTINE WRITE_POT_ENE_HEADER
 
       !> Print energy decomposition as a single row, for time-series diagnostics
@@ -266,14 +292,23 @@ MODULE CALCFORCES
       !> @param[in] CURRSTEP - step number to prefix the row with
       !> @param[in] ENEPOT - energy vector to be printed out
       SUBROUTINE PRINT_POT_ENE_LINE(EUNIT, CURRSTEP, ENEPOT)
+         USE MOD_HBONDS, ONLY: COOPCLASS_ON
          TYPE(POT_ENE), INTENT(IN) :: ENEPOT
          INTEGER, INTENT(IN) :: EUNIT
          INTEGER, INTENT(IN) :: CURRSTEP
 
-         WRITE(EUNIT, '(I10,17(1X,F15.7))') CURRSTEP, ENEPOT%EBOND, ENEPOT%EANGLES, &
+         IF (COOPCLASS_ON) THEN
+            WRITE(EUNIT, '(I10,20(1X,F15.7))') CURRSTEP, ENEPOT%EBOND, ENEPOT%EANGLES, &
+                        ENEPOT%ETORS, ENEPOT%EDH, ENEPOT%EHBOND, ENEPOT%EVDW, ENEPOT%ESTAK, &
+                        ENEPOT%ESB, ENEPOT%ESAXS, ENEPOT%EDISTR, ENEPOT%EPOSR, ENEPOT%ESAT, ENEPOT%ECOOP, &
+                        ENEPOT%ESTAKPP, ENEPOT%ESTAKRR, ENEPOT%ESTAKYY, ENEPOT%ETOT, &
+                        ENEPOT%ECOOP0, ENEPOT%ECOOP1, ENEPOT%ECOOP2
+         ELSE
+            WRITE(EUNIT, '(I10,17(1X,F15.7))') CURRSTEP, ENEPOT%EBOND, ENEPOT%EANGLES, &
                         ENEPOT%ETORS, ENEPOT%EDH, ENEPOT%EHBOND, ENEPOT%EVDW, ENEPOT%ESTAK, &
                         ENEPOT%ESB, ENEPOT%ESAXS, ENEPOT%EDISTR, ENEPOT%EPOSR, ENEPOT%ESAT, ENEPOT%ECOOP, &
                         ENEPOT%ESTAKPP, ENEPOT%ESTAKRR, ENEPOT%ESTAKYY, ENEPOT%ETOT
+         ENDIF
       END SUBROUTINE PRINT_POT_ENE_LINE
 
 END MODULE CALCFORCES
